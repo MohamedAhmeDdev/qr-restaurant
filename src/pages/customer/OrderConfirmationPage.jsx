@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { 
   CheckCircle2, Utensils, Bike, Sparkles, Home, AlertCircle, 
 } from 'lucide-react';
-import '../../customer.css';
+import '../../Customer.css';
 import OrderSummaryCard from '../../components/cards/CollapseItemSummaryCard';
 
 export default function OrderConfirmationPage() {

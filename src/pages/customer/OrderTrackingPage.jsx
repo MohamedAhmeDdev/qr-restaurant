@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Utensils, Bike, Check, ChefHat, Sparkles } from 'lucide-react';
-import '../../customer.css';
+import '../../Customer.css';
 import OrderSummaryCard from '../../components/cards/CollapseItemSummaryCard';
 
 

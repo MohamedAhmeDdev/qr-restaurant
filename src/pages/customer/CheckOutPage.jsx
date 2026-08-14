@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ShieldCheck, Smartphone, Phone } from 'lucide-react';
-import '../../customer.css';
+import '../../Customer.css';
 import StickyBottomBar from '../../components/StickyBottomBar';
 import OrderSummaryCard from '../../components/cards/CollapseItemSummaryCard';
 

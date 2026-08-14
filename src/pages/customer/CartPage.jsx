@@ -4,7 +4,7 @@ import {
   ArrowLeft, Trash2, ShoppingBag, 
   Pencil, ArrowRight
 } from 'lucide-react';
-import '../../customer.css';
+import '../../Customer.css';
 import StickyBottomBar from '../../components/StickyBottomBar';
 
 // --- MOCK INITIAL CART DATA ---
