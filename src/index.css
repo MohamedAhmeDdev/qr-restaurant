@@ -1,1 +1,49 @@
 @import "tailwindcss";
+
+/* Define class-based dark mode variant in Tailwind v4 */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Tailwind v4 Theme Variables */
+@theme {
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-forest: var(--forest);
+  --color-forest-deep: var(--forest-deep);
+  --color-brass: var(--brass);
+  --color-brass-soft: var(--brass-soft);
+  --color-rust: var(--rust);
+  --color-sage: var(--sage);
+  --color-hairline: var(--hairline);
+
+  --font-serif: 'Fraunces', Georgia, serif;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Light / Base Theme Values */
+:root {
+  --paper: #F6F1E4;
+  --ink: #26241E;
+  --ink-soft: #6E6B5C;
+  --forest: #223027;
+  --forest-deep: #182019;
+  --brass: #B3894B;
+  --brass-soft: #DCC79A;
+  --rust: #8B3E2B;
+  --sage: #737F67;
+  --hairline: #DED4BC;
+}
+
+/* Dark Theme Overrides (applies when class="dark" is on <html>) */
+/* .dark {
+  --paper: #161a17;
+  --ink: #F6F1E4;
+  --ink-soft: #A8A395;
+  --forest: #2A3B30;
+  --forest-deep: #0D120E;
+  --brass: #DCC79A;
+  --brass-soft: #B3894B;
+  --rust: #A64B35;
+  --sage: #8A967E;
+  --hairline: #2E3630;
+} */
