@@ -7,18 +7,16 @@ import {
 } from 'lucide-react';
 
 const navigation = [ 
-  { name: 'Dashboard', href: '/super-admin/dashboard', icon: LayoutDashboard }, 
   { name: 'Tenants', href: '/super-admin/tenants', icon: Building2 }, 
-  { name: 'Restaurants', href: '/super-admin/restaurants', icon: UtensilsCrossed }, 
   { name: 'Admin Users', href: '/super-admin/admins', icon: Users }, 
   { 
     name: 'Access Control', 
     icon: Shield,
     // No href here because it's a parent container
     subItems: [
-      { name: 'Roles', href: '/super-admin/roles', icon: FileText },
       { name: 'Permissions', href: '/super-admin/permissions', icon: Key },
-      { name: 'Assign Access', href: '/super-admin/assign-permissions', icon: Shield },
+      { name: 'Roles', href: '/super-admin/roles', icon: FileText },
+     
     ]
   },
   { name: 'Settings', href: '/super-admin/settings', icon: Settings }, 
@@ -153,7 +151,7 @@ export default function SuperAdminSidebar({ mobileOpen, setMobileOpen, collapsed
                       ${collapsed ? 'lg:hidden' : ''}
                     `}
                   >
-                    <div className="pl-4 space-y-1 border-l border-gray-200 dark:border-slate-700 ml-5">
+                    <div className="pl-4 space-y-1 border-l border-gray-200 dark:border-slate-700 transition-colors duration-300 ml-5">
                       {item.subItems.map((subItem) => {
                         const isSubActive = location.pathname.startsWith(subItem.href);
                         return (

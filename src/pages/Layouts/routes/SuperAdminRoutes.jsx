@@ -6,8 +6,7 @@ import Layout from '../Layout';
 import SuperAdminSidebar from '../sidebar/SuperAdminSidebar';
 
 // Import Pages
-import DashboardPage from '../../superAdmin/DashboardPage';
-import TenantsPage from '../../superAdmin/Restaurants/Tenants';
+import Tenants from '../../superAdmin/Restaurants/Tenants';
 import RestaurantList from '../../superAdmin/Restaurants/RestaurantList';
 import RolesPage from '../../superAdmin/roles/Roles';
 import CreateRole from '../../superAdmin/roles/CreateRole';
@@ -17,18 +16,16 @@ import CreatePermission from '../../superAdmin/permission/CreatePermission';
 import EditPermission from '../../superAdmin/permission/EditPermission';
 import AdminList from '../../superAdmin/AdminList';
 import AssignPermissions from '../../superAdmin/AssignPermissions';
-import SettingsPage from '../../superAdmin/Settings';
+import SettingsPage from '../../settings/Layout/SettingsPage';
 
 export const SuperAdminRoutes = () => {
   return (
-    <Route element={<Layout SidebarComponent={SuperAdminSidebar} />}>
-      <Route path="/super-admin/dashboard" element={<DashboardPage />} />
-      
+    <Route element={<Layout SidebarComponent={SuperAdminSidebar} />}>      
       {/* Tenant Management */}
-      <Route path="/super-admin/tenants" element={<TenantsPage />} />
+      <Route path="/super-admin/tenants" element={<Tenants />} />
       
       {/* Restaurant Management */}
-      <Route path="/super-admin/restaurants" element={<RestaurantList />} />
+      <Route path="/super-admin/restaurants/:id" element={<RestaurantList />} />
       
       {/* User Management */}
       <Route path="/super-admin/admins" element={<AdminList />} />
@@ -42,7 +39,7 @@ export const SuperAdminRoutes = () => {
       <Route path="/super-admin/permissions" element={<PermissionsPage />} />
       <Route path="/super-admin/permissions/create" element={<CreatePermission />} />
       <Route path="/super-admin/permissions/edit/:id" element={<EditPermission />} />
-      <Route path="/super-admin/assign-permissions" element={<AssignPermissions />} />
+      <Route path="/super-admin/assign-permissions/:id" element={<AssignPermissions />} />
       
       {/* Settings */}
       <Route path="/super-admin/settings" element={<SettingsPage />} />
