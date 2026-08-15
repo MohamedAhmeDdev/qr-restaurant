@@ -1,256 +1,350 @@
-import React, { useState, useEffect } from 'react'; 
-import { NavLink, useLocation } from 'react-router-dom'; 
-import { 
-  LayoutDashboard, Building2, Users, Shield, Key, Settings, 
-  UtensilsCrossed, ShoppingCart, QrCode, BarChart3, X, ChefHat, 
-  LogOut, PanelLeftClose, PanelLeftOpen, FileText, ChevronDown 
+import React, { useState, useEffect, useRef } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
+import {
+  Building2,
+  Users,
+  Shield,
+  Key,
+  Settings,
+  UtensilsCrossed,
+  X,
+  LogOut,
+  PanelLeftClose,
+  PanelLeftOpen,
+  FileText,
+  ChevronDown,
+  ChevronRight
 } from 'lucide-react';
 
-const navigation = [ 
-  { name: 'Tenants', href: '/super-admin/tenants', icon: Building2 }, 
-  { name: 'Admin Users', href: '/super-admin/admins', icon: Users }, 
-  { 
-    name: 'Access Control', 
+const navigation = [
+  { name: 'Tenants', href: '/super-admin/tenants', icon: Building2 },
+  { name: 'Admin Users', href: '/super-admin/admins', icon: Users },
+  {
+    name: 'Access Control',
     icon: Shield,
-    // No href here because it's a parent container
     subItems: [
       { name: 'Permissions', href: '/super-admin/permissions', icon: Key },
       { name: 'Roles', href: '/super-admin/roles', icon: FileText },
-     
     ]
   },
-  { name: 'Settings', href: '/super-admin/settings', icon: Settings }, 
+  { name: 'Settings', href: '/super-admin/settings', icon: Settings },
 ];
 
-export default function SuperAdminSidebar({ mobileOpen, setMobileOpen, collapsed, setCollapsed }) { 
-  const location = useLocation(); 
-  
-  // State to track which submenu is open (by index or name)
-  const [openSubmenu, setOpenSubmenu] = useState(null);
+const COLLAPSED_WIDTH = 72;
 
-  // Auto-expand submenu if the current route matches a sub-item
+export default function SuperAdminSidebar({ mobileOpen, setMobileOpen, collapsed, setCollapsed }) {
+  const location = useLocation();
+
+  // Tracks active submenu for inline expand (desktop uncollapsed)
+  const [openInlineSubmenu, setOpenInlineSubmenu] = useState(null);
+
+  // Tracks active floating popover submenu { index, top }
+  const [activePopover, setActivePopover] = useState(null);
+  const popoverRef = useRef(null);
+
+  // Tracks hover tooltip for collapsed items { label, top }
+  const [tooltip, setTooltip] = useState(null);
+
+  // Auto-expand inline submenu if current route matches sub-item
   useEffect(() => {
     navigation.forEach((item, index) => {
       if (item.subItems) {
         const isSubItemActive = item.subItems.some(sub => location.pathname.startsWith(sub.href));
         if (isSubItemActive) {
-          setOpenSubmenu(index);
+          setOpenInlineSubmenu(index);
         }
       }
     });
   }, [location.pathname]);
 
-  const toggleSubmenu = (index) => {
-    setOpenSubmenu(openSubmenu === index ? null : index);
+  // Close floating popover submenu on route change
+  useEffect(() => {
+    setActivePopover(null);
+  }, [location.pathname]);
+
+  // Handle outside clicks to close popovers
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (popoverRef.current && !popoverRef.current.contains(event.target)) {
+        setActivePopover(null);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const toggleSubmenu = (index, e) => {
+    if (collapsed) {
+      setTooltip(null);
+      if (activePopover?.index === index) {
+        setActivePopover(null);
+        return;
+      }
+      const rect = e.currentTarget.getBoundingClientRect();
+      setActivePopover({ index, top: rect.top, height: rect.height });
+    } else {
+      setOpenInlineSubmenu(openInlineSubmenu === index ? null : index);
+    }
   };
 
-  return ( 
-    <> 
-      {mobileOpen && ( 
-        <div  
-          className="fixed inset-0 z-40 bg-gray-900/50 backdrop-blur-sm lg:hidden transition-opacity duration-300"  
-          onClick={() => setMobileOpen(false)} 
-        /> 
-      )} 
- 
-      <aside  
+  const showTooltip = (e, label) => {
+    if (!collapsed) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    setTooltip({ label, top: rect.top + rect.height / 2 });
+  };
+
+  const hideTooltip = () => setTooltip(null);
+
+  return (
+    <>
+      {/* Mobile Backdrop Overlay */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-slate-900/60 backdrop-blur-sm lg:hidden transition-opacity duration-300"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      <aside
         className={` 
           fixed inset-y-0 left-0 z-50 flex flex-col 
           bg-white dark:bg-slate-900 
-          text-gray-900 dark:text-white 
-          border-r border-gray-200/80 dark:border-slate-700/50 
-          transition-[width,transform,background-color,border-color] duration-300 ease-in-out 
+          text-slate-900 dark:text-white 
+          border-r border-slate-200/80 dark:border-slate-800 
+          transition-all duration-300 ease-in-out 
           w-64 ${mobileOpen ? "translate-x-0" : "-translate-x-full"} 
           lg:translate-x-0 lg:static lg:z-auto 
           ${collapsed ? "lg:w-[72px]" : "lg:w-64"} 
-        `} 
-      > 
-        {/* --- Header / Logo Area --- */} 
-        <div className={`flex items-center h-16 border-b border-gray-200/80 dark:border-slate-700/50 px-4 transition-colors duration-300 ${collapsed ? 'lg:justify-center lg:px-0' : 'lg:justify-between'}`}> 
-          <div className={`flex items-center gap-2 font-bold text-xl tracking-tight overflow-hidden whitespace-nowrap ${collapsed ? 'lg:hidden' : ''}`}> 
-            <UtensilsCrossed className="w-7 h-7 text-orange-500 flex-shrink-0" /> 
-            <span>RestoPOS</span> 
-          </div> 
- 
-          <button  
-            onClick={() => setMobileOpen(false)} 
-            className="lg:hidden text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white flex-shrink-0 transition-colors duration-200" 
-          > 
-            <X className="w-6 h-6" /> 
-          </button> 
- 
-          <button  
-            onClick={() => setCollapsed(!collapsed)} 
-            className="hidden lg:flex items-center justify-center w-9 h-9 rounded-lg text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white transition-colors duration-200" 
-          > 
-            {collapsed ? <PanelLeftOpen className="w-5 h-5" /> : <PanelLeftClose className="w-5 h-5" />} 
-          </button> 
-        </div> 
+        `}
+      >
+        {/* --- Header / Logo Area --- */}
+        <div className={`flex items-center justify-between h-16 border-b border-slate-200/80 dark:border-slate-800 px-4 ${collapsed ? 'lg:justify-center lg:px-0' : ''}`}>
+          <div className={`flex items-center gap-2.5 font-bold text-xl tracking-tight overflow-hidden whitespace-nowrap ${collapsed ? 'lg:hidden' : ''}`}>
+            <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-orange-500/10 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400">
+              <UtensilsCrossed className="w-5 h-5" />
+            </div>
+            <span className="bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
+              RestoPOS
+            </span>
+          </div>
 
-        {/* --- Navigation Links --- */} 
-        <nav className={`flex-1 py-4 space-y-1 overflow-y-auto overflow-x-hidden scrollbar-hide ${collapsed ? 'lg:px-2' : 'px-3'}`}> 
-          {navigation.map((item, index) => { 
-            // Check if this specific item is active (for non-subitems)
+          {/* Mobile Close Button */}
+          <button
+            onClick={() => setMobileOpen(false)}
+            className="lg:hidden ml-auto text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white p-1 rounded-lg transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+
+          {/* Desktop Collapse Toggle Button */}
+          <button
+            onClick={() => {
+              setCollapsed(!collapsed);
+              setActivePopover(null);
+              setTooltip(null);
+            }}
+            className="hidden lg:flex items-center justify-center w-8 h-8 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors"
+            title={collapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+          >
+            {collapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
+          </button>
+        </div>
+
+        {/* --- Navigation Links --- */}
+        <nav className={`flex-1 py-4 space-y-1.5 overflow-y-auto overflow-x-hidden scrollbar-none ${collapsed ? 'lg:px-2' : 'px-3'}`}>
+          {navigation.map((item, index) => {
             const isActive = item.href ? location.pathname === item.href : false;
-            
-            // Check if any subitem is active (for parent highlighting)
             const isSubItemActive = item.subItems?.some(sub => location.pathname.startsWith(sub.href));
-            const isParentActive = isSubItemActive;
-            
-            // Determine if submenu should be open
-            const isSubmenuOpen = openSubmenu === index;
+            const isInlineOpen = openInlineSubmenu === index;
+            const isPopoverOpen = activePopover?.index === index;
 
             // 1. RENDER PARENT WITH SUBITEMS
             if (item.subItems) {
               return (
-                <div key={item.name} className="space-y-1">
-                  {/* Parent Button */}
+                <div key={item.name} className="relative">
                   <button
-                    onClick={() => !collapsed && toggleSubmenu(index)}
+                    onClick={(e) => toggleSubmenu(index, e)}
+                    onMouseEnter={(e) => !isPopoverOpen && showTooltip(e, item.name)}
+                    onMouseLeave={hideTooltip}
                     className={`
-                      relative flex items-center w-full rounded-lg transition-all duration-200 group
-                      ${collapsed ? 'lg:justify-center lg:h-11 lg:w-11 lg:mx-auto lg:px-0' : 'px-3 py-2.5'} 
-                      ${isParentActive  
-                        ? "bg-orange-500/10 text-orange-600 dark:text-orange-400"  
-                        : "text-gray-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800/80 hover:text-gray-900 dark:hover:text-white" 
+                      relative flex items-center w-full rounded-xl transition-all duration-200 group
+                      ${collapsed ? 'lg:justify-center lg:h-11 lg:w-11 lg:mx-auto' : 'px-3 py-2.5'} 
+                      ${isSubItemActive || isPopoverOpen
+                        ? "bg-orange-500/10 text-orange-600 dark:text-orange-400 font-medium"
+                        : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white"
                       } 
                     `}
                   >
-                    {isParentActive && !collapsed && (
-                      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-orange-500 rounded-r-md"></div>
+                    {isSubItemActive && !collapsed && (
+                      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-orange-500 rounded-r-full" />
                     )}
 
-                    <div className="relative flex-shrink-0 flex items-center justify-center">
-                      <item.icon className={`w-5 h-5 transition-colors duration-200 ${isParentActive ? 'text-orange-600 dark:text-orange-400' : 'text-gray-500 dark:text-slate-400 group-hover:text-gray-900 dark:group-hover:text-white'}`} />
+                    <div className="flex-shrink-0 flex items-center justify-center">
+                      <item.icon className={`w-5 h-5 transition-colors ${isSubItemActive || isPopoverOpen ? 'text-orange-600 dark:text-orange-400' : 'text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200'}`} />
                     </div>
 
-                    <span className={`flex-1 text-left text-sm font-medium whitespace-nowrap transition-all duration-200 ${collapsed ? 'lg:opacity-0 lg:w-0 lg:overflow-hidden lg:ml-0' : 'ml-3'}`}>
+                    <span className={`flex-1 text-left text-sm whitespace-nowrap transition-all duration-200 ${collapsed ? 'lg:hidden' : 'ml-3'}`}>
                       {item.name}
                     </span>
 
-                    {/* Chevron Icon (Hidden when collapsed) */}
-                    {!collapsed && (
-                      <ChevronDown 
-                        className={`w-4 h-4 transition-transform duration-200 ${isSubmenuOpen ? 'rotate-180' : ''} ${isParentActive ? 'text-orange-500' : 'text-gray-400'}`} 
-                      />
-                    )}
-
-                    {/* Tooltip for collapsed mode */}
-                    {collapsed && (
-                      <div className="hidden lg:block absolute left-full ml-4 px-2.5 py-1.5 bg-white dark:bg-slate-800 text-gray-900 dark:text-white text-sm rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 shadow-xl border border-gray-200 dark:border-slate-700">
-                        {item.name}
-                      </div>
-                    )}
+                    <ChevronDown
+                      className={`w-4 h-4 transition-transform duration-200 ${collapsed ? 'hidden' : ''} ${isInlineOpen ? 'rotate-180' : ''} ${isSubItemActive ? 'text-orange-500' : 'text-slate-400'}`}
+                    />
                   </button>
 
-                  {/* Submenu Items (Accordion) */}
-                  <div 
-                    className={`
-                      overflow-hidden transition-all duration-300 ease-in-out
-                      ${isSubmenuOpen && !collapsed ? 'max-h-96 opacity-100 mt-1' : 'max-h-0 opacity-0'}
-                      ${collapsed ? 'lg:hidden' : ''}
-                    `}
-                  >
-                    <div className="pl-4 space-y-1 border-l border-gray-200 dark:border-slate-700 transition-colors duration-300 ml-5">
-                      {item.subItems.map((subItem) => {
-                        const isSubActive = location.pathname.startsWith(subItem.href);
-                        return (
-                          <NavLink
-                            key={subItem.name}
-                            to={subItem.href}
-                            onClick={() => setMobileOpen(false)}
-                            className={`
-                              flex items-center px-3 py-2 rounded-lg text-sm transition-all duration-200 group relative
-                              ${isSubActive
-                                ? "bg-orange-50 text-orange-600 dark:bg-orange-900/20 dark:text-orange-400 font-medium"
-                                : "text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white"
-                              }
-                            `}
-                          >
-                            {/* Active Dot Indicator */}
-                            {isSubActive && (
-                              <div className="absolute -left-[21px] top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-orange-500 border-2 border-white dark:border-slate-900"></div>
-                            )}
-                            
-                            <subItem.icon className={`w-4 h-4 mr-2 ${isSubActive ? 'text-orange-500' : 'text-gray-400 group-hover:text-gray-600'}`} />
-                            {subItem.name}
-                          </NavLink>
-                        );
-                      })}
+                  {/* B. Expanded Inline Accordion Submenu */}
+                  {!collapsed && (
+                    <div
+                      className={`
+                        overflow-hidden transition-all duration-300 ease-in-out
+                        ${isInlineOpen ? 'max-h-96 opacity-100 mt-1' : 'max-h-0 opacity-0'}
+                      `}
+                    >
+                      <div className="pl-4 space-y-1 border-l-2 border-slate-100 dark:border-slate-800 ml-5 my-1">
+                        {item.subItems.map((subItem) => {
+                          const isSubActive = location.pathname.startsWith(subItem.href);
+                          return (
+                            <NavLink
+                              key={subItem.name}
+                              to={subItem.href}
+                              onClick={() => setMobileOpen(false)}
+                              className={`
+                                flex items-center px-3 py-2 rounded-lg text-sm transition-all duration-150 group relative
+                                ${isSubActive
+                                  ? "text-orange-600 dark:text-orange-400 font-medium bg-orange-50/50 dark:bg-orange-500/10"
+                                  : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-white"
+                                }
+                              `}
+                            >
+                              <subItem.icon className={`w-4 h-4 mr-2.5 ${isSubActive ? 'text-orange-500' : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300'}`} />
+                              {subItem.name}
+                            </NavLink>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               );
             }
 
             // 2. RENDER STANDARD LINK (No Subitems)
-            return ( 
-              <NavLink 
-                key={item.name} 
-                to={item.href} 
-                onClick={() => setMobileOpen(false)} 
+            return (
+              <NavLink
+                key={item.name}
+                to={item.href}
+                onClick={() => setMobileOpen(false)}
+                onMouseEnter={(e) => showTooltip(e, item.name)}
+                onMouseLeave={hideTooltip}
                 className={` 
-                  relative flex items-center rounded-lg transition-all duration-200 group
-                  ${collapsed ? 'lg:justify-center lg:h-11 lg:w-11 lg:mx-auto lg:px-0' : 'px-3 py-2.5'} 
-                  ${isActive  
-                    ? "bg-orange-500/10 text-orange-600 dark:text-orange-400"  
-                    : "text-gray-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800/80 hover:text-gray-900 dark:hover:text-white" 
+                  relative flex items-center rounded-xl transition-all duration-200 group
+                  ${collapsed ? 'lg:justify-center lg:h-11 lg:w-11 lg:mx-auto' : 'px-3 py-2.5'} 
+                  ${isActive
+                    ? "bg-orange-500/10 text-orange-600 dark:text-orange-400 font-medium"
+                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white"
                   } 
-                `} 
-              > 
-                {isActive && ( 
-                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-orange-500 rounded-r-md"></div> 
-                )} 
- 
-                <div className="relative flex-shrink-0 flex items-center justify-center"> 
-                  <item.icon className={`w-5 h-5 transition-colors duration-200 ${isActive ? 'text-orange-600 dark:text-orange-400' : 'text-gray-500 dark:text-slate-400 group-hover:text-gray-900 dark:group-hover:text-white'}`} /> 
-                   
-                  {item.badge && ( 
-                    <span className={`absolute -top-1.5 -right-1.5 bg-red-500 text-white font-bold rounded-full leading-none border-2 border-white dark:border-slate-900 flex items-center justify-center transition-colors duration-300 ${ 
-                      collapsed ? 'lg:w-2.5 lg:h-2.5 lg:p-0' : 'text-[10px] px-1.5 py-0.5' 
-                    }`}> 
-                      <span className={collapsed ? 'lg:hidden' : ''}>{item.badge}</span> 
-                    </span> 
-                  )} 
-                </div> 
- 
-                <span className={`text-sm font-medium whitespace-nowrap transition-all duration-200 ${collapsed ? 'lg:opacity-0 lg:w-0 lg:overflow-hidden lg:ml-0' : 'ml-3'}`}> 
-                  {item.name} 
-                </span> 
- 
-                {collapsed && ( 
-                  <div className="hidden lg:block absolute left-full ml-4 px-2.5 py-1.5 bg-white dark:bg-slate-800 text-gray-900 dark:text-white text-sm rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 shadow-xl border border-gray-200 dark:border-slate-700 flex items-center gap-2"> 
-                    {item.name} 
-                    {item.badge && <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 rounded-full flex items-center justify-center h-4">{item.badge}</span>} 
-                  </div> 
-                )} 
-              </NavLink> 
-            ); 
-          })} 
-        </nav> 
- 
-        {/* --- Footer / Logout --- */} 
-        <div className={`p-3 border-t border-gray-200/80 dark:border-slate-700/50 flex transition-colors duration-300 ${collapsed ? 'lg:justify-center lg:p-2' : ''}`}> 
-          <button  
+                `}
+              >
+                {isActive && !collapsed && (
+                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-orange-500 rounded-r-full" />
+                )}
+
+                <div className="flex-shrink-0 flex items-center justify-center">
+                  <item.icon className={`w-5 h-5 transition-colors ${isActive ? 'text-orange-600 dark:text-orange-400' : 'text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200'}`} />
+                </div>
+
+                <span className={`text-sm whitespace-nowrap transition-all duration-200 ${collapsed ? 'lg:hidden' : 'ml-3'}`}>
+                  {item.name}
+                </span>
+              </NavLink>
+            );
+          })}
+        </nav>
+
+        {/* --- Footer / Logout --- */}
+        <div className={`p-3 border-t border-slate-200/80 dark:border-slate-800 ${collapsed ? 'lg:justify-center lg:p-2' : ''}`}>
+          <button
+            onMouseEnter={(e) => showTooltip(e, 'Sign Out')}
+            onMouseLeave={hideTooltip}
             className={` 
-              flex items-center rounded-lg w-full text-sm font-medium text-gray-600 dark:text-slate-400 hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400 transition-all duration-200 group relative
-              ${collapsed ? 'lg:justify-center lg:h-10 lg:w-10 lg:p-0' : 'gap-3 px-3 py-2'} 
-            `} 
-          > 
-            <LogOut className="w-5 h-5 flex-shrink-0" /> 
-             
-            <span className={`whitespace-nowrap transition-all duration-200 ${collapsed ? 'lg:opacity-0 lg:w-0 lg:overflow-hidden lg:ml-0' : 'ml-3'}`}> 
-              Sign Out 
-            </span> 
- 
-            {collapsed && ( 
-              <div className="hidden lg:block absolute left-full ml-4 px-2.5 py-1.5 bg-white dark:bg-slate-800 text-gray-900 dark:text-white text-sm rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 shadow-xl border border-gray-200 dark:border-slate-700"> 
-                Sign Out 
-              </div> 
-            )} 
-          </button> 
-        </div> 
-      </aside> 
-    </> 
-  ); 
+              flex items-center rounded-xl w-full text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400 transition-all duration-200 group relative
+              ${collapsed ? 'lg:justify-center lg:h-10 lg:w-10' : 'gap-3 px-3 py-2.5'} 
+            `}
+          >
+            <LogOut className="w-5 h-5 flex-shrink-0 text-slate-400 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors" />
+
+            <span className={`whitespace-nowrap transition-all duration-200 ${collapsed ? 'lg:hidden' : ''}`}>
+              Sign Out
+            </span>
+          </button>
+        </div>
+      </aside>
+
+      {/* --- Floating Hover Tooltip (collapsed desktop only) --- */}
+      {/* Rendered fixed to the viewport so it always escapes the nav's overflow clipping */}
+      {collapsed && tooltip && !activePopover && (
+        <div
+          className="hidden lg:flex fixed z-[60] items-center -translate-y-1/2 pointer-events-none animate-in fade-in slide-in-from-left-1 duration-150"
+          style={{ top: tooltip.top, left: COLLAPSED_WIDTH + 10 }}
+        >
+          <div className="w-2 h-2 rotate-45 bg-slate-900 dark:bg-slate-100 -mr-1 shrink-0" />
+          <div className="px-3 py-1.5 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 text-xs font-semibold rounded-lg shadow-lg whitespace-nowrap">
+            {tooltip.label}
+          </div>
+        </div>
+      )}
+
+      {/* --- Floating Submenu Popover (collapsed desktop only) --- */}
+      {collapsed && activePopover && (
+        <div
+          ref={popoverRef}
+          className="hidden lg:block fixed z-[60] animate-in fade-in zoom-in-95 slide-in-from-left-1 duration-150"
+          style={{ top: activePopover.top - 8, left: COLLAPSED_WIDTH + 12 }}
+        >
+          {/* Connector arrow, aligned to the trigger button's vertical center */}
+          <div
+            className="absolute w-2.5 h-2.5 rotate-45 bg-white dark:bg-slate-800 border-l border-b border-slate-100 dark:border-slate-700/60"
+            style={{ top: 8 + (activePopover.height ?? 44) / 2 - 5, left: -5 }}
+          />
+
+          <div className="relative w-56 rounded-2xl bg-white dark:bg-slate-800 p-2 shadow-xl shadow-slate-900/10 dark:shadow-black/30 ring-1 ring-slate-900/5 dark:ring-white/10 border border-slate-100 dark:border-slate-700/60 overflow-hidden">
+            <div className="flex items-center gap-2.5 px-2.5 py-2 mb-1">
+              <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-orange-500/10 dark:bg-orange-500/15 text-orange-600 dark:text-orange-400 shrink-0">
+                <Shield className="w-3.5 h-3.5" />
+              </div>
+              <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                {navigation[activePopover.index]?.name}
+              </span>
+            </div>
+
+            <div className="space-y-0.5">
+              {navigation[activePopover.index]?.subItems.map((subItem) => {
+                const isSubActive = location.pathname.startsWith(subItem.href);
+                return (
+                  <NavLink
+                    key={subItem.name}
+                    to={subItem.href}
+                    onClick={() => setActivePopover(null)}
+                    className={`
+                      flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm transition-colors duration-150
+                      ${isSubActive
+                        ? "bg-orange-500/10 text-orange-600 dark:text-orange-400 font-medium"
+                        : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-white"
+                      }
+                    `}
+                  >
+                    <span className={`flex items-center justify-center w-6 h-6 rounded-md shrink-0 ${isSubActive ? 'text-orange-500' : 'text-slate-400'}`}>
+                      <subItem.icon className="w-4 h-4" />
+                    </span>
+                    <span>{subItem.name}</span>
+                    {isSubActive && <ChevronRight className="w-3.5 h-3.5 ml-auto text-orange-400" />}
+                  </NavLink>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
 }
