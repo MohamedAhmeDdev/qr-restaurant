@@ -10,6 +10,11 @@ import CheckOutPage from './pages/customer/CheckOutPage';
 import { AdminRoutes } from './pages/Layouts/routes/AdminRoutes';
 import { SuperAdminRoutes } from './pages/Layouts/routes/SuperAdminRoutes';
 import OrderConfirmationPage from './pages/customer/OrderConfirmationPage';
+import Login from './pages/authentication/Login';
+import ForgotPassword from './pages/authentication/ForgotPassword';
+import Register from './pages/authentication/Register';
+import ResetPassword from './pages/authentication/ResetPassword';
+import TwoFactorAuthentication from './pages/authentication/TwoFactorAuthentication';
 
 
 // Import the route modules
@@ -19,13 +24,20 @@ function App() {
     <BrowserRouter>
       <Routes>
         
-        {/* Root redirect */}
-        <Route path="/" element={<MenuPage/>} />
-        <Route path="/item/:itemId" element={<ItemDetailPage/>} />
-        <Route path="/cart" element={<CartPage/>} />
-        <Route path="/checkout" element={<CheckOutPage/>} />
-        <Route path="/order-confirmation" element={<OrderConfirmationPage/>} />
-        <Route path="/order-tracking/:orderId" element={<OrderTrackingPage/>} />
+     {/* 1. PUBLIC CUSTOMER ROUTES */}
+        <Route path="/" element={<MenuPage />} />
+        <Route path="/item/:itemId" element={<ItemDetailPage />} />
+        <Route path="/cart" element={<CartPage />} />
+        <Route path="/checkout" element={<CheckOutPage />} />
+        <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
+        <Route path="/order-tracking/:orderId" element={<OrderTrackingPage />} />
+
+        {/* 2. PUBLIC STAFF AUTH ROUTES */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/two-factor-authentication" element={<TwoFactorAuthentication />} />
+        <Route path="/register" element={<Register />} />
 
         {/* 🌟 Inject the Modules */}
        {AdminRoutes()}
