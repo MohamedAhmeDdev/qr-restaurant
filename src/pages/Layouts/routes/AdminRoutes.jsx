@@ -1,18 +1,29 @@
-// src/pages/Layouts/routes/AdminRoutes.jsx
-import React from 'react';
-import { Route } from 'react-router-dom';
+import React, { lazy } from 'react';
+import { Navigate } from 'react-router-dom';
 
 import Layout from '../Layout';
+import { ProtectedRoute } from '../../../utils/ProtectedRoute';
 import AdminSidebar from '../sidebar/AdminSidebar';
 
-import DashboardPage from '../../restaurant/DashboardPage';
-import OrdersPage from '../../restaurant/OrdersPage';
+const Switcher = lazy(() => import('../../restaurant/Switcher'));
+const DashboardPage = lazy(() => import('../../restaurant/DashboardPage'));
+const OrdersPage = lazy(() => import('../../restaurant/OrdersPage'));
+const SettingsPage = lazy(() => import('../../settings/Layout/SettingsPage'));
 
-export const AdminRoutes = () => {
-  return (
-    <Route element={<Layout SidebarComponent={AdminSidebar} />}>
-      <Route path="/admin/dashboard" element={<DashboardPage />} />
-      <Route path="/admin/orders" element={<OrdersPage />} />
-    </Route>
-  );
+export const AdminRoutes = {
+  path: '/',
+  element: <ProtectedRoute allowedRoles={['restaurant_admin']} />,
+  children: [
+    { path: 'switcher', element: <Switcher /> },
+    {
+      path: 'r/:restaurantSlug',
+      element: <Layout SidebarComponent={AdminSidebar} />,
+      children: [
+        { index: true, element: <Navigate to="dashboard" replace /> },
+        { path: 'dashboard', element: <DashboardPage /> },
+        { path: 'orders', element: <OrdersPage /> },
+        { path: 'settings', element: <SettingsPage /> },
+      ],
+    },
+  ],
 };

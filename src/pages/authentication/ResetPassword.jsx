@@ -1,13 +1,21 @@
 import React, { useState } from 'react';
-import { Eye, EyeOff, ArrowRight, KeyRound, Check, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, ArrowRight, Check, AlertCircle } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import toast from 'react-hot-toast';
+import api from '../../services/api';
 
 function ResetPassword() {
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get('token') || '';
+  const email = searchParams.get('email') || '';
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   const checks = [
     { label: 'At least 8 characters', valid: password.length >= 8 },
@@ -16,25 +24,34 @@ function ResetPassword() {
   ];
 
   const passwordsMatch = confirm.length > 0 && password === confirm;
-  const canSubmit = checks.every((c) => c.valid) && passwordsMatch;
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!canSubmit) return;
+
+    if (!token || !email) {
+      const msg = 'Invalid reset URL token or email parameter.';
+      setError(msg);
+      toast.error(msg);
+      return;
+    }
 
     setIsLoading(true);
     setError('');
-    
+
     try {
-      // Your password reset API call here
-      console.log('Resetting password to:', password);
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      // Handle successful password reset
-      // You would typically redirect to login page here
-      console.log('Password reset successful');
+      const response = await api.post('/reset-password', {
+        token,
+        email,
+        password,
+        password_confirmation: confirm,
+      });
+
+      toast.success(response.data.message);
+      navigate('/login');
     } catch (err) {
-      setError(err.message || 'Failed to reset password. Please try again.');
+      const message = err.response?.data?.message;
+      setError(message);
     } finally {
       setIsLoading(false);
     }
@@ -42,16 +59,13 @@ function ResetPassword() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 font-sans relative overflow-hidden flex items-center justify-center px-6 py-16">
-
       <div className="relative z-10 w-full max-w-sm space-y-9">
-        {/* Logo */}
         <div className="flex items-center justify-center gap-2">
           <span className="text-lg font-bold tracking-tight text-white">
             QR<span className="text-orange-500">Restaurant</span>
           </span>
         </div>
 
-        {/* Form Container */}
         <div className="space-y-6">
           <div className="space-y-2">
             <h1 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
@@ -62,7 +76,6 @@ function ResetPassword() {
             </p>
           </div>
 
-          {/* Error Banner */}
           {error && (
             <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-medium flex items-center gap-2">
               <AlertCircle className="w-4 h-4 flex-shrink-0" />
@@ -70,11 +83,7 @@ function ResetPassword() {
             </div>
           )}
 
-          <form
-            onSubmit={handleSubmit}
-            className="space-y-4"
-          >
-            {/* New Password */}
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
               <label className="block text-xs font-medium text-slate-400 tracking-wide uppercase">
                 New password 
@@ -94,7 +103,6 @@ function ResetPassword() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-orange-400 transition-colors"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -102,7 +110,6 @@ function ResetPassword() {
               </div>
             </div>
 
-            {/* Confirm Password */}
             <div className="space-y-1.5">
               <label className="block text-xs font-medium text-slate-400 tracking-wide uppercase">
                 Confirm password 
@@ -126,7 +133,6 @@ function ResetPassword() {
                 <button
                   type="button"
                   onClick={() => setShowConfirm(!showConfirm)}
-                  aria-label={showConfirm ? 'Hide password' : 'Show password'}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-orange-400 transition-colors"
                 >
                   {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -140,7 +146,6 @@ function ResetPassword() {
               )}
             </div>
 
-            {/* Password requirements */}
             <div className="flex flex-col gap-1.5 pt-1">
               {checks.map((check) => (
                 <span
@@ -157,7 +162,7 @@ function ResetPassword() {
 
             <button
               type="submit"
-              disabled={!canSubmit || isLoading}
+              disabled={ isLoading}
               className="w-full group flex items-center justify-center gap-2 py-3 bg-orange-500 hover:bg-orange-400 disabled:bg-slate-800 disabled:text-slate-500 disabled:shadow-none text-white font-semibold rounded-xl text-sm transition-all shadow-lg shadow-orange-500/25 !mt-6 cursor-pointer disabled:cursor-not-allowed"
             >
               {isLoading ? (

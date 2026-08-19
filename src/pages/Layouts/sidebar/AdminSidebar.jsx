@@ -16,13 +16,13 @@ import {
 } from 'lucide-react'; 
  
 const navigation = [ 
-  { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard }, 
-  { name: 'Live Orders', href: '/admin/orders', icon: ShoppingCart, badge: '3' }, 
-  { name: 'Kitchen Display', href: '/admin/kitchen', icon: ChefHat }, 
-  { name: 'Menu Management', href: '/admin/menu', icon: UtensilsCrossed }, 
-  { name: 'QR Codes & Tables', href: '/admin/tables', icon: QrCode }, 
-  { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 }, 
-  { name: 'Settings', href: '/admin/settings', icon: Settings }, 
+  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard }, 
+  { name: 'Live Orders', href: '/orders', icon: ShoppingCart, badge: '3' }, 
+  { name: 'Kitchen Display', href: '/kitchen', icon: ChefHat }, 
+  { name: 'Menu Management', href: '/menu', icon: UtensilsCrossed }, 
+  { name: 'QR Codes & Tables', href: '/tables', icon: QrCode }, 
+  { name: 'Analytics', href: '/analytics', icon: BarChart3 }, 
+  { name: 'Settings', href: '/settings', icon: Settings }, 
 ]; 
  
 export default function AdminSidebar({ mobileOpen, setMobileOpen, collapsed, setCollapsed }) { 

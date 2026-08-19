@@ -1,48 +1,42 @@
-// src/pages/Layouts/routes/SuperAdminRoutes.jsx
-import React from 'react';
-import { Route } from 'react-router-dom';
+import React, { lazy } from 'react';
+import { Navigate } from 'react-router-dom';
 
 import Layout from '../Layout';
 import SuperAdminSidebar from '../sidebar/SuperAdminSidebar';
+import { ProtectedRoute } from '../../../utils/ProtectedRoute';
 
-// Import Pages
-import Tenants from '../../superAdmin/Restaurants/Tenants';
-import RestaurantList from '../../superAdmin/Restaurants/RestaurantList';
-import RolesPage from '../../superAdmin/roles/Roles';
-import CreateRole from '../../superAdmin/roles/CreateRole';
-import EditRole from '../../superAdmin/roles/EditRole';
-import PermissionsPage from '../../superAdmin/permission/Permissions';
-import CreatePermission from '../../superAdmin/permission/CreatePermission';
-import EditPermission from '../../superAdmin/permission/EditPermission';
-import AdminList from '../../superAdmin/AdminList';
-import AssignPermissions from '../../superAdmin/AssignPermissions';
-import SettingsPage from '../../settings/Layout/SettingsPage';
+const Tenants = lazy(() => import('../../superAdmin/Restaurants/Tenants'));
+const RestaurantList = lazy(() => import('../../superAdmin/Restaurants/RestaurantList'));
+const AdminList = lazy(() => import('../../superAdmin/AdminList'));
+const RolesPage = lazy(() => import('../../superAdmin/roles/Roles'));
+const CreateRole = lazy(() => import('../../superAdmin/roles/CreateRole'));
+const EditRole = lazy(() => import('../../superAdmin/roles/EditRole'));
+const PermissionsPage = lazy(() => import('../../superAdmin/permission/Permissions'));
+const CreatePermission = lazy(() => import('../../superAdmin/permission/CreatePermission'));
+const EditPermission = lazy(() => import('../../superAdmin/permission/EditPermission'));
+const AssignPermissions = lazy(() => import('../../superAdmin/AssignPermissions'));
+const SettingsPage = lazy(() => import('../../settings/Layout/SettingsPage'));
 
-export const SuperAdminRoutes = () => {
-  return (
-    <Route element={<Layout SidebarComponent={SuperAdminSidebar} />}>      
-      {/* Tenant Management */}
-      <Route path="/super-admin/tenants" element={<Tenants />} />
-      
-      {/* Restaurant Management */}
-      <Route path="/super-admin/restaurants/:id" element={<RestaurantList />} />
-      
-      {/* User Management */}
-      <Route path="/super-admin/admins" element={<AdminList />} />
-      
-      {/* RBAC - Roles */}
-      <Route path="/super-admin/roles" element={<RolesPage />} />
-      <Route path="/super-admin/roles/create" element={<CreateRole />} />
-      <Route path="/super-admin/roles/edit/:id" element={<EditRole />} />
-      
-      {/* RBAC - Permissions */}
-      <Route path="/super-admin/permissions" element={<PermissionsPage />} />
-      <Route path="/super-admin/permissions/create" element={<CreatePermission />} />
-      <Route path="/super-admin/permissions/edit/:id" element={<EditPermission />} />
-      <Route path="/super-admin/assign-permissions/:id" element={<AssignPermissions />} />
-      
-      {/* Settings */}
-      <Route path="/super-admin/settings" element={<SettingsPage />} />
-    </Route>
-  );
+export const SuperAdminRoutes = {
+  path: '/',
+  element: <ProtectedRoute allowedRoles={['super_admin']} />,
+  children: [
+    {
+      element: <Layout SidebarComponent={SuperAdminSidebar} />,
+      children: [
+        { index: true, element: <Navigate to="tenants" replace /> },
+        { path: 'tenants', element: <Tenants /> },
+        { path: 'restaurants/:id', element: <RestaurantList /> },
+        { path: 'admins', element: <AdminList /> },
+        { path: 'roles', element: <RolesPage /> },
+        { path: 'roles/create', element: <CreateRole /> },
+        { path: 'roles/edit/:id', element: <EditRole /> },
+        { path: 'permissions', element: <PermissionsPage /> },
+        { path: 'permissions/create', element: <CreatePermission /> },
+        { path: 'permissions/edit/:id', element: <EditPermission /> },
+        { path: 'assign-permissions/:id', element: <AssignPermissions /> },
+        { path: 'settings', element: <SettingsPage /> },
+      ],
+    },
+  ],
 };

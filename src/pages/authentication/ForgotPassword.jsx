@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { ArrowRight, ArrowLeft, Mail, CheckCircle2, AlertCircle } from 'lucide-react';
+import { ArrowRight, ArrowLeft, CheckCircle2, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
+import api from '../../services/api';
 
 function ForgotPassword() {
   const [email, setEmail] = useState('');
@@ -26,15 +28,13 @@ function ForgotPassword() {
 
     setIsLoading(true);
     setError('');
-    
+
     try {
-      // Your password reset API call here
-      console.log('Sending reset link to:', email);
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const response = await api.post('/forgot-password', { email });
       setSent(true);
+      toast.success(response.data.message);
     } catch (err) {
-      setError(err.message || 'Failed to send reset link. Please try again.');
+      const message = err.response?.data?.message;
     } finally {
       setIsLoading(false);
     }
@@ -43,8 +43,6 @@ function ForgotPassword() {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 font-sans relative overflow-hidden flex items-center justify-center px-6 py-16">
       <div className="relative z-10 w-full max-w-sm space-y-9">
-        
-        {/* Logo */}
         <div className="flex items-center justify-center gap-2">
           <span className="text-lg font-bold tracking-tight text-white">
             QR<span className="text-orange-500">Restaurant</span>
@@ -62,10 +60,8 @@ function ForgotPassword() {
               </p>
             </div>
 
-            {/* Error Banner */}
             {error && (
               <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-medium flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 flex-shrink-0" />
                 {error}
               </div>
             )}
@@ -91,7 +87,7 @@ function ForgotPassword() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full group flex items-center justify-center gap-2 py-3 bg-orange-500 hover:bg-orange-400 disabled:bg-orange-500/50 disabled:cursor-not-allowed text-white font-semibold rounded-xl text-sm transition-all shadow-lg shadow-orange-500/25"
+                className="w-full group flex items-center justify-center gap-2 py-3 bg-orange-500 hover:bg-orange-400 disabled:bg-orange-500/50 disabled:cursor-not-allowed text-white font-semibold rounded-xl text-sm transition-all shadow-lg shadow-orange-500/25 cursor-pointer"
               >
                 {isLoading ? (
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -107,15 +103,12 @@ function ForgotPassword() {
         ) : (
           <div className="space-y-6">
             <div className="space-y-2">
-              <div className="w-11 h-11 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center mb-4">
-                <CheckCircle2 className="w-6 h-6 text-orange-400" />
-              </div>
               <h1 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
                 Check your inbox
               </h1>
               <p className="text-sm text-slate-400 leading-relaxed">
-                We sent a password reset link to{' '}
-                <span className="text-slate-200 font-medium">{email}</span>. It expires in 15 minutes.
+                We sent a password reset link to :{' '}
+                <span className="text-slate-200  font-medium">{email}</span>.
               </p>
             </div>
 
@@ -126,14 +119,13 @@ function ForgotPassword() {
                 setEmail('');
                 setError('');
               }}
-              className="text-xs text-orange-400 hover:text-orange-300 font-medium transition-colors"
+              className="text-xs text-orange-400 hover:text-orange-300 font-medium transition-colors cursor-pointer"
             >
               Didn't get it? Send again
             </button>
           </div>
         )}
 
-        {/* Back Link - Updated to use Link component */}
         <div className="pt-2">
           <Link
             to="/login"
