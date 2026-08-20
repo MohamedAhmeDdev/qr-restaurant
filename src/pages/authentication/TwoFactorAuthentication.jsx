@@ -55,7 +55,7 @@ function TwoFactorAuthentication({ email, onVerified, onBack }) {
       const response = await api.post('/verify-2fa', { email, code });
       onVerified(response.data);
     } catch (err) {
-      const message = err?.response?.data?.message || 'Invalid code. Please try again.';
+      const message = err?.response?.data?.message;
       setError(message);
     } finally {
       setIsVerifying(false);
@@ -66,10 +66,10 @@ function TwoFactorAuthentication({ email, onVerified, onBack }) {
     try {
       await api.post('/forgot-password', { email });
       setResent(true);
-      toast.success('A new 2FA code has been sent to your email.');
+        toast.success(result.message);
       setTimeout(() => setResent(false), 5000);
     } catch (err) {
-      toast.error(err?.response?.data?.message || 'Failed to resend code.');
+      toast.error(err?.response?.data?.message);
     }
   };
 

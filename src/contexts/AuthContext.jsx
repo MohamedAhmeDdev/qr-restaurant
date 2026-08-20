@@ -55,12 +55,16 @@ export const AuthProvider = ({ children }) => {
       api.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
       setUser(data.user);
 
-      return { success: true, user: data.user };
+      return { 
+        success: true, 
+        user: data.user,
+        message: data.message
+      };
 
     } catch (error) {
       return {
         success: false,
-        error: error?.response?.data?.message || 'Login failed',
+        error: error?.response?.data?.message,
       };
     }
   };
@@ -86,22 +90,30 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   // Register function
-  const register = useCallback(async (userData) => {
-    try {
-      setLoading(true);
-      setError(null);
+// Register function - cleaned up version
+const register = useCallback(async (userData) => {
+  try {
+    const { data } = await api.post('/register', userData);
 
-      const { data } = await api.post('/register', userData);
-
-      return { success: true, user: data.user };
-    } catch (err) {
-      const message = err.response?.data?.message || err.message || 'Registration failed';
-      setError(message);
-      return { success: false, error: message };
-    } finally {
-      setLoading(false);
+    if (data.token) {
+      localStorage.setItem('authToken', data.token);
+      api.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
+      setUser(data.user);
     }
-  }, []);
+
+    return { 
+      success: true, 
+      user: data.user,
+      token: data.token,  
+      message: data.message
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error?.response?.data?.errors || error?.response?.data?.message,
+    };
+  }
+}, []);
 
   // Update user profile (local only)
   const updateUser = useCallback((updatedData) => {

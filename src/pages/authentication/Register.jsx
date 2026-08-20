@@ -1,12 +1,25 @@
-import React, { useState } from 'react';
-import { Eye, EyeOff, ArrowRight, Check, AlertCircle, Loader2, Store, User } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Eye, EyeOff, ArrowRight, Check, AlertCircle, Loader2, Store, User, Lock, Mail } from 'lucide-react';
+import { Link, useNavigate, useSearchParams, useLocation } from 'react-router-dom'; 
 import toast from 'react-hot-toast';
 import { useAuth } from '../../contexts/AuthContext';
+import api from '../../services/api';
+import { getDefaultRouteForRole } from '../../utils/getDefaultRouteForRole';
 
 function Register() {
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get('token');
+
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isVerifyingToken, setIsVerifyingToken] = useState(true);
+
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { register } = useAuth();
+
+  // 🔥 Same redirect pattern as Login
+  const from = location.state?.from?.pathname || '/';
 
   const [form, setForm] = useState({
     name: '',
@@ -14,19 +27,51 @@ function Register() {
     restaurantName: '',
     restaurantSlug: '',
     password: '',
+    password_confirmation: '',
   });
 
   const [errors, setErrors] = useState({});
-  const navigate = useNavigate();
-  const { register } = useAuth();
+
+  // Password validation criteria
+  const passwordChecks = [
+    { label: 'At least 8 characters', valid: form.password.length >= 8 },
+    { label: 'One number', valid: /\d/.test(form.password) },
+    { label: 'One uppercase letter', valid: /[A-Z]/.test(form.password) },
+  ];
+
+  // Verify invitation token on mount & set verified email
+  useEffect(() => {
+    const verifyInviteToken = async () => {
+      if (!token) {
+        setErrors({ general: 'Invitation token is missing or invalid.' });
+        setIsVerifyingToken(false);
+        return;
+      }
+
+      try {
+        const { data } = await api.get(`/verify-invite?token=${token}`);
+        if (data.valid) {
+          setForm((prev) => ({ ...prev, email: data.email }));
+        }
+      } catch (err) {
+        setErrors({
+          general: err?.response?.data?.message || 'Invalid or expired invitation token.',
+        });
+      } finally {
+        setIsVerifyingToken(false);
+      }
+    };
+
+    verifyInviteToken();
+  }, [token]);
 
   const update = (key) => (e) => {
     const value = e.target.value;
 
     if (key === 'restaurantName') {
-      // Auto-generate slug from restaurant name
       const generatedSlug = value
         .toLowerCase()
+        .trim()
         .replace(/[^a-z0-9 -]/g, '')
         .replace(/\s+/g, '-')
         .replace(/-+/g, '-');
@@ -36,46 +81,44 @@ function Register() {
         restaurantName: value,
         restaurantSlug: generatedSlug,
       }));
+    } else if (key === 'password') {
+      setForm((prev) => ({
+        ...prev,
+        password: value,
+        password_confirmation: value,
+      }));
     } else {
       setForm((prev) => ({ ...prev, [key]: value }));
     }
 
-    // Clear errors when user types
     if (errors[key] || errors.general) {
       setErrors((prev) => ({ ...prev, [key]: '', general: '' }));
     }
   };
 
-  const passwordChecks = [
-    { label: 'At least 8 characters', valid: form.password.length >= 8 },
-    { label: 'One number', valid: /\d/.test(form.password) },
-  ];
-
   const validateForm = () => {
     const newErrors = {};
 
-    if (!form.name.trim()) {
-      newErrors.name = 'Admin name is required';
+    if (!token) {
+      newErrors.general = 'Valid invitation token is required to register.';
     }
 
-    if (!form.email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(form.email)) {
-      newErrors.email = 'Please enter a valid email address';
+    if (!form.name.trim()) {
+      newErrors.name = 'Admin name is required';
     }
 
     if (!form.restaurantName.trim()) {
       newErrors.restaurantName = 'Restaurant name is required';
     }
 
-    if (!form.restaurantSlug.trim()) {
-      newErrors.restaurantSlug = 'Restaurant slug is required';
-    }
-
     if (!form.password) {
       newErrors.password = 'Password is required';
     } else if (form.password.length < 8) {
       newErrors.password = 'Password must be at least 8 characters';
+    } else if (!/\d/.test(form.password)) {
+      newErrors.password = 'Password must contain at least one number';
+    } else if (!/[A-Z]/.test(form.password)) {
+      newErrors.password = 'Password must contain at least one uppercase letter';
     }
 
     setErrors(newErrors);
@@ -90,11 +133,11 @@ function Register() {
     setErrors({});
 
     try {
- 
       const userData = {
+        token,
         name: form.name,
-        email: form.email,
         password: form.password,
+        password_confirmation: form.password_confirmation,
         restaurant_name: form.restaurantName,
         restaurant_slug: form.restaurantSlug,
       };
@@ -103,27 +146,45 @@ function Register() {
 
       if (result.success) {
         toast.success(result.message);
-        // Redirect to dashboard or switcher
-        navigate(`/r/${form.restaurantSlug}/dashboard`);
+       const redirectPath =  getDefaultRouteForRole(result.user?.role);
+  navigate(redirectPath, { replace: true });
       } else {
-        setErrors({ general: result.error });
-        toast.error(result.error);
+        if (typeof result.error === 'object') {
+          setErrors(result.error);
+        } else {
+          setErrors({ general: result.error });
+        }
       }
     } catch (error) {
-      console.error(error);
-      setErrors({ general: 'An unexpected error occurred.' });
+      const serverErrors = error?.response?.data?.errors;
+      if (serverErrors) {
+        setErrors({
+          name: serverErrors.name?.[0],
+          restaurantName: serverErrors.restaurant_name?.[0],
+          general: error?.response?.data?.message,
+        });
+      } else {
+        setErrors({ general: 'An unexpected error occurred.' });
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
+  if (isVerifyingToken) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white space-y-3">
+        <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
+        <p className="text-xs text-slate-400">Verifying invitation link...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 font-sans relative overflow-hidden">
       <div className="relative z-10 min-h-screen flex flex-col lg:flex-row-reverse items-stretch">
-        
         <div className="w-full lg:w-1/2 flex items-center justify-center min-h-screen lg:min-h-0 px-6 sm:px-12 py-16">
           <div className="w-full max-w-md space-y-8">
-            
             <div className="flex items-center justify-center gap-2">
               <span className="text-lg font-bold tracking-tight text-white">
                 QR<span className="text-orange-500">Restaurant</span>
@@ -132,10 +193,10 @@ function Register() {
 
             <div className="space-y-2">
               <h1 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
-                Create Admin Account
+                Complete Registration
               </h1>
               <p className="text-sm text-slate-400">
-                Register your restaurant and create your admin profile.
+                Set up your account and restaurant details to access your dashboard.
               </p>
             </div>
 
@@ -170,24 +231,24 @@ function Register() {
                 )}
               </div>
 
-              {/* Email */}
+              {/* Email (Read-Only) */}
               <div className="space-y-1.5">
-                <label className="block text-xs font-medium text-slate-400 tracking-wide uppercase">
-                  Email Address <span className="text-orange-500">*</span>
+                <label className="block text-xs font-medium text-slate-400 tracking-wide uppercase flex items-center justify-between">
+                  <span>Email Address</span>
+                  <span className="text-[10px] text-orange-400 border border-orange-500/30 bg-orange-500/10 px-1.5 py-0.5 rounded">
+                    Verified
+                  </span>
                 </label>
-                <input
-                  type="email"
-                  value={form.email}
-                  onChange={update('email')}
-                  placeholder="admin@restaurant.com"
-                  className="w-full px-4 py-3.5 bg-slate-900/60 border border-slate-800 rounded-xl text-sm text-white placeholder-slate-600 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
-                />
-                {errors.email && (
-                  <div className="flex items-center gap-1.5 text-red-400 text-xs mt-1">
-                    <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
-                    <span>{errors.email}</span>
-                  </div>
-                )}
+                <div className="relative">
+                  <input
+                    type="email"
+                    value={form.email}
+                    readOnly
+                    tabIndex={-1}
+                    className="w-full pl-10 pr-4 py-3.5 bg-slate-900/30 border border-slate-800/80 rounded-xl text-sm text-slate-400 cursor-not-allowed outline-none select-none"
+                  />
+                  <Mail className="w-4 h-4 text-slate-600 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                </div>
               </div>
 
               {/* Restaurant Name */}
@@ -205,10 +266,15 @@ function Register() {
                   />
                   <Store className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 </div>
-                {errors.restaurantName && (
+                {form.restaurantSlug && (
+                  <p className="text-[11px] text-slate-500 font-mono pl-1">
+                    Slug: <span className="text-slate-400">{form.restaurantSlug}</span>
+                  </p>
+                )}
+                {(errors.restaurantName || errors.restaurant_slug) && (
                   <div className="flex items-center gap-1.5 text-red-400 text-xs mt-1">
                     <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
-                    <span>{errors.restaurantName}</span>
+                    <span>{errors.restaurantName || errors.restaurant_slug}</span>
                   </div>
                 )}
               </div>
@@ -224,8 +290,9 @@ function Register() {
                     value={form.password}
                     onChange={update('password')}
                     placeholder="Create a secure password"
-                    className="w-full pl-4 pr-11 py-3.5 bg-slate-900/60 border border-slate-800 rounded-xl text-sm text-white placeholder-slate-600 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
+                    className="w-full pl-10 pr-11 py-3.5 bg-slate-900/60 border border-slate-800 rounded-xl text-sm text-white placeholder-slate-600 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
                   />
+                  <Lock className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
@@ -235,6 +302,7 @@ function Register() {
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
+
                 {errors.password && (
                   <div className="flex items-center gap-1.5 text-red-400 text-xs mt-1">
                     <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
@@ -242,16 +310,17 @@ function Register() {
                   </div>
                 )}
 
-                {form.password.length > 0 && !errors.password && (
-                  <div className="flex gap-4 pt-1">
+                {/* Dynamic Password Validation Checks */}
+                {form.password.length > 0 && (
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1.5">
                     {passwordChecks.map((check) => (
                       <span
                         key={check.label}
-                        className={`flex items-center gap-1 text-xs transition-colors ${
-                          check.valid ? 'text-orange-400' : 'text-slate-600'
+                        className={`flex items-center gap-1 text-[11px] transition-colors ${
+                          check.valid ? 'text-orange-400 font-medium' : 'text-slate-600'
                         }`}
                       >
-                        <Check className="w-3 h-3" />
+                        <Check className="w-3 h-3 flex-shrink-0" />
                         {check.label}
                       </span>
                     ))}

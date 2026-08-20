@@ -4,6 +4,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../contexts/AuthContext';
 import TwoFactorAuthentication from './TwoFactorAuthentication';
+import { getDefaultRouteForRole } from '../../utils/getDefaultRouteForRole';
 
 function Login() {
   const navigate = useNavigate();
@@ -45,30 +46,32 @@ function Login() {
 
       if (result?.two_factor_required) {
         setStep('2fa');
-        toast.success(result.message || 'Check your email for the 6-digit code.');
+        toast.success(result.message);
         return;
       }
 
       if (result?.success) {
-        toast.success('Welcome back!');
-        navigate(from, { replace: true });
+        toast.success(result.message);
+        const redirectPath =  getDefaultRouteForRole(result.user?.role);
+        navigate(redirectPath, { replace: true });
       } else {
-        setErrors({ general: result?.error || 'Login failed' });
-        toast.error(result?.error || 'Login failed');
+        setErrors({ general: result?.error});
       }
     } catch (error) {
-      console.error(error);
       setErrors({ general: 'An unexpected error occurred.' });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handle2FAVerified = (data) => {
-    setAuthSession({ token: data.token, user: data.user });
-    toast.success(data.message || 'Verified successfully!');
-    navigate(from, { replace: true });
-  };
+const handle2FAVerified = (data) => {
+  setAuthSession({ token: data.token, user: data.user });
+  toast.success(data.message);
+  
+  // ✅ Fixed: derive role directly from data.user
+  const redirectPath = getDefaultRouteForRole(data.user?.role);
+  navigate(redirectPath, { replace: true });
+};
 
   const handleBackToLogin = () => {
     setStep('login');
