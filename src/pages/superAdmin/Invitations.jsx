@@ -67,7 +67,7 @@ export default function Invitations() {
         });
       } else {
         // Send new invitation
-        response = await api.post('/admin/invitations/send', { email });
+        response = await api.post('/invitations/send', { email });
       }
       
       toast.success(response.data.message);
