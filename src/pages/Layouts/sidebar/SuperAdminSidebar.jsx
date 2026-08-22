@@ -104,7 +104,7 @@ export default function SuperAdminSidebar({ mobileOpen, setMobileOpen, collapsed
         className="fixed inset-0 z-40 lg:hidden"
           onClick={() => setMobileOpen(false)}
         />
-      )}
+      )} 
 
       {/* SIDEBAR CONTAINER */}
       <aside
