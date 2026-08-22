@@ -101,7 +101,7 @@ export default function SuperAdminSidebar({ mobileOpen, setMobileOpen, collapsed
       {/* MOBILE BACKDROP */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 z-40 bg-slate-900 lg:hidden transition-opacity duration-200"
+        className="fixed inset-0 z-40 lg:hidden"
           onClick={() => setMobileOpen(false)}
         />
       )}
