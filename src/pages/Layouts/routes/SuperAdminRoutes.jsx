@@ -5,9 +5,9 @@ import Layout from '../Layout';
 import SuperAdminSidebar from '../sidebar/SuperAdminSidebar';
 import { ProtectedRoute } from '../../../utils/ProtectedRoute';
 
-const Tenants = lazy(() => import('../../superAdmin/Restaurants/Tenants'));
-const RestaurantList = lazy(() => import('../../superAdmin/Restaurants/RestaurantList'));
-const AdminList = lazy(() => import('../../superAdmin/AdminList'));
+const Organizations = lazy(() => import('../../superAdmin/Organizations/Organizations'));
+const RestaurantList = lazy(() => import('../../superAdmin/Organizations/RestaurantList'));
+const Invitations = lazy(() => import('../../superAdmin/Invitations'));
 const RolesPage = lazy(() => import('../../superAdmin/roles/Roles'));
 const CreateRole = lazy(() => import('../../superAdmin/roles/CreateRole'));
 const EditRole = lazy(() => import('../../superAdmin/roles/EditRole'));
@@ -24,10 +24,10 @@ export const SuperAdminRoutes = {
     {
       element: <Layout SidebarComponent={SuperAdminSidebar} />,
       children: [
-        { index: true, element: <Navigate to="tenants" replace /> },
-        { path: 'tenants', element: <Tenants /> },
+        { index: true, element: <Navigate to="organizations" replace /> },
+        { path: 'organizations', element: <Organizations /> },
         { path: 'restaurants/:id', element: <RestaurantList /> },
-        { path: 'admins', element: <AdminList /> },
+        { path: 'invitations', element: <Invitations /> },
         { path: 'roles', element: <RolesPage /> },
         { path: 'roles/create', element: <CreateRole /> },
         { path: 'roles/edit/:id', element: <EditRole /> },

@@ -21,7 +21,7 @@ export const ProtectedRoute = ({ allowedRoles }) => {
   const hasRequiredRole = allowedRoles?.includes(user.role);
 
   if (!hasRequiredRole) {
-    return <Navigate to="/unauthorized" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   // ✅ CRITICAL: Use Outlet so child routes render

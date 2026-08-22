@@ -13,13 +13,14 @@ import {
   PanelLeftOpen,
   FileText,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  Send
 } from 'lucide-react';
 import { useAuth } from '../../../contexts/AuthContext';
 
 const navigation = [
-  { name: 'Tenants', href: '/tenants', icon: Building2 },
-  { name: 'Admin Users', href: '/admins', icon: Users },
+  { name: 'Organizations', href: '/organizations', icon: Building2 },
+  { name: 'Invitations', href: '/invitations', icon: Send  },
   {
     name: 'Access Control',
     icon: Shield,

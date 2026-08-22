@@ -1,33 +1,69 @@
-// components/Table.jsx
 import React from 'react';
+import TableSkeleton from '../skeleton/TableSkeleton'
+import EmptyState from '../common/EmptyState';
+import { AlertCircle } from 'lucide-react';
 
-export default function Tables({ 
-  columns, 
-  data, 
+export default function Table({ 
+  columns = [], 
+  data = [], 
   renderRow,
-  emptyMessage = "No data available.",
+  loading = false,
+  error = null,
+  onRetry,
+  emptyIcon,
+  emptyTitle = "No data found",
+  emptyDescription = "There is no information to display at this time.",
   className = ""
 }) {
   return (
     <div className="overflow-x-auto">
-      <table className={`w-full text-left text-sm ${className}`}>
-        <thead className="bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-400 font-medium transition-colors duration-200">
-          <tr>
-            {columns.map((col, index) => (
-              <th key={index} className={`px-6 py-4 ${col.align === 'right' ? 'text-right' : ''}`}>
+      <table className={`w-full text-left text-sm border-collapse ${className}`}>
+        <thead>
+          <tr className="bg-gray-50 dark:bg-slate-800/60 border-b border-gray-200 dark:border-slate-800 text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-slate-400">
+            {columns.map((col, idx) => (
+              <th key={idx} className={`px-6 py-3.5 ${col.align === 'right' ? 'text-right' : 'text-left'}`}>
                 {col.label}
               </th>
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-200 dark:divide-slate-800 transition-colors duration-200">
-          {data.length === 0 ? (
+        <tbody>
+          {/* 1. LOADING STATE */}
+          {loading ? (
+            <TableSkeleton rows={6} columns={columns.length} />
+          ) : error ? (
+            /* 2. ERROR STATE INSIDE TBODY */
             <tr>
-              <td colSpan={columns.length} className="px-6 py-8 text-center text-gray-500 dark:text-slate-400 text-xs transition-colors duration-200">
-                {emptyMessage}
+              <td colSpan={columns.length} className="px-6 py-12">
+                <EmptyState
+                  icon={AlertCircle}
+                  title={error}
+                  action={
+                    onRetry && (
+                      <button
+                        onClick={onRetry}
+                        className="px-3.5 py-1.5 text-xs font-medium rounded-lg bg-rose-600 hover:bg-rose-700 text-white transition-colors duration-200"
+                      >
+                        Try Again
+                      </button>
+                    )
+                  }
+                />
+              </td>
+            </tr>
+          ) : data.length === 0 ? (
+            /* 3. EMPTY STATE INSIDE TBODY */
+            <tr>
+              <td colSpan={columns.length} className="px-6 py-12">
+                <EmptyState
+                  icon={emptyIcon}
+                  title={emptyTitle}
+                  description={emptyDescription}
+                />
               </td>
             </tr>
           ) : (
+            /* 4. DATA ROWS */
             data.map((item, index) => renderRow(item, index))
           )}
         </tbody>

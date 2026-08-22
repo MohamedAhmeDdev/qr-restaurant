@@ -57,7 +57,7 @@ const router = createBrowserRouter([
 
   // 5. FALLBACK PAGES
   {
-    path: '/unauthorized',
+    path: '/',
     element: (
       <div className="flex flex-col items-center justify-center h-screen text-center">
         <h1 className="text-4xl font-bold text-red-600">403 - Access Denied</h1>
