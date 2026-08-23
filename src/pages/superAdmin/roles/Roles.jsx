@@ -1,117 +1,97 @@
-// RolesPage.jsx
-import React, { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
-  Shield, Plus, Power, Trash2, Edit,
-  PlusCircle
+  Shield, PlusCircle, Trash2, Edit, AlertCircle
 } from 'lucide-react';
 import StatsCard from '../../../components/cards/StatsCard';
 import Toolbar from '../../../components/Toolbar';
-import StatusBadge from '../../../components/ui/StatusBadge';
-
-// Master List of Available Platform Permissions
-export const MASTER_PERMISSIONS = [
-  { id: 'tenants.manage', label: 'Manage Tenants', description: 'Create, update, and suspend tenant accounts', category: 'Tenants' },
-  { id: 'tenants.view', label: 'View Tenants', description: 'Read-only access to tenant metrics and list', category: 'Tenants' },
-  { id: 'restaurants.manage', label: 'Manage Restaurants', description: 'Add, edit, or remove restaurant locations', category: 'Restaurants' },
-  { id: 'restaurants.view', label: 'View Restaurants', description: 'Browse active restaurant listings', category: 'Restaurants' },
-  { id: 'users.manage', label: 'Manage Admins & Users', description: 'Invite users and assign role permissions', category: 'User Management' },
-  { id: 'users.view', label: 'View User Directory', description: 'View staff lists and role assignments', category: 'User Management' },
-  { id: 'analytics.export', label: 'Export Analytics', description: 'Download platform metrics and revenue reports', category: 'Analytics' },
-  { id: 'settings.system', label: 'System Configuration', description: 'Modify global environment and feature flags', category: 'Settings' },
-];
+import ConfirmationModal from '../../../components/common/ConfirmationModal';
+import EmptyState from '../../../components/common/EmptyState';
+import api from '../../../services/api';
+import toast from 'react-hot-toast';
 
 export default function RolesPage() {
   const navigate = useNavigate();
 
-  // Roles State
-  const [roles, setRoles] = useState([
-    {
-      id: 1,
-      name: 'Super Admin',
-      description: 'Full administrative access across all system features and tenant settings.',
-      type: 'System Default',
-      usersCount: 3,
-      status: 'Active',
-      permissions: MASTER_PERMISSIONS.map(p => p.id)
-    },
-    {
-      id: 2,
-      name: 'Organization Admin',
-      description: 'Manages specific tenant accounts, users, and assigned locations.',
-      type: 'System Default',
-      usersCount: 8,
-      status: 'Active',
-      permissions: ['tenants.view', 'restaurants.manage', 'restaurants.view', 'users.view']
-    },
-    {
-      id: 3,
-      name: 'Store Manager',
-      description: 'Operational control limited to specific assigned store locations.',
-      type: 'Custom',
-      usersCount: 24,
-      status: 'Active',
-      permissions: ['restaurants.manage', 'restaurants.view']
-    },
-    {
-      id: 4,
-      name: 'Auditor / Viewer',
-      description: 'Read-only access across platform metric dashboards and logs.',
-      type: 'Custom',
-      usersCount: 2,
-      status: 'Inactive',
-      permissions: ['tenants.view', 'restaurants.view', 'users.view']
-    }
-  ]);
+  // Data States
+  const [roles, setRoles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // UI Control States
+  // UI & Filter Control States
+  const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('All');
 
-  // Navigation Handlers
-  const handleOpenPermissionsPage = (roleId) => {
-    navigate(`/super-admin/assign-permissions/${roleId}`);
+  // Deletion Modal State
+  const [roleToDelete, setRoleToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Helper to safely identify System Default roles across different backend payloads
+  const isSystemRole = (role) => {
+    if (!role) return false;
+    return (
+      role.is_system === true 
+    );
   };
 
-  const handleCreateRolePage = () => {
-    navigate('/super-admin/roles/create');
+  // Helper to normalize the display type string
+  const getRoleTypeLabel = (role) => {
+    return isSystemRole(role) ? 'System Default' : 'Custom';
   };
 
-  const handleEditRolePage = (roleId) => {
-    navigate(`/super-admin/roles/edit/${roleId}`);
-  };
-
-  // Action Handlers
-  const handleToggleStatus = (id) => {
-    setRoles(prev => prev.map(role => {
-      if (role.id === id) {
-        if (role.type === 'System Default') {
-          alert('System default roles cannot be deactivated.');
-          return role;
-        }
-        return { ...role, status: role.status === 'Active' ? 'Inactive' : 'Active' };
-      }
-      return role;
-    }));
-  };
-
-  const handleDeleteRole = (id) => {
-    const roleToDelete = roles.find(r => r.id === id);
-    if (roleToDelete?.type === 'System Default') {
-      alert('System Default roles cannot be deleted.');
-      return;
+  // Fetch Roles
+  const fetchRoles = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await api.get('/roles');
+      const data = response.data?.data;
+      setRoles(data);
+    } catch (err) {
+      toast.error(errorMessage);
+    } finally {
+      setLoading(false);
     }
-    if (window.confirm(`Are you sure you want to delete the "${roleToDelete?.name}" role?`)) {
-      setRoles(prev => prev.filter(r => r.id !== id));
+  }, []);
+
+  useEffect(() => {
+    fetchRoles();
+  }, [fetchRoles]);
+
+  // Delete Action Handlers
+  const handleDeleteClick = (role) => {
+    if (isSystemRole(role)) return;
+    setRoleToDelete(role);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!roleToDelete) return;
+
+    try {
+      setIsDeleting(true);
+      const response = await api.delete(`/roles/${roleToDelete.id}`);
+      setRoles(prev => prev.filter(r => r.id !== roleToDelete.id));
+      setRoleToDelete(null);
+      toast.success(response.data.message);
+    } catch (err) {
+      toast.error(err.response?.data?.message);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
   // Filter Computation
   const filteredRoles = useMemo(() => {
     return roles.filter(role => {
-      const matchesType = typeFilter === 'All' || role.type === typeFilter;
-      return matchesType;
+      const roleType = getRoleTypeLabel(role);
+      const matchesType = typeFilter === 'All' || roleType === typeFilter;
+      const matchesSearch = 
+        role.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        role.description?.toLowerCase().includes(searchQuery.toLowerCase());
+
+      return matchesType && matchesSearch;
     });
-  }, [roles, typeFilter]);
+  }, [roles, typeFilter, searchQuery]);
 
   return (
     <div className="p-2 sm:p-4 space-y-6 bg-gray-50 dark:bg-slate-950 min-h-screen text-gray-900 dark:text-slate-100 transition-colors duration-200">
@@ -125,121 +105,182 @@ export default function RolesPage() {
           </p>
         </div>
 
-        <button 
-          onClick={handleCreateRolePage}
-          className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-sm font-medium transition-colors duration-200 shadow-sm"
-        >
-          <PlusCircle className="w-4 h-4" /> Create Role
-        </button>
+        <Link to="/roles/create">
+          <button 
+            className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-sm font-medium transition-colors duration-200 shadow-sm"
+          >
+            <PlusCircle className="w-4 h-4" /> Create Role
+          </button>
+        </Link>
       </div>
 
-      {/* METRICS - Using StatsCard */}
+      {/* METRICS */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <StatsCard 
           label="Total Roles" 
-          value={roles.length}
+          value={loading ? '...' : roles.length}
         />
         <StatsCard 
           label="System Default" 
-          value={roles.filter(r => r.type === 'System Default').length}
+          value={loading ? '...' : roles.filter(r => isSystemRole(r)).length}
           valueColor="text-blue-600 dark:text-blue-400"
         />
         <StatsCard 
           label="Custom Roles" 
-          value={roles.filter(r => r.type === 'Custom').length}
+          value={loading ? '...' : roles.filter(r => !isSystemRole(r)).length}
           valueColor="text-purple-600 dark:text-purple-400"
         />
       </div>
 
-      {/* TOOLBAR - Using Toolbar with search hidden */}
+      {/* TOOLBAR */}
       <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-800 shadow-sm overflow-hidden transition-colors duration-200">
         <Toolbar
-          showSearch={false}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          searchPlaceholder="Search roles by name or description..."
           filters={['All', 'System Default', 'Custom']}
           activeFilter={typeFilter}
           onFilterChange={setTypeFilter}
         />
       </div>
 
-      {/* ROLES GRID */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {filteredRoles.map((role) => (
-          <div 
-            key={role.id}
-            className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-gray-200 dark:border-slate-800 shadow-sm flex flex-col justify-between transition-colors duration-200"
-          >
-            <div>
-              <div className="flex items-start justify-between gap-3 mb-2">
-                <div className="flex items-center gap-2">
-                  <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-950 text-orange-600 dark:text-orange-400 transition-colors duration-200">
-                    <Shield className="w-5 h-5" />
+      {/* CONTENT AREA STATE PRIORITY: LOADING -> ERROR -> EMPTY -> GRID */}
+      {loading ? (
+        /* 1. LOADING SKELETON GRID */
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {[...Array(4)].map((_, idx) => (
+            <div 
+              key={idx} 
+              className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-gray-200 dark:border-slate-800 shadow-sm animate-pulse space-y-4"
+            >
+              <div className="flex justify-between items-center">
+                <div className="h-6 bg-gray-200 dark:bg-slate-800 rounded w-1/3" />
+                <div className="h-5 bg-gray-200 dark:bg-slate-800 rounded w-1/6" />
+              </div>
+              <div className="h-4 bg-gray-200 dark:bg-slate-800 rounded w-2/3" />
+              <div className="pt-4 border-t border-gray-100 dark:border-slate-800 flex justify-between">
+                <div className="h-8 bg-gray-200 dark:bg-slate-800 rounded w-28" />
+                <div className="h-8 bg-gray-200 dark:bg-slate-800 rounded w-20" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : error ? (
+        /* 2. ERROR STATE */
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-800 shadow-sm p-6 transition-colors duration-200">
+          <EmptyState
+            icon={AlertCircle}
+            title={error}
+            description="An error occurred while fetching roles."
+            action={
+              <button
+                onClick={fetchRoles}
+                className="px-3.5 py-1.5 text-xs font-medium rounded-lg bg-rose-600 hover:bg-rose-700 text-white transition-colors duration-200"
+              >
+                Try Again
+              </button>
+            }
+          />
+        </div>
+      ) : filteredRoles.length === 0 ? (
+        /* 3. EMPTY STATE */
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-800 shadow-sm p-6 transition-colors duration-200">
+          <EmptyState
+            icon={Shield}
+            title="No roles found"
+            description={
+              searchQuery || typeFilter !== 'All'
+                ? 'Try adjusting your search query or filter settings.'
+                : 'There are no active roles in the system yet.'
+            }
+          />
+        </div>
+      ) : (
+        /* 4. ROLES GRID DATA */
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {filteredRoles.map((role) => {
+            const systemRole = isSystemRole(role);
+            return (
+              <div 
+                key={role.id}
+                className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-gray-200 dark:border-slate-800 shadow-sm flex flex-col justify-between transition-colors duration-200"
+              >
+                <div>
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-950 text-orange-600 dark:text-orange-400 transition-colors duration-200">
+                        <Shield className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-base text-gray-900 dark:text-white transition-colors duration-200">{role.name}</h3>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
+                        systemRole 
+                          ? 'bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-900' 
+                          : 'bg-purple-50 dark:bg-purple-950 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-900'
+                      }`}>
+                        {getRoleTypeLabel(role)}
+                      </span>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-bold text-base text-gray-900 dark:text-white transition-colors duration-200">{role.name}</h3>
-                  </div>
+
+                  <p className="text-xs text-gray-500 dark:text-slate-400 mb-4 transition-colors duration-200">
+                    {role.description}
+                  </p>
                 </div>
 
-                <StatusBadge
-                  status={role.status} 
-                  size="xs"
-                />
+                <div className="pt-4 border-t border-gray-100 dark:border-slate-800 flex items-center justify-between transition-colors duration-200">
+                     <Link to={`/roles/${role.id}/permissions`}>
+                    <button
+                      className="px-3 py-1.5 rounded-lg bg-orange-50 hover:bg-orange-100 dark:bg-orange-950 dark:hover:bg-orange-900 text-orange-600 dark:text-orange-400 text-xs font-semibold transition-colors duration-200"
+                    >
+                      Manage Permissions
+                    </button>
+                  </Link>
+                  <div className="flex items-center gap-2">
+                    <Link to={`/roles/edit/${role.id}`}>
+                      <button
+                        title="Edit Role Details"
+                        className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-600 dark:text-slate-400 transition-colors duration-200"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+                    </Link>
+
+                    <button
+                      onClick={() => handleDeleteClick(role)}
+                      disabled={systemRole}
+                      title={systemRole ? 'System default roles cannot be deleted' : 'Delete Role'}
+                      className={`p-1.5 rounded-lg transition-colors duration-200 ${
+                        systemRole
+                          ? 'opacity-30 cursor-not-allowed text-gray-400'
+                          : 'hover:bg-rose-100 dark:hover:bg-rose-950 text-rose-600 dark:text-rose-400'
+                      }`}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
               </div>
+            );
+          })}
+        </div>
+      )}
 
-              <p className="text-xs text-gray-500 dark:text-slate-400 mb-4 transition-colors duration-200">{role.description}</p>
-            </div>
-
-            <div className="pt-4 border-t border-gray-100 dark:border-slate-800 flex items-center justify-between transition-colors duration-200">
-              {/* MANAGE PERMISSIONS - Now on the left */}
-              <button
-                onClick={() => handleOpenPermissionsPage(role.id)}
-                className="px-3 py-1.5 rounded-lg bg-orange-50 hover:bg-orange-100 dark:bg-orange-950 dark:hover:bg-orange-900 text-orange-600 dark:text-orange-400 text-xs font-semibold transition-colors duration-200"
-              >
-                Manage Permissions
-              </button>
-
-              {/* Action buttons on the right */}
-              <div className="flex items-center gap-2">
-                {/* EDIT ROLE DETAILS */}
-                <button
-                  onClick={() => handleEditRolePage(role.id)}
-                  title="Edit Role Details"
-                  className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-600 dark:text-slate-400 transition-colors duration-200"
-                >
-                  <Edit className="w-4 h-4" />
-                </button>
-
-                {/* TOGGLE STATUS */}
-                <button
-                  onClick={() => handleToggleStatus(role.id)}
-                  disabled={role.type === 'System Default'}
-                  title={role.type === 'System Default' ? 'System default roles cannot be deactivated' : 'Toggle Status'}
-                  className={`p-1.5 rounded-lg transition-colors duration-200 ${
-                    role.type === 'System Default'
-                      ? 'opacity-30 cursor-not-allowed text-gray-400'
-                      : 'hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-600 dark:text-slate-400'
-                  }`}
-                >
-                  <Power className="w-4 h-4" />
-                </button>
-
-                {/* DELETE ROLE */}
-                <button
-                  onClick={() => handleDeleteRole(role.id)}
-                  disabled={role.type === 'System Default'}
-                  title={role.type === 'System Default' ? 'System default roles cannot be deleted' : 'Delete Role'}
-                  className={`p-1.5 rounded-lg transition-colors duration-200 ${
-                    role.type === 'System Default'
-                      ? 'opacity-30 cursor-not-allowed text-gray-400'
-                      : 'hover:bg-rose-100 dark:hover:bg-rose-950 text-rose-600 dark:text-rose-400'
-                  }`}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
+      {/* CONFIRMATION MODAL */}
+      <ConfirmationModal
+        isOpen={!!roleToDelete}
+        onClose={() => setRoleToDelete(null)}
+        onConfirm={handleConfirmDelete}
+        title="Delete Role"
+        message={`Are you sure you want to delete the "${roleToDelete?.name}" role? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        isLoading={isDeleting}
+      />
 
     </div>
   );

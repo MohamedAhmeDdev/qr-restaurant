@@ -34,7 +34,7 @@ export const SuperAdminRoutes = {
         { path: 'permissions', element: <PermissionsPage /> },
         { path: 'permissions/create', element: <CreatePermission /> },
         { path: 'permissions/edit/:id', element: <EditPermission /> },
-        { path: 'assign-permissions/:id', element: <AssignPermissions /> },
+        { path: 'roles/:roleId/permissions', element: <AssignPermissions /> },
         { path: 'settings', element: <SettingsPage /> },
       ],
     },

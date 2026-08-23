@@ -26,6 +26,18 @@ export function RestaurantInviteModal({
     }
   }, [isOpen]);
 
+
+  // Handle ESC key press
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && isOpen && !isSending) {
+        handleClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, isSending]);
+
   if (!isOpen) return null;
 
   const handleSubmit = (e) => {
@@ -46,6 +58,7 @@ export function RestaurantInviteModal({
     : 'Send an onboarding registration link to a new manager.');
   const buttonText = modalConfig.buttonText || (isResend ? 'Resend Invitation' : 'Send Invitation');
 
+  
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
       {/* MODAL CONTAINER */}
@@ -63,7 +76,8 @@ export function RestaurantInviteModal({
           </div>
           <button
             onClick={handleClose}
-            className="p-1.5 text-gray-400 hover:text-gray-700 dark:hover:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+            disabled={isSending}
+            className="p-1.5 text-gray-400 hover:text-gray-700 dark:hover:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <X className="w-5 h-5" />
           </button>
@@ -84,6 +98,7 @@ export function RestaurantInviteModal({
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="owner@restaurant.com"
                   className="w-full pl-9 pr-3 py-2 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-colors"
+                  disabled={isSending}
                 />
               </div>
               {isResend && (
@@ -97,7 +112,8 @@ export function RestaurantInviteModal({
               <button
                 type="button"
                 onClick={handleClose}
-                className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                disabled={isSending}
+                className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>
@@ -110,8 +126,17 @@ export function RestaurantInviteModal({
                     : 'bg-orange-500 hover:bg-orange-600'
                 }`}
               >
-                {isResend ? <RefreshCw className="w-4 h-4" /> : <Send className="w-4 h-4" />}
-                {isSending ? 'Sending...' : buttonText}
+                {isSending ? (
+                  <>
+                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    {isResend ? <RefreshCw className="w-4 h-4" /> : <Send className="w-4 h-4" />}
+                    {buttonText}
+                  </>
+                )}
               </button>
             </div>
           </form>

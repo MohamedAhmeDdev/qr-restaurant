@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import RoleForm from '../../../components/forms/RoleForm';
 import { ArrowLeft } from 'lucide-react';
-
+import toast from 'react-hot-toast';
+import api from '../../../services/api';
 
 export default function EditRole() {
   const navigate = useNavigate();
@@ -10,7 +11,6 @@ export default function EditRole() {
 
   const [formData, setFormData] = useState({
     name: '',
-    slug: '',
     description: ''
   });
 
@@ -18,86 +18,103 @@ export default function EditRole() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    setTimeout(() => {
-      const mockRole = {
-        name: 'Regional Store Director',
-        slug: 'regional_store_director',
-        description: 'Oversees store operations across multiple locations and manages store managers.'
-      };
-      
-      setFormData(mockRole);
+  // Fetch initial role details from backend
+  const fetchRole = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const response = await api.get(`/roles/${id}`);
+      const data = response.data?.data;
+
+      setFormData({
+        name: data.name,
+        description: data.description
+      });
+    } catch (err) {
+      toast.error(err.response?.data?.message);
+    } finally {
       setIsLoading(false);
-    }, 600);
+    }
   }, [id]);
+
+  useEffect(() => {
+    fetchRole();
+  }, [fetchRole]);
+
+  // Form field change handler
+  const handleFormChange = (newFormData) => {
+    setFormData(newFormData);
+  };
 
   const validate = () => {
     const newErrors = {};
     if (!formData.name.trim()) newErrors.name = 'Role name is required.';
-    if (!formData.slug.trim()) {
-      newErrors.slug = 'Slug is required.';
-    } else if (!/^[a-z0-9_]+$/.test(formData.slug)) {
-      newErrors.slug = 'Slug must contain only lowercase letters, numbers, and underscores.';
-    }
     if (!formData.description.trim()) newErrors.description = 'Description is required.';
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleSubmit = async (e) => {
+    if (e && e.preventDefault) e.preventDefault();
     if (!validate()) return;
 
     setIsSubmitting(true);
 
-    const updatedRole = {
-      id: parseInt(id),
+    const payload = {
       name: formData.name.trim(),
-      slug: formData.slug.trim(),
-      description: formData.description.trim(),
-      usersCount: 0,
-      permissions: []
+      description: formData.description.trim()
     };
 
-    console.log('Updating role:', updatedRole);
-    setIsSubmitting(false);
-    navigate('/super-admin/roles');
+    try {
+      const response = await api.put(`/roles/${id}`, payload);
+      toast.success(response?.data?.message);
+      navigate('/roles');
+    } catch (err) {
+      toast.error(err.response?.data?.message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleCancel = () => {
-    navigate('/super-admin/roles');
+    navigate('/roles');
   };
 
- 
-
   return (
- <div className="p-2 sm:p-4 max-w-4xl mx-auto min-h-screen space-y-6 bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 transition-colors duration-200">
+    <div className="p-2 sm:p-4 max-w-4xl mx-auto min-h-screen space-y-6 bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 transition-colors duration-200">
+      
+      {/* HEADER SECTION */}
       <div>
         <Link
-          to="/super-admin/roles" 
+          to="/roles"
           className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-gray-900 dark:text-slate-400 dark:hover:text-white transition-colors duration-200 mb-4"
         >
           <ArrowLeft className="w-4 h-4" /> Back to Roles
         </Link>
 
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white transition-colors duration-200">Update Role</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white transition-colors duration-200">
+            Update Role
+          </h1>
           <p className="text-sm text-gray-500 dark:text-slate-400 mt-1 transition-colors duration-200">
-             Update role details.
+            Modify role details and core system identifiers.
           </p>
         </div>
       </div>
-    <RoleForm
-      formData={formData}
-      setFormData={setFormData}
-      errors={errors}
-      setErrors={setErrors}
-      onSubmit={handleSubmit}
-      onCancel={handleCancel}
-      isSubmitting={isSubmitting}
-      submitButtonText="Update Role"
-    />
-     </div>
+
+
+   
+        <RoleForm
+          formData={formData}
+          setFormData={handleFormChange}
+          errors={errors}
+          setErrors={setErrors}
+          onSubmit={handleSubmit}
+          onCancel={handleCancel}
+          isSubmitting={isSubmitting}
+          submitButtonText="Update Role"
+        />
+      
+    </div>
   );
 }
