@@ -52,12 +52,16 @@ export default function Organizations() {
   ];
 
   return (
-    <div className="p-2 sm:p-4 space-y-6 bg-gray-50 dark:bg-slate-950 min-h-screen text-gray-900 dark:text-slate-100 transition-colors duration-200">
+    <div className="p-2 sm:p-4 space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen text-slate-900 dark:text-slate-100 transition-colors duration-200">
 
       {/* PAGE HEADER */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white transition-colors duration-200">Tenants</h1>
-        <p className="text-sm text-gray-500 dark:text-slate-400 transition-colors duration-200">Manage organizations using your platform.</p>
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-white transition-colors duration-200">
+          Tenants
+        </h1>
+        <p className="text-sm text-slate-500 dark:text-slate-400 transition-colors duration-200">
+          Manage organizations using your platform.
+        </p>
       </div>
 
       {/* SUMMARY METRICS CARDS */}
@@ -75,7 +79,7 @@ export default function Organizations() {
       </div>
 
       {/* TABLE CONTAINER */}
-      <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-800 shadow-sm overflow-hidden transition-colors duration-200">
+      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden transition-colors duration-200">
 
         <Toolbar
           searchQuery={searchQuery}
@@ -103,23 +107,26 @@ export default function Organizations() {
           renderRow={(tenant, idx) => (
             <tr
               key={tenant.id}
-              className={`hover:bg-gray-50 dark:hover:bg-slate-800/60 transition-colors duration-200 ${idx !== filteredTenants.length - 1 ? 'border-b border-gray-100 dark:border-slate-800' : ''
-                }`}
+              className={`hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors duration-200 ${
+                idx !== filteredTenants.length - 1 ? 'border-b border-slate-100 dark:border-slate-800' : ''
+              }`}
             >
               <td className="px-6 py-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 transition-colors duration-200">
+                  <div className="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 transition-colors duration-200">
                     <Building2 className="w-5 h-5" />
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900 dark:text-slate-100 transition-colors duration-200">{tenant.name}</p>
-                    <p className="text-xs text-gray-500 dark:text-slate-400 transition-colors duration-200">
+                    <p className="font-medium text-slate-900 dark:text-slate-100 transition-colors duration-200">
+                      {tenant.name}
+                    </p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 transition-colors duration-200">
                       {tenant.owner?.email}
                     </p>
                   </div>
                 </div>
               </td>
-              <td className="px-6 py-4 text-gray-600 dark:text-slate-300 font-medium transition-colors duration-200">
+              <td className="px-6 py-4 text-slate-600 dark:text-slate-300 font-medium transition-colors duration-200">
                 {tenant.restaurants_count}
               </td>
               <td className="px-6 py-4">
@@ -134,7 +141,7 @@ export default function Organizations() {
                   <Link
                     to={`/restaurants/${tenant.id}`}
                     title="View Restaurants"
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-medium text-gray-700 dark:text-slate-200 transition-colors duration-200"
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-medium text-slate-700 dark:text-slate-200 transition-colors duration-200"
                   >
                     <span>View</span>
                   </Link>

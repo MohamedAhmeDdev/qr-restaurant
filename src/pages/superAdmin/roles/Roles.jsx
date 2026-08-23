@@ -29,9 +29,7 @@ export default function RolesPage() {
   // Helper to safely identify System Default roles across different backend payloads
   const isSystemRole = (role) => {
     if (!role) return false;
-    return (
-      role.is_system === true 
-    );
+    return role.is_system === true;
   };
 
   // Helper to normalize the display type string
@@ -48,6 +46,8 @@ export default function RolesPage() {
       const data = response.data?.data;
       setRoles(data);
     } catch (err) {
+      const errorMessage = err.response?.data?.message || 'Failed to fetch roles.';
+      setError(errorMessage);
       toast.error(errorMessage);
     } finally {
       setLoading(false);
@@ -72,9 +72,9 @@ export default function RolesPage() {
       const response = await api.delete(`/roles/${roleToDelete.id}`);
       setRoles(prev => prev.filter(r => r.id !== roleToDelete.id));
       setRoleToDelete(null);
-      toast.success(response.data.message);
+      toast.success(response.data.message || 'Role deleted successfully');
     } catch (err) {
-      toast.error(err.response?.data?.message);
+      toast.error(err.response?.data?.message || 'Failed to delete role');
     } finally {
       setIsDeleting(false);
     }
@@ -94,20 +94,20 @@ export default function RolesPage() {
   }, [roles, typeFilter, searchQuery]);
 
   return (
-    <div className="p-2 sm:p-4 space-y-6 bg-gray-50 dark:bg-slate-950 min-h-screen text-gray-900 dark:text-slate-100 transition-colors duration-200">
+    <div className="p-2 sm:p-4 space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen text-slate-900 dark:text-slate-100 transition-colors duration-200">
 
       {/* HEADER */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white transition-colors duration-200">Roles</h1>
-          <p className="text-sm text-gray-500 dark:text-slate-400 transition-colors duration-200">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white transition-colors duration-200">Roles</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 transition-colors duration-200">
             Manage user access roles and inspect granted permission sets.
           </p>
         </div>
 
         <Link to="/roles/create">
           <button 
-            className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-sm font-medium transition-colors duration-200 shadow-sm"
+            className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white rounded-lg text-sm font-medium transition-colors duration-200 shadow-sm hover:shadow-md"
           >
             <PlusCircle className="w-4 h-4" /> Create Role
           </button>
@@ -133,7 +133,7 @@ export default function RolesPage() {
       </div>
 
       {/* TOOLBAR */}
-      <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-800 shadow-sm overflow-hidden transition-colors duration-200">
+      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden transition-colors duration-200">
         <Toolbar
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
@@ -151,23 +151,23 @@ export default function RolesPage() {
           {[...Array(4)].map((_, idx) => (
             <div 
               key={idx} 
-              className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-gray-200 dark:border-slate-800 shadow-sm animate-pulse space-y-4"
+              className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm animate-pulse space-y-4 transition-colors duration-200"
             >
               <div className="flex justify-between items-center">
-                <div className="h-6 bg-gray-200 dark:bg-slate-800 rounded w-1/3" />
-                <div className="h-5 bg-gray-200 dark:bg-slate-800 rounded w-1/6" />
+                <div className="h-6 bg-slate-200 dark:bg-slate-800 rounded w-1/3 transition-colors duration-200" />
+                <div className="h-5 bg-slate-200 dark:bg-slate-800 rounded w-1/6 transition-colors duration-200" />
               </div>
-              <div className="h-4 bg-gray-200 dark:bg-slate-800 rounded w-2/3" />
-              <div className="pt-4 border-t border-gray-100 dark:border-slate-800 flex justify-between">
-                <div className="h-8 bg-gray-200 dark:bg-slate-800 rounded w-28" />
-                <div className="h-8 bg-gray-200 dark:bg-slate-800 rounded w-20" />
+              <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-2/3 transition-colors duration-200" />
+              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-between transition-colors duration-200">
+                <div className="h-8 bg-slate-200 dark:bg-slate-800 rounded w-28 transition-colors duration-200" />
+                <div className="h-8 bg-slate-200 dark:bg-slate-800 rounded w-20 transition-colors duration-200" />
               </div>
             </div>
           ))}
         </div>
       ) : error ? (
         /* 2. ERROR STATE */
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-800 shadow-sm p-6 transition-colors duration-200">
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 transition-colors duration-200">
           <EmptyState
             icon={AlertCircle}
             title={error}
@@ -175,7 +175,7 @@ export default function RolesPage() {
             action={
               <button
                 onClick={fetchRoles}
-                className="px-3.5 py-1.5 text-xs font-medium rounded-lg bg-rose-600 hover:bg-rose-700 text-white transition-colors duration-200"
+                className="px-3.5 py-1.5 text-xs font-medium rounded-lg bg-rose-600 hover:bg-rose-700 text-white transition-colors duration-200 shadow-sm"
               >
                 Try Again
               </button>
@@ -184,7 +184,7 @@ export default function RolesPage() {
         </div>
       ) : filteredRoles.length === 0 ? (
         /* 3. EMPTY STATE */
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-800 shadow-sm p-6 transition-colors duration-200">
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 transition-colors duration-200">
           <EmptyState
             icon={Shield}
             title="No roles found"
@@ -203,21 +203,21 @@ export default function RolesPage() {
             return (
               <div 
                 key={role.id}
-                className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-gray-200 dark:border-slate-800 shadow-sm flex flex-col justify-between transition-colors duration-200"
+                className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between transition-colors duration-200"
               >
                 <div>
                   <div className="flex items-start justify-between gap-3 mb-2">
                     <div className="flex items-center gap-2">
-                      <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-950 text-orange-600 dark:text-orange-400 transition-colors duration-200">
+                      <div className="p-2 rounded-lg bg-orange-50 dark:bg-orange-950 text-orange-600 dark:text-orange-400 transition-colors duration-200">
                         <Shield className="w-5 h-5" />
                       </div>
                       <div>
-                        <h3 className="font-bold text-base text-gray-900 dark:text-white transition-colors duration-200">{role.name}</h3>
+                        <h3 className="font-bold text-base text-slate-900 dark:text-white transition-colors duration-200">{role.name}</h3>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-1.5">
-                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
+                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border transition-colors duration-200 ${
                         systemRole 
                           ? 'bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-900' 
                           : 'bg-purple-50 dark:bg-purple-950 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-900'
@@ -227,13 +227,13 @@ export default function RolesPage() {
                     </div>
                   </div>
 
-                  <p className="text-xs text-gray-500 dark:text-slate-400 mb-4 transition-colors duration-200">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 transition-colors duration-200">
                     {role.description}
                   </p>
                 </div>
 
-                <div className="pt-4 border-t border-gray-100 dark:border-slate-800 flex items-center justify-between transition-colors duration-200">
-                     <Link to={`/roles/${role.id}/permissions`}>
+                <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between transition-colors duration-200">
+                  <Link to={`/roles/${role.id}/permissions`}>
                     <button
                       className="px-3 py-1.5 rounded-lg bg-orange-50 hover:bg-orange-100 dark:bg-orange-950 dark:hover:bg-orange-900 text-orange-600 dark:text-orange-400 text-xs font-semibold transition-colors duration-200"
                     >
@@ -244,7 +244,7 @@ export default function RolesPage() {
                     <Link to={`/roles/edit/${role.id}`}>
                       <button
                         title="Edit Role Details"
-                        className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-600 dark:text-slate-400 transition-colors duration-200"
+                        className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors duration-200"
                       >
                         <Edit className="w-4 h-4" />
                       </button>
@@ -256,8 +256,8 @@ export default function RolesPage() {
                       title={systemRole ? 'System default roles cannot be deleted' : 'Delete Role'}
                       className={`p-1.5 rounded-lg transition-colors duration-200 ${
                         systemRole
-                          ? 'opacity-30 cursor-not-allowed text-gray-400'
-                          : 'hover:bg-rose-100 dark:hover:bg-rose-950 text-rose-600 dark:text-rose-400'
+                          ? 'opacity-30 cursor-not-allowed text-slate-400'
+                          : 'hover:bg-rose-50 dark:hover:bg-rose-950 text-rose-600 dark:text-rose-400'
                       }`}
                     >
                       <Trash2 className="w-4 h-4" />
@@ -276,7 +276,8 @@ export default function RolesPage() {
         onClose={() => setRoleToDelete(null)}
         onConfirm={handleConfirmDelete}
         title="Delete Role"
-        message={`Are you sure you want to delete the "${roleToDelete?.name}" role? This action cannot be undone.`}
+        description={`Are you sure you want to delete the "${roleToDelete?.name}" role? This action cannot be undone.`}
+        itemName={roleToDelete?.name}
         confirmText="Delete"
         cancelText="Cancel"
         isLoading={isDeleting}

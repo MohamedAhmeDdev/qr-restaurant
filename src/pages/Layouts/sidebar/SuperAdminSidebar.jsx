@@ -126,7 +126,7 @@ export default function SuperAdminSidebar({ mobileOpen, setMobileOpen, collapsed
               <UtensilsCrossed className="w-5 h-5" />
             </div>
             <span className="text-slate-900 dark:text-white transition-colors duration-200">
-              RestoPOS
+             QR restaurant
             </span>
           </div>
 
