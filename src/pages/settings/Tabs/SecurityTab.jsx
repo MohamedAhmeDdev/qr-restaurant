@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { KeyRound, ShieldCheck, Check, Save, Loader2 } from 'lucide-react';
+import { ShieldCheck, Check, Save, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../../contexts/AuthContext';
 import api from '../../../services/api';
@@ -134,14 +134,14 @@ export default function SecurityTab() {
         onSubmit={handlePasswordSubmit}
         className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden transition-colors duration-200"
       >
-        <div className="px-6 sm:px-7 pt-6 pb-5 border-b border-gray-100 dark:border-slate-800">
+        <div className="px-6 sm:px-7 pt-6 pb-5 border-b border-gray-100 dark:border-slate-800 transition-colors duration-200">
           <span className="inline-block text-[11px] font-semibold tracking-wider uppercase text-orange-500 mb-1">
             Account
           </span>
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white transition-colors duration-200">
             Change Password
           </h2>
-          <p className="text-sm text-gray-500 dark:text-slate-400 mt-1 leading-relaxed">
+          <p className="text-sm text-gray-500 dark:text-slate-400 mt-1 leading-relaxed transition-colors duration-200">
             Update your account password to keep your account secure.
           </p>
         </div>
@@ -149,7 +149,7 @@ export default function SecurityTab() {
         <div className="px-6 sm:px-7 py-6 space-y-5">
           {/* Current Password */}
           <div>
-            <label className="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 transition-colors duration-200">
               Current Password
             </label>
             <input
@@ -160,17 +160,17 @@ export default function SecurityTab() {
                 setPasswords((p) => ({ ...p, currentPassword: e.target.value }));
                 if (passwordErrors.currentPassword) setPasswordErrors((prev) => ({ ...prev, currentPassword: '' }));
               }}
-              className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-slate-800 text-gray-900 dark:text-slate-100 border border-gray-200 dark:border-slate-700 rounded-xl text-sm outline-none placeholder:text-gray-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+              className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-slate-800 text-gray-900 dark:text-slate-100 border border-gray-200 dark:border-slate-700 rounded-xl text-sm outline-none placeholder:text-gray-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200"
             />
             {passwordErrors.currentPassword && (
-              <p className="text-red-500 text-xs mt-1">{passwordErrors.currentPassword}</p>
+              <p className="text-red-500 text-xs mt-1 transition-colors duration-200">{passwordErrors.currentPassword}</p>
             )}
           </div>
 
           {/* New + Confirm */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 transition-colors duration-200">
                 New Password
               </label>
               <input
@@ -181,15 +181,15 @@ export default function SecurityTab() {
                   setPasswords((p) => ({ ...p, newPassword: e.target.value }));
                   if (passwordErrors.newPassword) setPasswordErrors((prev) => ({ ...prev, newPassword: '' }));
                 }}
-                className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-slate-800 text-gray-900 dark:text-slate-100 border border-gray-200 dark:border-slate-700 rounded-xl text-sm outline-none placeholder:text-gray-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+                className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-slate-800 text-gray-900 dark:text-slate-100 border border-gray-200 dark:border-slate-700 rounded-xl text-sm outline-none placeholder:text-gray-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200"
               />
               {passwordErrors.newPassword && (
-                <p className="text-red-500 text-xs mt-1">{passwordErrors.newPassword}</p>
+                <p className="text-red-500 text-xs mt-1 transition-colors duration-200">{passwordErrors.newPassword}</p>
               )}
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 transition-colors duration-200">
                 Confirm New Password
               </label>
               <input
@@ -200,17 +200,17 @@ export default function SecurityTab() {
                   setPasswords((p) => ({ ...p, confirmPassword: e.target.value }));
                   if (passwordErrors.confirmPassword) setPasswordErrors((prev) => ({ ...prev, confirmPassword: '' }));
                 }}
-                className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-slate-800 text-gray-900 dark:text-slate-100 border border-gray-200 dark:border-slate-700 rounded-xl text-sm outline-none placeholder:text-gray-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+                className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-slate-800 text-gray-900 dark:text-slate-100 border border-gray-200 dark:border-slate-700 rounded-xl text-sm outline-none placeholder:text-gray-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200"
               />
               {passwordErrors.confirmPassword && (
-                <p className="text-red-500 text-xs mt-1">{passwordErrors.confirmPassword}</p>
+                <p className="text-red-500 text-xs mt-1 transition-colors duration-200">{passwordErrors.confirmPassword}</p>
               )}
             </div>
           </div>
 
           {/* Password Requirements Checklist */}
           <div className="space-y-2">
-            <p className="text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+            <p className="text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider transition-colors duration-200">
               Password Requirements
             </p>
             <div className="space-y-1.5">
@@ -249,7 +249,7 @@ export default function SecurityTab() {
             <button
               type="submit"
               disabled={savingPassword}
-              className="flex items-center gap-2 px-5 py-2.5 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-500/50 disabled:cursor-not-allowed text-white font-medium text-sm rounded-xl transition-all shadow-sm hover:shadow-md active:scale-[0.97]"
+              className="flex items-center gap-2 px-5 py-2.5 bg-orange-500 hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium text-sm rounded-xl transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.97]"
             >
               {savingPassword ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -269,14 +269,14 @@ export default function SecurityTab() {
         onSubmit={handle2FASubmit}
         className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden transition-colors duration-200"
       >
-        <div className="px-6 sm:px-7 pt-6 pb-5 border-b border-gray-100 dark:border-slate-800">
+        <div className="px-6 sm:px-7 pt-6 pb-5 border-b border-gray-100 dark:border-slate-800 transition-colors duration-200">
           <span className="inline-block text-[11px] font-semibold tracking-wider uppercase text-orange-500 mb-1">
             Security
           </span>
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white transition-colors duration-200">
             Two-Factor Authentication
           </h2>
-          <p className="text-sm text-gray-500 dark:text-slate-400 mt-1 leading-relaxed">
+          <p className="text-sm text-gray-500 dark:text-slate-400 mt-1 leading-relaxed transition-colors duration-200">
             Secure your account using email verification codes.
           </p>
         </div>
@@ -284,14 +284,14 @@ export default function SecurityTab() {
         <div className="px-6 sm:px-7 py-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-start gap-3 min-w-0 w-full sm:w-auto">
-              <span className="flex items-center justify-center w-9 h-9 rounded-lg bg-orange-50 dark:bg-orange-950 border border-orange-100 dark:border-orange-900/30 shrink-0">
+              <span className="flex items-center justify-center w-9 h-9 rounded-lg bg-orange-50 dark:bg-orange-950 border border-orange-100 dark:border-orange-900 shrink-0 transition-colors duration-200">
                 <ShieldCheck className="w-4 h-4 text-orange-500" />
               </span>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                <p className="text-sm font-semibold text-gray-900 dark:text-white transition-colors duration-200">
                   Email-based 2FA
                 </p>
-                <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5 leading-relaxed">
+                <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5 leading-relaxed transition-colors duration-200">
                   A verification code will be sent to your email on every login.
                 </p>
               </div>
@@ -300,9 +300,9 @@ export default function SecurityTab() {
             {/* Toggle Switch + Label */}
             <div className="flex items-center gap-3">
               <span
-                className={`text-xs font-medium px-2 py-1 rounded-md transition-colors ${
+                className={`text-xs font-medium px-2 py-1 rounded-md transition-colors duration-200 ${
                   pendingTwoFactor
-                    ? 'bg-orange-50 text-orange-600 dark:bg-orange-950/40 dark:text-orange-400'
+                    ? 'bg-orange-50 text-orange-600 dark:bg-orange-950 dark:text-orange-400'
                     : 'bg-gray-100 text-gray-600 dark:bg-slate-800 dark:text-slate-400'
                 }`}
               >
@@ -325,7 +325,7 @@ export default function SecurityTab() {
           </div>
 
           {/* 2FA Save Button */}
-          <div className="pt-6 flex items-center justify-end gap-3 border-t border-gray-100 dark:border-slate-800 mt-6">
+          <div className="pt-6 flex items-center justify-end gap-3 border-t border-gray-100 dark:border-slate-800 mt-6 transition-colors duration-200">
             {twoFASaved && (
               <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400 mr-auto animate-in fade-in duration-200">
                 2FA settings saved
@@ -334,7 +334,7 @@ export default function SecurityTab() {
             <button
               type="submit"
               disabled={loading2FA || pendingTwoFactor === twoFactor}
-              className="flex items-center gap-2 px-5 py-2.5 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-500/50 disabled:cursor-not-allowed text-white font-medium text-sm rounded-xl transition-all shadow-sm hover:shadow-md active:scale-[0.97]"
+              className="flex items-center gap-2 px-5 py-2.5 bg-orange-500 hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium text-sm rounded-xl transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.97]"
             >
               {loading2FA ? (
                 <Loader2 className="w-4 h-4 animate-spin" />

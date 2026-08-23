@@ -1,5 +1,5 @@
 import React from 'react';
-import TableSkeleton from '../skeleton/TableSkeleton'
+import TableSkeleton from '../skeleton/TableSkeleton';
 import EmptyState from '../common/EmptyState';
 import { AlertCircle } from 'lucide-react';
 
@@ -19,7 +19,7 @@ export default function Table({
     <div className="overflow-x-auto">
       <table className={`w-full text-left text-sm border-collapse ${className}`}>
         <thead>
-          <tr className="bg-gray-50 dark:bg-slate-800/60 border-b border-gray-200 dark:border-slate-800 text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-slate-400">
+          <tr className="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-800 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 transition-colors duration-200">
             {columns.map((col, idx) => (
               <th key={idx} className={`px-6 py-3.5 ${col.align === 'right' ? 'text-right' : 'text-left'}`}>
                 {col.label}

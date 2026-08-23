@@ -1,5 +1,5 @@
 import React from 'react';
-import { Shield, Save, ArrowLeft } from 'lucide-react';
+import { Shield, Save } from 'lucide-react';
 
 export default function RoleForm({
   formData,
@@ -9,8 +9,6 @@ export default function RoleForm({
   onSubmit,
   onCancel,
   isSubmitting,
-  title,
-  subtitle,
   submitButtonText = 'Save Role'
 }) {
   return (
@@ -23,7 +21,7 @@ export default function RoleForm({
             Role Details
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4">
             
             {/* Role Name */}
             <div>
@@ -43,26 +41,6 @@ export default function RoleForm({
                 } rounded-lg text-sm outline-none focus:ring-2 focus:ring-orange-500/20 transition-colors duration-200`}
               />
               {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name}</p>}
-            </div>
-
-            {/* Slug */}
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-1 transition-colors duration-200">
-                Slug <span className="text-red-500">*</span>
-              </label>
-              <input 
-                type="text"
-                placeholder="e.g. regional_store_director"
-                value={formData.slug}
-                onChange={(e) => {
-                  setFormData({ ...formData, slug: e.target.value });
-                  if (errors.slug) setErrors((prev) => ({ ...prev, slug: '' }));
-                }}
-                className={`w-full px-3 py-2 font-mono text-xs bg-gray-50 dark:bg-slate-800 text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 border ${
-                  errors.slug ? 'border-red-500' : 'border-gray-200 dark:border-slate-700'
-                } rounded-lg outline-none focus:ring-2 focus:ring-orange-500/20 transition-colors duration-200`}
-              />
-              {errors.slug && <p className="text-xs text-red-500 mt-1">{errors.slug}</p>}
             </div>
 
           </div>

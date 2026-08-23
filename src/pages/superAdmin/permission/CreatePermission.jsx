@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import PermissionForm from '../../../components/forms/PermissionForm';
+import api from '../../../services/api';
+import toast from 'react-hot-toast';
 
 export default function CreatePermissionPage() {
   const navigate = useNavigate();
@@ -9,7 +11,6 @@ export default function CreatePermissionPage() {
   const [formData, setFormData] = useState({
     name: '',
     group: '',
-    slug: '',
     description: ''
   });
 
@@ -20,34 +21,33 @@ export default function CreatePermissionPage() {
     const newErrors = {};
     if (!formData.name.trim()) newErrors.name = 'Name is required.';
     if (!formData.group.trim()) newErrors.group = 'Group is required.';
-    if (!formData.slug.trim()) {
-      newErrors.slug = 'Slug is required.';
-    } else if (!/^[a-z0-9_]+$/.test(formData.slug)) {
-      newErrors.slug = 'Slug must contain only lowercase letters, numbers, and underscores.';
-    }
     if (!formData.description.trim()) newErrors.description = 'Description is required.';
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
 
-    setIsSubmitting(true);
-
-      console.log('Submitting new permission:', formData);
+    try {
+      setIsSubmitting(true);
+      const response = await api.post('/permissions', formData);
+      toast.success(response.data.message);
+      navigate('/permissions');
+    } catch (err) {
+      toast.error(err.response?.data?.message);
+    } finally {
       setIsSubmitting(false);
-
-  
+    }
   };
 
   return (
     <div className="p-2 sm:p-4 max-w-4xl mx-auto min-h-screen space-y-6 bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 transition-colors duration-200">
       <div>
         <Link 
-          to="/super-admin/permissions" 
+          to="/permissions" 
           className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-gray-900 dark:text-slate-400 dark:hover:text-white transition-colors duration-200 mb-4"
         >
           <ArrowLeft className="w-4 h-4" /> Back to Permissions Directory

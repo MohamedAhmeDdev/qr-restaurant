@@ -57,7 +57,7 @@ export default function RestaurantsPage() {
       {/* HEADER & BACK BUTTON */}
       <div>
         <Link
-          to="/super-admin/tenants"
+          to="/tenants"
           className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-gray-900 dark:text-slate-400 dark:hover:text-slate-200 mb-2 transition-colors duration-200"
         >
           <ArrowLeft className="w-4 h-4" /> Back to Organizations
