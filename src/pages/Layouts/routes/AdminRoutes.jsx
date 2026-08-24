@@ -16,7 +16,7 @@ export const AdminRoutes = {
   children: [
     { path: 'switcher', element: <Switcher /> },
     {
-      path: '/:restaurantSlug',
+      path: ':restaurantSlug',
       element: <Layout SidebarComponent={AdminSidebar} />,
       children: [
         { index: true, element: <Navigate to="dashboard" replace /> },
