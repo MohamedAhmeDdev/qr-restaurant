@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Eye, EyeOff, ArrowRight, Check, AlertCircle, Loader2, Store, User, Lock, Mail } from 'lucide-react';
+import { Eye, EyeOff, ArrowRight, Check, AlertCircle, Loader2, Store, User, Lock, Mail, Building2 } from 'lucide-react';
 import { Link, useNavigate, useSearchParams, useLocation } from 'react-router-dom'; 
 import toast from 'react-hot-toast';
 import { useAuth } from '../../contexts/AuthContext';
@@ -18,28 +18,25 @@ function Register() {
   const location = useLocation();
   const { register } = useAuth();
 
-  // 🔥 Same redirect pattern as Login
   const from = location.state?.from?.pathname || '/';
 
   const [form, setForm] = useState({
     name: '',
     email: '',
+    organizationName: '',
     restaurantName: '',
-    restaurantSlug: '',
     password: '',
     password_confirmation: '',
   });
 
   const [errors, setErrors] = useState({});
 
-  // Password validation criteria
   const passwordChecks = [
     { label: 'At least 8 characters', valid: form.password.length >= 8 },
     { label: 'One number', valid: /\d/.test(form.password) },
     { label: 'One uppercase letter', valid: /[A-Z]/.test(form.password) },
   ];
 
-  // Verify invitation token on mount & set verified email
   useEffect(() => {
     const verifyInviteToken = async () => {
       if (!token) {
@@ -68,20 +65,7 @@ function Register() {
   const update = (key) => (e) => {
     const value = e.target.value;
 
-    if (key === 'restaurantName') {
-      const generatedSlug = value
-        .toLowerCase()
-        .trim()
-        .replace(/[^a-z0-9 -]/g, '')
-        .replace(/\s+/g, '-')
-        .replace(/-+/g, '-');
-
-      setForm((prev) => ({
-        ...prev,
-        restaurantName: value,
-        restaurantSlug: generatedSlug,
-      }));
-    } else if (key === 'password') {
+    if (key === 'password') {
       setForm((prev) => ({
         ...prev,
         password: value,
@@ -105,6 +89,10 @@ function Register() {
 
     if (!form.name.trim()) {
       newErrors.name = 'Admin name is required';
+    }
+
+    if (!form.organizationName.trim()) {
+      newErrors.organizationName = 'Organization name is required';
     }
 
     if (!form.restaurantName.trim()) {
@@ -138,16 +126,16 @@ function Register() {
         name: form.name,
         password: form.password,
         password_confirmation: form.password_confirmation,
+        organization_name: form.organizationName,
         restaurant_name: form.restaurantName,
-        restaurant_slug: form.restaurantSlug,
       };
 
       const result = await register(userData);
 
       if (result.success) {
         toast.success(result.message);
-       const redirectPath =  getDefaultRouteForRole(result.user?.role);
-  navigate(redirectPath, { replace: true });
+        const redirectPath = getDefaultRouteForRole(result.user?.role);
+        navigate(redirectPath, { replace: true });
       } else {
         if (typeof result.error === 'object') {
           setErrors(result.error);
@@ -160,6 +148,7 @@ function Register() {
       if (serverErrors) {
         setErrors({
           name: serverErrors.name?.[0],
+          organizationName: serverErrors.organization_name?.[0],
           restaurantName: serverErrors.restaurant_name?.[0],
           general: error?.response?.data?.message,
         });
@@ -251,6 +240,29 @@ function Register() {
                 </div>
               </div>
 
+              {/* Organization Name */}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-medium text-slate-400 tracking-wide uppercase">
+                  Organization Name <span className="text-orange-500">*</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={form.organizationName}
+                    onChange={update('organizationName')}
+                    placeholder="e.g. Acme Hospitality Group"
+                    className="w-full pl-10 pr-4 py-3.5 bg-slate-900/60 border border-slate-800 rounded-xl text-sm text-white placeholder-slate-600 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
+                  />
+                  <Building2 className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                </div>
+                {(errors.organizationName || errors.organization_name) && (
+                  <div className="flex items-center gap-1.5 text-red-400 text-xs mt-1">
+                    <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                    <span>{errors.organizationName || errors.organization_name}</span>
+                  </div>
+                )}
+              </div>
+
               {/* Restaurant Name */}
               <div className="space-y-1.5">
                 <label className="block text-xs font-medium text-slate-400 tracking-wide uppercase">
@@ -266,15 +278,10 @@ function Register() {
                   />
                   <Store className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 </div>
-                {form.restaurantSlug && (
-                  <p className="text-[11px] text-slate-500 font-mono pl-1">
-                    Slug: <span className="text-slate-400">{form.restaurantSlug}</span>
-                  </p>
-                )}
-                {(errors.restaurantName || errors.restaurant_slug) && (
+                {errors.restaurantName && (
                   <div className="flex items-center gap-1.5 text-red-400 text-xs mt-1">
                     <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
-                    <span>{errors.restaurantName || errors.restaurant_slug}</span>
+                    <span>{errors.restaurantName}</span>
                   </div>
                 )}
               </div>

@@ -110,7 +110,7 @@ const register = useCallback(async (userData) => {
   } catch (error) {
     return {
       success: false,
-      error: error?.response?.data?.errors || error?.response?.data?.message,
+      error: error?.response?.data?.message,
     };
   }
 }, []);
