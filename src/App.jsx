@@ -28,7 +28,7 @@ const router = createBrowserRouter([
   // 1. PUBLIC STAFF AUTHENTICATION ROUTES (No login required)
   { path: '/login', element: <Login /> },
   { path: '/forgot-password', element: <ForgotPassword /> },
-  { path: '/reset-password/token', element: <ResetPassword /> },
+  { path: '/reset-password', element: <ResetPassword /> },
   { path: '/register', element: <Register /> },
 
   // 2. PROTECTED ADMIN & STAFF MODULES (Auth Guards handle these internally)

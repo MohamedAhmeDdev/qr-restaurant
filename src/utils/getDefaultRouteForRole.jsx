@@ -3,7 +3,7 @@ export const getDefaultRouteForRole = (role) => {
     case 'super_admin':
       return '/organizations';
     case 'restaurant_admin':
-      return '/switcher';
+      return '/restaurant';
     default:
       return '/login';
   }
