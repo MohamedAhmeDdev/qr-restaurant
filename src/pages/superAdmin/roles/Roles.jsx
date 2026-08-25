@@ -46,7 +46,7 @@ export default function RolesPage() {
       const data = response.data?.data;
       setRoles(data);
     } catch (err) {
-      const errorMessage = err.response?.data?.message || 'Failed to fetch roles.';
+      const errorMessage = err.response?.data?.message;
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {
@@ -72,9 +72,9 @@ export default function RolesPage() {
       const response = await api.delete(`/roles/${roleToDelete.id}`);
       setRoles(prev => prev.filter(r => r.id !== roleToDelete.id));
       setRoleToDelete(null);
-      toast.success(response.data.message || 'Role deleted successfully');
+      toast.success(response.data.message );
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to delete role');
+      toast.error(err.response?.data?.message);
     } finally {
       setIsDeleting(false);
     }
@@ -170,8 +170,8 @@ export default function RolesPage() {
         <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 transition-colors duration-200">
           <EmptyState
             icon={AlertCircle}
-            title={error}
-            description="An error occurred while fetching roles."
+            title="Unable to load roles"
+            description={error}
             action={
               <button
                 onClick={fetchRoles}

@@ -273,7 +273,7 @@ export default function PermissionsPage() {
         <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden p-6">
           <EmptyState
             icon={AlertCircle}
-            title="Failed to load permissions"
+            title="Unable to load permissions"
             description={error}
             action={
               <button
