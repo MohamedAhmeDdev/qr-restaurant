@@ -12,12 +12,14 @@ import {
   LogOut, 
   PanelLeftClose, 
   PanelLeftOpen, 
-  ChevronDown 
+  ChevronDown, 
+  Users
 } from 'lucide-react'; 
 import { useAuth } from '../../../contexts/AuthContext';
 
 const navigation = [ 
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard }, 
+  { name: 'Staff', href: '/staff', icon: Users }, 
   { name: 'Live Orders', href: '/orders', icon: ShoppingCart, badge: '3' }, 
   { name: 'Kitchen Display', href: '/kitchen', icon: ChefHat }, 
   { name: 'Menu Management', href: '/menu', icon: UtensilsCrossed }, 
