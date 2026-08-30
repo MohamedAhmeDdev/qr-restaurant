@@ -7,6 +7,7 @@ import {
 import api from '../../../services/api';
 import ConfirmationModal from '../../../components/common/ConfirmationModal';
 import EmptyState from '../../../components/common/EmptyState';
+import StatusBadge from '../../../components/ui/StatusBadge';
 
 export default function RestaurantList() {
   const navigate = useNavigate();
@@ -89,26 +90,26 @@ export default function RestaurantList() {
   };
 
   // Workspace Switching
-// 1. Updated Workspace Switching Handler
-const handleSwitchRestaurant = (restaurant) => {
-  if (restaurant.isTrashed) return;
+  // 1. Updated Workspace Switching Handler
+  const handleSwitchRestaurant = (restaurant) => {
+    if (restaurant.isTrashed) return;
 
-  // If already active, navigate directly to dashboard
-  if (restaurant.slug === selectedRestaurantSlug) {
-    navigate('/dashboard');
-    return;
-  }
+    // If already active, navigate directly to dashboard
+    if (restaurant.slug === selectedRestaurantSlug) {
+      navigate('/dashboard');
+      return;
+    }
 
-  // Switch to new restaurant workspace
-  setIsSwitching(restaurant.id);
-  localStorage.setItem('active_restaurant_slug', restaurant.slug);
-  setSelectedRestaurantSlug(restaurant.slug);
+    // Switch to new restaurant workspace
+    setIsSwitching(restaurant.id);
+    localStorage.setItem('active_restaurant_slug', restaurant.slug);
+    setSelectedRestaurantSlug(restaurant.slug);
 
-  setTimeout(() => {
-    setIsSwitching(null);
-    navigate('/dashboard');
-  }, 600);
-};
+    setTimeout(() => {
+      setIsSwitching(null);
+      navigate('/dashboard');
+    }, 600);
+  };
   // Soft Delete Handler (With Optimistic UI Update)
   const handleSoftDelete = async (e, restaurant) => {
     e.stopPropagation();
@@ -219,11 +220,10 @@ const handleSwitchRestaurant = (restaurant) => {
             <div className="flex gap-7 -mb-px">
               <button
                 onClick={() => handleTabChange('active')}
-                className={`group flex items-center gap-1.5 py-3.5 text-[13px] font-medium border-b-2 transition-colors duration-150 ${
-                  activeTab === 'active'
+                className={`group flex items-center gap-1.5 py-3.5 text-[13px] font-medium border-b-2 transition-colors duration-150 ${activeTab === 'active'
                     ? 'border-orange-500 text-slate-900 dark:text-white'
                     : 'border-transparent text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
-                }`}
+                  }`}
               >
                 <Layers className={`w-3.5 h-3.5 transition-colors ${activeTab === 'active' ? 'text-orange-500' : 'text-slate-300 dark:text-slate-600 group-hover:text-slate-400'}`} />
                 Active locations
@@ -231,11 +231,10 @@ const handleSwitchRestaurant = (restaurant) => {
 
               <button
                 onClick={() => handleTabChange('trashed')}
-                className={`group flex items-center gap-1.5 py-3.5 text-[13px] font-medium border-b-2 transition-colors duration-150 ${
-                  activeTab === 'trashed'
+                className={`group flex items-center gap-1.5 py-3.5 text-[13px] font-medium border-b-2 transition-colors duration-150 ${activeTab === 'trashed'
                     ? 'border-orange-500 text-slate-900 dark:text-white'
                     : 'border-transparent text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
-                }`}
+                  }`}
               >
                 <Archive className={`w-3.5 h-3.5 transition-colors ${activeTab === 'trashed' ? 'text-orange-500' : 'text-slate-300 dark:text-slate-600 group-hover:text-slate-400'}`} />
                 Trash
@@ -375,36 +374,33 @@ const handleSwitchRestaurant = (restaurant) => {
                     <div className="flex items-start justify-between gap-3 mb-4">
                       <div className="min-w-0">
                         <h3
-                          className={`font-bold text-lg leading-snug truncate ${
-                            restaurant.isTrashed
+                          className={`font-bold text-lg leading-snug truncate ${restaurant.isTrashed
                               ? 'line-through text-slate-400 dark:text-slate-500'
                               : 'text-slate-900 dark:text-white'
-                          }`}
+                            }`}
                           title={restaurant.name}
                         >
                           {restaurant.name}
                         </h3>
 
-                        <span
-                          className={`inline-flex items-center gap-1.5 mt-1 text-xs font-semibold px-2.5 py-0.5 rounded-full ${
-                            restaurant.isTrashed
-                              ? 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
-                              : restaurant.status === 'active'
-                                ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400'
-                                : 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400'
-                          }`}
-                        >
-                          <span
-                            className={`w-1.5 h-1.5 rounded-full ${
-                              restaurant.isTrashed
-                                ? 'bg-slate-400'
-                                : restaurant.status === 'active'
-                                  ? 'bg-emerald-500'
-                                  : 'bg-amber-500'
-                            }`}
+                        {/* New StatusBadge implementation */}
+                        {restaurant.isTrashed ? (
+                          <StatusBadge
+                            status="inactive"
+                            inactiveLabel="Trashed"
+                            inactiveColor="gray"
+                            size="xs"
                           />
-                          {restaurant.isTrashed ? 'Trashed' : restaurant.status === 'active' ? 'Active' : 'Suspended'}
-                        </span>
+                        ) : (
+                          <StatusBadge
+                            status={restaurant.status === 'active' ? 'active' : 'inactive'}
+                            activeLabel="Active"
+                            inactiveLabel="Suspended"
+                            activeColor="emerald"
+                            inactiveColor="amber"
+                            size="xs"
+                          />
+                        )}
                       </div>
 
                       {/* Action Dropdown Menu */}
@@ -479,40 +475,39 @@ const handleSwitchRestaurant = (restaurant) => {
                   </div>
 
                   {/* Footer Switch Action */}
-        {/* 2. Updated Footer Switch Action UI */}
-<div>
-  {!restaurant.isTrashed ? (
-    <button
-      type="button"
-      onClick={() => handleSwitchRestaurant(restaurant)}
-      disabled={isSwitchingThis}
-      className={`w-full py-2.5 px-4 rounded-xl font-semibold text-xs flex items-center justify-center gap-2 transition-all ${
-        isActive
-          ? 'bg-orange-50 hover:bg-orange-100 text-orange-600 dark:bg-orange-950/30 dark:hover:bg-orange-900/40 dark:text-orange-400 border border-orange-200 dark:border-orange-800/50 cursor-pointer shadow-sm'
-          : 'bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-white dark:text-slate-900 shadow-sm'
-      }`}
-    >
-      {isSwitchingThis ? (
-        <>
-          <div className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
-          Switching workspace…
-        </>
-      ) : isActive ? (
-        <>
-          <ChefHat className="w-4 h-4 text-orange-500" /> Open Active Workspace <ArrowRight className="w-3.5 h-3.5" />
-        </>
-      ) : (
-        <>
-          Click to switch <ArrowRight className="w-3.5 h-3.5" />
-        </>
-      )}
-    </button>
-  ) : (
-    <div className="py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 font-medium text-xs text-center">
-      {isBusy && pendingAction?.type === 'restore' ? 'Restoring location…' : 'Location in trash'}
-    </div>
-  )}
-</div>
+                  {/* 2. Updated Footer Switch Action UI */}
+                  <div>
+                    {!restaurant.isTrashed ? (
+                      <button
+                        type="button"
+                        onClick={() => handleSwitchRestaurant(restaurant)}
+                        disabled={isSwitchingThis}
+                        className={`w-full py-2.5 px-4 rounded-xl font-semibold text-xs flex items-center justify-center gap-2 transition-all ${isActive
+                            ? 'bg-orange-50 hover:bg-orange-100 text-orange-600 dark:bg-orange-950/30 dark:hover:bg-orange-900/40 dark:text-orange-400 border border-orange-200 dark:border-orange-800/50 cursor-pointer shadow-sm'
+                            : 'bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-white dark:text-slate-900 shadow-sm'
+                          }`}
+                      >
+                        {isSwitchingThis ? (
+                          <>
+                            <div className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                            Switching workspace…
+                          </>
+                        ) : isActive ? (
+                          <>
+                            <ChefHat className="w-4 h-4 text-orange-500" /> Open Active Workspace <ArrowRight className="w-3.5 h-3.5" />
+                          </>
+                        ) : (
+                          <>
+                            Click to switch <ArrowRight className="w-3.5 h-3.5" />
+                          </>
+                        )}
+                      </button>
+                    ) : (
+                      <div className="py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 font-medium text-xs text-center">
+                        {isBusy && pendingAction?.type === 'restore' ? 'Restoring location…' : 'Location in trash'}
+                      </div>
+                    )}
+                  </div>
                 </div>
               );
             })}
