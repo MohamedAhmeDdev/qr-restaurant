@@ -131,8 +131,6 @@ export default function StaffForm({
                 <option value="">Select Shift</option>
                 <option value="day">Day</option>
                 <option value="night">Night</option>
-                <option value="full_time">Full Time</option>
-                <option value="flexible">Flexible</option>
               </select>
               {errors.shift_type && <p className="text-xs text-red-500 mt-1">{Array.isArray(errors.shift_type) ? errors.shift_type[0] : errors.shift_type}</p>}
             </div>
