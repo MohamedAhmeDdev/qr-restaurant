@@ -39,7 +39,7 @@ const router = createBrowserRouter([
 
   // 3. 100% PUBLIC TENANT CUSTOMER ROUTES (No login check)
   {
-    path: '/r/:restaurantSlug',
+    path: '/:restaurantSlug/menu/:tableSlug',
     element: <Outlet />, // Public Customer Outlet
     children: [
       { index: true, element: <MenuPage /> },

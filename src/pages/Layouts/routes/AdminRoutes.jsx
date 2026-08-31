@@ -9,6 +9,10 @@ import CreateRestaurant from '../../restaurant/restaurant/CreateRestaurant';
 import EditRestaurant from '../../restaurant/restaurant/EditRestaurant';
 import CreateStaff from '../../restaurant/staff/CreateStaff';
 import EditStaff from '../../restaurant/staff/EditStaff';
+import TableList from '../../restaurant/table/TableList';
+import CreateTable from '../../restaurant/table/CreateTable';
+import EditTable from '../../restaurant/table/EditTable';
+
 
 
 
@@ -32,6 +36,9 @@ export const AdminRoutes = {
         { path: 'staff', element: <Staff /> },
         { path: 'staff/create', element: <CreateStaff /> },
         { path: 'staff/edit/:id', element: <EditStaff /> },
+        { path: 'table', element: <TableList /> },
+        { path: 'table/create', element: <CreateTable /> },
+        { path: 'table/edit/:id', element: <EditTable /> },
         { path: 'settings', element: <SettingsPage /> },
       ],
     },

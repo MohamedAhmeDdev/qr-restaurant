@@ -30,7 +30,6 @@ export default function Pagination({
     <div className="px-6 py-4 border-t border-gray-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
       <span className="text-xs text-gray-500 dark:text-slate-400">
         Page {currentPage} of {totalPages}
-        {totalRecords > 0 && ` (${totalRecords} total items)`}
       </span>
 
       <div className="flex items-center gap-2">

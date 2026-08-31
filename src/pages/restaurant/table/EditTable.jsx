@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import StaffForm from '../../../components/forms/StaffForm';
+import TableForm from '../../../components/forms/TableForm';
 import toast from 'react-hot-toast';
 import api from '../../../services/api';
 
-export default function EditStaff() {
+export default function EditTable() {
   const navigate = useNavigate();
   const { id } = useParams();
   
@@ -14,40 +14,39 @@ export default function EditStaff() {
   
   const [formData, setFormData] = useState({
     name: '',
-    email: '',
-    role: '',
+    capacity: '',
     status: '',
-    shift_type: '',
+    is_active: '',
   });
 
-const fetchStaff = useCallback(async () => {
-  try {
-    const response = await api.get(`/staff/${id}`);
-    const data = response.data?.data;
-    console.log(response);
-    
-    setFormData({
-      name: data.name,
-      email: data.email,
-     role_id: data.role?.id,
-      status: data.status,
-      shift_type: data.shift_type,
-    });
-  } catch (err) {
-    toast.error(err.response?.data?.message);
-    navigate('/staff');
-  }
-}, [id, navigate]);
+  const fetchTable = useCallback(async () => {
+    try {
+      const response = await api.get(`/tables/${id}`);
+      const data = response.data?.data
+      
+      setFormData({
+        name: data.name || '',
+        capacity: data.capacity || '',
+        status: data.status || '',
+        is_active: data.is_active !== undefined ? String(data.is_active) : '',
+      });
+    } catch (err) {
+      toast.error(err.response?.data?.message);
+    } 
+  }, [id, navigate]);
 
   useEffect(() => {
-    fetchStaff();
-  }, [fetchStaff]);
+    fetchTable();
+  }, [fetchTable]);
 
   const validate = () => {
     const newErrors = {};
-    if (!formData.name?.trim()) newErrors.name = 'Full name is required';
-    if (!formData.email?.trim()) newErrors.email = 'Email is required';
-    else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Invalid email format';
+    if (!formData.name?.trim()) newErrors.name = 'Table name is required';
+    if (!formData.capacity) newErrors.capacity = 'Capacity is required';
+    else if (formData.capacity < 1) newErrors.capacity = 'Capacity must be at least 1';
+    else if (formData.capacity > 20) newErrors.capacity = 'Capacity cannot exceed 20';
+    if (!formData.status) newErrors.status = 'Status is required';
+    if (formData.is_active === '') newErrors.is_active = 'Active status is required';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -61,16 +60,14 @@ const fetchStaff = useCallback(async () => {
     try {
       const payload = {
         name: formData.name.trim(),
-        email: formData.email.trim(),
-       role_id: formData.role_id,
+        capacity: parseInt(formData.capacity),
         status: formData.status,
-        shift_type: formData.shift_type
-        
+        is_active: formData.is_active === 'true'
       };
 
-      const response = await api.put(`/staff/${id}`, payload);
+      const response = await api.put(`/tables/${id}`, payload);
       toast.success(response?.data?.message);
-      navigate('/staff');
+      navigate('/table');
     } catch (err) {
       toast.error(err.response?.data?.message);
     } finally {
@@ -79,13 +76,13 @@ const fetchStaff = useCallback(async () => {
   };
 
   const handleCancel = () => {
-    navigate('/staff');
+    navigate('/table');
   };
 
 
-
   return (
-    <div className="p-1 sm:p-4 max-w-3xl mx-auto space-y-6 bg-gray-50 dark:bg-slate-950 min-h-screen">
+    <div className="p-1 sm:p-4 max-w-4xl mx-auto min-h-screen space-y-6 bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 transition-colors duration-200">
+   
         {/* Header */}
         <div className="mb-8 flex items-center gap-4">
           <button 
@@ -95,12 +92,12 @@ const fetchStaff = useCallback(async () => {
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
-            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white">Edit Staff Member</h1>
-            <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">Update employee details and permissions.</p>
+            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white">Edit Table</h1>
+            <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">Update table details and configuration.</p>
           </div>
         </div>
 
-        <StaffForm
+        <TableForm
           formData={formData}
           setFormData={setFormData}
           errors={errors}
@@ -108,7 +105,7 @@ const fetchStaff = useCallback(async () => {
           onSubmit={handleSubmit}
           onCancel={handleCancel}
           isSubmitting={isSubmitting}
-          submitButtonText="Update Staff Member"
+          submitButtonText="Update Table"
           isEdit={true}
         />
     </div>

@@ -1,32 +1,34 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import {  
-  LayoutDashboard,  
-  UtensilsCrossed,  
-  ShoppingCart,  
-  QrCode,  
-  BarChart3,  
-  Settings,  
-  X,  
-  ChefHat, 
-  LogOut, 
-  PanelLeftClose, 
-  PanelLeftOpen, 
-  ChevronDown, 
-  Users
-} from 'lucide-react'; 
+import {
+  LayoutDashboard,
+  UtensilsCrossed,
+  ShoppingCart,
+  QrCode,
+  BarChart3,
+  Settings,
+  X,
+  ChefHat,
+  LogOut,
+  PanelLeftClose,
+  PanelLeftOpen,
+  ChevronDown,
+  Users,
+  Table,
+  Table2
+} from 'lucide-react';
 import { useAuth } from '../../../contexts/AuthContext';
 
-const navigation = [ 
-  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard }, 
-  { name: 'Staff', href: '/staff', icon: Users }, 
-  { name: 'Live Orders', href: '/orders', icon: ShoppingCart, badge: '3' }, 
-  { name: 'Kitchen Display', href: '/kitchen', icon: ChefHat }, 
-  { name: 'Menu Management', href: '/menu', icon: UtensilsCrossed }, 
-  { name: 'QR Codes & Tables', href: '/tables', icon: QrCode }, 
-  { name: 'Analytics', href: '/analytics', icon: BarChart3 }, 
-  { name: 'Settings', href: '/settings', icon: Settings }, 
-]; 
+const navigation = [
+  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { name: 'Staff', href: '/staff', icon: Users },
+  { name: 'QR Codes & Tables', href: '/table', icon: QrCode },
+  { name: 'Categories', href: '/categories', icon: Table2 },
+  { name: 'Menu Management', href: '/menu', icon: UtensilsCrossed },
+  { name: 'Live Orders', href: '/orders', icon: ShoppingCart, badge: '3' },
+  { name: 'Analytics', href: '/analytics', icon: BarChart3 },
+  { name: 'Settings', href: '/settings', icon: Settings },
+];
 
 const COLLAPSED_WIDTH = 72;
 
@@ -97,10 +99,10 @@ export default function AdminSidebar({ mobileOpen, setMobileOpen, collapsed, set
       {/* MOBILE BACKDROP */}
       {mobileOpen && (
         <div
-        className="fixed inset-0 z-40 lg:hidden"
+          className="fixed inset-0 z-40 lg:hidden"
           onClick={() => setMobileOpen(false)}
         />
-      )} 
+      )}
 
       {/* SIDEBAR CONTAINER */}
       <aside
@@ -122,7 +124,7 @@ export default function AdminSidebar({ mobileOpen, setMobileOpen, collapsed, set
               <UtensilsCrossed className="w-5 h-5" />
             </div>
             <span className="text-slate-900 dark:text-white transition-colors duration-200">
-             QR restaurant
+              QR restaurant
             </span>
           </div>
 
