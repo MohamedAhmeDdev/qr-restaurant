@@ -276,7 +276,15 @@ export default function RolesPage() {
         onClose={() => setRoleToDelete(null)}
         onConfirm={handleConfirmDelete}
         title="Delete Role"
-        description={`Are you sure you want to delete the "${roleToDelete?.name}" role? This action cannot be undone.`}
+        description={
+          <>
+            Are you sure you want to delete the{' '}
+            <span className="font-bold text-slate-900 dark:text-slate-200">
+              ${roleToDelete?.name}"
+            </span>{' '}
+            role? This action cannot be undone.
+          </>
+        }
         itemName={roleToDelete?.name}
         confirmText="Delete"
         cancelText="Cancel"
