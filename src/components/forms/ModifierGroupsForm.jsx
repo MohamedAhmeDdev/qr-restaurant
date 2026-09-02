@@ -65,7 +65,7 @@ export default function ModifierGroupForm({
                 type="text"
                 value={formData.name || ''}
                 onChange={(e) => handleChange('name', e.target.value)}
-                placeholder="e.g. Size Options, Extra Toppings, Choice of Side"
+                placeholder="e.g., Pizza Toppings, Dressing Choice, Spice Level, Portion Size"
                 className={`w-full px-4 py-2.5 rounded-xl border ${
                   errors.name ? 'border-red-500 focus:ring-red-500/20' : 'border-gray-200 dark:border-slate-700/80 hover:border-gray-300 dark:hover:border-slate-600 focus:border-orange-500 focus:ring-orange-500/20'
                 } bg-white dark:bg-slate-800/50 focus:ring-4 outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 transition-all text-sm shadow-sm`}
@@ -86,7 +86,7 @@ export default function ModifierGroupForm({
               <textarea
                 value={formData.description || ''}
                 onChange={(e) => handleChange('description', e.target.value)}
-                placeholder="Add helpful context or instructions for this group..."
+                placeholder="e.g., Select up to 3 extra toppings. Additional charges apply per extra topping."
                 rows="3"
                 className={`w-full px-4 py-2.5 rounded-xl border ${
                   errors.description ? 'border-red-500 focus:ring-red-500/20' : 'border-gray-200 dark:border-slate-700/80 hover:border-gray-300 dark:hover:border-slate-600 focus:border-orange-500 focus:ring-orange-500/20'
@@ -201,11 +201,16 @@ export default function ModifierGroupForm({
                   {index + 1}
                 </div>
 
-                {/* Option Name */}
+                {/* Option Name Placeholder Context */}
                 <div className="flex-1">
                   <input
                     type="text"
-                    placeholder="Option name (e.g. Large, Extra Cheese)"
+                    placeholder={
+                      index === 0 ? "e.g., Extra Cheese" :
+                      index === 1 ? "e.g., Crispy Bacon" :
+                      index === 2 ? "e.g., Sliced Mushrooms" :
+                      "e.g., Truffle Oil"
+                    }
                     className="w-full border border-gray-200 dark:border-slate-700/80 rounded-lg px-3 py-2 text-sm bg-gray-50/50 dark:bg-slate-800 focus:bg-white dark:focus:bg-slate-800 outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 text-gray-900 dark:text-white transition-all"
                     value={option.name}
                     onChange={(e) => handleOptionChange(index, 'name', e.target.value)}

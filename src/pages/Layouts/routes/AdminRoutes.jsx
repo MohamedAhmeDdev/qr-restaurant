@@ -7,6 +7,8 @@ import AdminSidebar from '../sidebar/AdminSidebar';
 import RestaurantList from '../../restaurant/restaurant/RestaurantList';
 import CreateRestaurant from '../../restaurant/restaurant/CreateRestaurant';
 import EditRestaurant from '../../restaurant/restaurant/EditRestaurant';
+import Orders from '../../restaurant/orders/Orders';
+import OrderDetails from '../../restaurant/orders/OrderDetails';
 
 // Lazy load all other components
 const DashboardPage = lazy(() => import('../../restaurant/DashboardPage'));
@@ -54,6 +56,8 @@ export const AdminRoutes = {
         { path: 'menu-items', element: <Menu /> },
         { path: 'menu-items/create', element: <CreateMenu /> },
         { path: 'menu-items/edit/:id', element: <EditMenu /> },
+        { path: 'orders', element: <Orders /> },
+        { path: 'orders-details/:orderId', element: <OrderDetails /> },
         { path: 'settings', element: <SettingsPage /> },
       ],
     },

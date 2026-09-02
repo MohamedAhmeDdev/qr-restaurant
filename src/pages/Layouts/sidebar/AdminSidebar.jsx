@@ -31,7 +31,7 @@ const navigation = [
   { name: 'Categories', href: '/categories', icon: Tag },
   { name: 'Modifiers', href: '/modifier-groups', icon: Layers },
   { name: 'Menus', href: '/menu-items', icon: UtensilsCrossed },
-  { name: 'Live Orders', href: '/orders', icon: ShoppingCart, badge: '3' },
+  { name: 'Live Orders', href: '/orders', icon: ShoppingCart },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
