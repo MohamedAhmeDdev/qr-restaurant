@@ -10,7 +10,7 @@ import StatsCard from '../../../components/cards/StatsCard';
 import Toolbar from '../../../components/Toolbar';
 import Pagination from '../../../components/common/Pagination';
 import EmptyState from '../../../components/common/EmptyState';
-import StatusBadge from '../../../components/ui/StatusBadge';
+import StatusBadge from '../../../components/StatusBadge';
 import ConfirmationModal from '../../../components/common/ConfirmationModal';
 import api from '../../../services/api';
 import toast from 'react-hot-toast';

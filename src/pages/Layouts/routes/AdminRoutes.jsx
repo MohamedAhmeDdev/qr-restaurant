@@ -15,6 +15,12 @@ import EditTable from '../../restaurant/table/EditTable';
 import Category from '../../restaurant/category/Category';
 import CreateCategory from '../../restaurant/category/CreateCategory';
 import EditCategory from '../../restaurant/category/EditCategory';
+import ModifierGroups from '../../restaurant/modifiers/ModifierGroups';
+import CreateModifierGroup from '../../restaurant/modifiers/CreateModifierGroup';
+import EditModifierGroup from '../../restaurant/modifiers/EditModifierGroup';
+import Menu from '../../restaurant/menu/Menu';
+import CreateMenu from '../../restaurant/menu/CreateMenu';
+import EditMenu from '../../restaurant/menu/EditMenu';
 
 
 
@@ -47,7 +53,14 @@ export const AdminRoutes = {
         { path: 'categories', element: <Category /> },
         { path: 'category/create', element: <CreateCategory /> },
         { path: 'category/edit/:id', element: <EditCategory /> },
+        
+ { path: 'modifier-groups', element: <ModifierGroups /> },
+  { path: 'modifier-groups/create', element: <CreateModifierGroup /> },
+        { path: 'modifier-groups/edit/:id', element: <EditModifierGroup /> },
 
+         { path: 'menu-items', element: <Menu /> },
+  { path: 'menu-items/create', element: <CreateMenu /> },
+        { path: 'menu-items/edit/:id', element: <EditMenu /> },
         { path: 'settings', element: <SettingsPage /> },
       ],
     },

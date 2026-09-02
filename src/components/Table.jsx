@@ -1,6 +1,6 @@
 import React from 'react';
-import TableSkeleton from '../skeleton/TableSkeleton';
-import EmptyState from '../common/EmptyState';
+import TableSkeleton from './skeleton/TableSkeleton';
+import EmptyState from './common/EmptyState';
 import { AlertCircle } from 'lucide-react';
 
 export default function Table({ 

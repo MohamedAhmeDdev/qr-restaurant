@@ -7,7 +7,7 @@ import {
 import api from '../../../services/api';
 import ConfirmationModal from '../../../components/common/ConfirmationModal';
 import EmptyState from '../../../components/common/EmptyState';
-import StatusBadge from '../../../components/ui/StatusBadge';
+import StatusBadge from '../../../components/StatusBadge';
 
 export default function RestaurantList() {
   const navigate = useNavigate();

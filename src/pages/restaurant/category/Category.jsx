@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Toolbar from '../../../components/Toolbar';
-import StatusBadge from '../../../components/ui/StatusBadge';
+import StatusBadge from '../../../components/StatusBadge';
 import StatsCard from '../../../components/cards/StatsCard';
 import ConfirmationModal from '../../../components/common/ConfirmationModal';
 import EmptyState from '../../../components/common/EmptyState';

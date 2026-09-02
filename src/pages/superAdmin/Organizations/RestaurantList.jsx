@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { MapPin, Building2, AlertCircle, ArrowLeft } from 'lucide-react';
 import Toolbar from '../../../components/Toolbar';
-import StatusBadge from '../../../components/ui/StatusBadge';
+import StatusBadge from '../../../components/StatusBadge';
 import EmptyState from '../../../components/common/EmptyState';
 import api from '../../../services/api';
 

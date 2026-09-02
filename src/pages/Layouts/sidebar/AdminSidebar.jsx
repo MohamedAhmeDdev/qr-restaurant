@@ -15,7 +15,8 @@ import {
   ChevronDown,
   Users,
   Table,
-  Table2
+  Table2,
+  Layers
 } from 'lucide-react';
 import { useAuth } from '../../../contexts/AuthContext';
 
@@ -24,7 +25,8 @@ const navigation = [
   { name: 'Staff', href: '/staff', icon: Users },
   { name: 'QR Codes & Tables', href: '/table', icon: QrCode },
   { name: 'Categories', href: '/categories', icon: Table2 },
-  { name: 'Menu Management', href: '/menu', icon: UtensilsCrossed },
+    { name: 'Modifiers', href: '/modifier-groups', icon: Layers },
+  { name: 'Menus', href: '/menu-items', icon: UtensilsCrossed },
   { name: 'Live Orders', href: '/orders', icon: ShoppingCart, badge: '3' },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
   { name: 'Settings', href: '/settings', icon: Settings },

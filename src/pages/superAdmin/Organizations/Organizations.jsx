@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom';
 import { Building2 } from 'lucide-react';
 import StatsCard from '../../../components/cards/StatsCard';
 import Toolbar from '../../../components/Toolbar';
-import StatusBadge from '../../../components/ui/StatusBadge';
-import Table from '../../../components/ui/Table';
+import StatusBadge from '../../../components/StatusBadge';
+import Table from '../../../components/Table';
 import api from '../../../services/api';
 
 export default function Organizations() {

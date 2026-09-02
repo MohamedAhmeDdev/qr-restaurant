@@ -9,8 +9,8 @@ import toast from 'react-hot-toast';
 
 import StatsCard from '../../../components/cards/StatsCard';
 import Toolbar from '../../../components/Toolbar';
-import StatusBadge from '../../../components/ui/StatusBadge';
-import Table from '../../../components/ui/Table';
+import StatusBadge from '../../../components/StatusBadge';
+import Table from '../../../components/Table';
 import Pagination from '../../../components/common/Pagination';
 import ConfirmationModal from '../../../components/common/ConfirmationModal';
 
