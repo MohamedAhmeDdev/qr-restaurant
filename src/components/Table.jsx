@@ -38,16 +38,6 @@ export default function Table({
                 <EmptyState
                   icon={AlertCircle}
                   title={error}
-                  action={
-                    onRetry && (
-                      <button
-                        onClick={onRetry}
-                        className="px-3.5 py-1.5 text-xs font-medium rounded-lg bg-rose-600 hover:bg-rose-700 text-white transition-colors duration-200"
-                      >
-                        Try Again
-                      </button>
-                    )
-                  }
                 />
               </td>
             </tr>

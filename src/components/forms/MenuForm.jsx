@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { LayoutGrid, Image, Check, ChevronDown, X, Search } from 'lucide-react';
+import { LayoutGrid, Image as ImageIcon, Check, ChevronDown, X, Search, Upload } from 'lucide-react';
 import api from '../../services/api';
 
 export default function MenuForm({
@@ -122,8 +122,6 @@ export default function MenuForm({
     setFormData((prev) => ({ ...prev, modifier_groups: [] }));
   };
 
-
-
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -136,8 +134,7 @@ export default function MenuForm({
         return;
       }
 
-      // Set the preview using the prop instead of formData
-      setImagePreview(URL.createObjectURL(file)); // Use URL.createObjectURL like in RestaurantForm
+      setImagePreview(URL.createObjectURL(file));
       setFormData((prev) => ({
         ...prev,
         image: file,
@@ -147,7 +144,7 @@ export default function MenuForm({
   };
 
   const removeImage = () => {
-    setImagePreview(null); // Clear the prop instead of formData
+    setImagePreview(null);
     setFormData((prev) => ({
       ...prev,
       image: null,
@@ -189,8 +186,9 @@ export default function MenuForm({
                 value={formData.name || ''}
                 onChange={(e) => handleChange('name', e.target.value)}
                 placeholder="e.g. Margherita Pizza"
-                className={`w-full px-4 py-2.5 rounded-xl border ${errors.name ? 'border-red-500' : 'border-gray-300/80 dark:border-slate-700'
-                  } bg-white dark:bg-slate-800/80 focus:ring-4 focus:ring-orange-500/15 focus:border-orange-500 outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 transition-all text-sm shadow-sm`}
+                className={`w-full px-4 py-2.5 rounded-xl border ${
+                  errors.name ? 'border-red-500' : 'border-gray-300/80 dark:border-slate-700'
+                } bg-white dark:bg-slate-800/80 focus:ring-4 focus:ring-orange-500/15 focus:border-orange-500 outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 transition-all text-sm shadow-sm`}
               />
               {errors.name && (
                 <p className="text-xs text-red-500 mt-1">
@@ -210,8 +208,9 @@ export default function MenuForm({
                 value={formData.category_id || ''}
                 onChange={(e) => handleChange('category_id', e.target.value)}
                 disabled={isLoadingCategories}
-                className={`w-full px-4 py-2.5 rounded-xl border ${errors.category_id ? 'border-red-500' : 'border-gray-300/80 dark:border-slate-700'
-                  } bg-white dark:bg-slate-800/80 focus:ring-4 focus:ring-orange-500/15 focus:border-orange-500 outline-none text-gray-900 dark:text-white transition-all text-sm shadow-sm disabled:opacity-50`}
+                className={`w-full px-4 py-2.5 rounded-xl border ${
+                  errors.category_id ? 'border-red-500' : 'border-gray-300/80 dark:border-slate-700'
+                } bg-white dark:bg-slate-800/80 focus:ring-4 focus:ring-orange-500/15 focus:border-orange-500 outline-none text-gray-900 dark:text-white transition-all text-sm shadow-sm disabled:opacity-50`}
               >
                 <option value="">
                   {isLoadingCategories ? 'Loading categories...' : 'Select a category'}
@@ -245,8 +244,9 @@ export default function MenuForm({
               value={formData.price || ''}
               onChange={(e) => handleChange('price', e.target.value)}
               placeholder="0.00"
-              className={`w-full px-4 py-2.5 rounded-xl border ${errors.price ? 'border-red-500' : 'border-gray-300/80 dark:border-slate-700'
-                } bg-white dark:bg-slate-800/80 focus:ring-4 focus:ring-orange-500/15 focus:border-orange-500 outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 transition-all text-sm shadow-sm`}
+              className={`w-full px-4 py-2.5 rounded-xl border ${
+                errors.price ? 'border-red-500' : 'border-gray-300/80 dark:border-slate-700'
+              } bg-white dark:bg-slate-800/80 focus:ring-4 focus:ring-orange-500/15 focus:border-orange-500 outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 transition-all text-sm shadow-sm`}
             />
             {errors.price && (
               <p className="text-xs text-red-500 mt-1">
@@ -277,15 +277,16 @@ export default function MenuForm({
                 type="button"
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                 disabled={isLoadingModifiers}
-                className={`w-full px-4 py-2.5 rounded-xl border text-left flex items-center justify-between ${errors.modifier_groups ? 'border-red-500' : 'border-gray-300/80 dark:border-slate-700'
-                  } ${isDropdownOpen ? 'ring-4 ring-orange-500/15 border-orange-500' : ''} bg-white dark:bg-slate-800/80 outline-none text-gray-900 dark:text-white transition-all text-sm shadow-sm disabled:opacity-50`}
+                className={`w-full px-4 py-2.5 rounded-xl border text-left flex items-center justify-between ${
+                  errors.modifier_groups ? 'border-red-500' : 'border-gray-300/80 dark:border-slate-700'
+                } ${isDropdownOpen ? 'ring-4 ring-orange-500/15 border-orange-500' : ''} bg-white dark:bg-slate-800/80 outline-none text-gray-900 dark:text-white transition-all text-sm shadow-sm disabled:opacity-50`}
               >
                 <span className={selectedModifierGroups.length === 0 ? 'text-gray-400 dark:text-slate-500' : 'font-medium'}>
                   {isLoadingModifiers
                     ? 'Loading modifier groups...'
                     : selectedModifierGroups.length === 0
-                      ? 'Select modifier groups...'
-                      : `${selectedModifierGroups.length} group${selectedModifierGroups.length > 1 ? 's' : ''} selected`}
+                    ? 'Select modifier groups...'
+                    : `${selectedModifierGroups.length} group${selectedModifierGroups.length > 1 ? 's' : ''} selected`}
                 </span>
                 <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
@@ -320,16 +321,18 @@ export default function MenuForm({
                           <div
                             key={group.id}
                             onClick={() => handleModifierToggle(group.id)}
-                            className={`group flex items-center gap-3 px-2.5 py-2 rounded-lg cursor-pointer text-sm transition-colors ${isSelected
+                            className={`group flex items-center gap-3 px-2.5 py-2 rounded-lg cursor-pointer text-sm transition-colors ${
+                              isSelected
                                 ? 'bg-orange-50 dark:bg-orange-500/10'
                                 : 'hover:bg-gray-50 dark:hover:bg-slate-700/40'
-                              }`}
+                            }`}
                           >
                             <span
-                              className={`flex items-center justify-center w-[18px] h-[18px] rounded-md border-2 shrink-0 transition-colors ${isSelected
+                              className={`flex items-center justify-center w-[18px] h-[18px] rounded-md border-2 shrink-0 transition-colors ${
+                                isSelected
                                   ? 'bg-orange-500 border-orange-500'
                                   : 'border-gray-300 dark:border-slate-600 group-hover:border-orange-400'
-                                }`}
+                              }`}
                             >
                               {isSelected && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
                             </span>
@@ -396,8 +399,9 @@ export default function MenuForm({
             onChange={(e) => handleChange('description', e.target.value)}
             placeholder="Enter item description"
             rows="3"
-            className={`w-full px-4 py-2.5 rounded-xl border ${errors.description ? 'border-red-500' : 'border-gray-300/80 dark:border-slate-700'
-              } bg-white dark:bg-slate-800/80 focus:ring-4 focus:ring-orange-500/15 focus:border-orange-500 outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 transition-all text-sm shadow-sm resize-y`}
+            className={`w-full px-4 py-2.5 rounded-xl border ${
+              errors.description ? 'border-red-500' : 'border-gray-300/80 dark:border-slate-700'
+            } bg-white dark:bg-slate-800/80 focus:ring-4 focus:ring-orange-500/15 focus:border-orange-500 outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 transition-all text-sm shadow-sm resize-y`}
           />
           {errors.description && (
             <p className="text-xs text-red-500 mt-1">
@@ -408,35 +412,35 @@ export default function MenuForm({
 
         <hr className="border-gray-100 dark:border-slate-800" />
 
-        {/* Image Upload */}
+        {/* Image Upload Area */}
         <div>
           <label className="block text-sm font-semibold text-gray-800 dark:text-slate-200 mb-2">
             Item Image
           </label>
 
           {imagePreview ? (
-            <div className="flex items-center gap-4">
+            <div className="relative group w-full h-64 md:h-72 rounded-2xl overflow-hidden border border-gray-200 dark:border-slate-800 bg-gray-900 shadow-md">
               <img
                 src={imagePreview}
                 alt="Menu item preview"
-                className="w-20 h-20 object-cover rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm"
+                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
               />
-              <div className="flex flex-col gap-2">
-                <span className="text-sm text-gray-600 dark:text-slate-300 truncate max-w-[220px]">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-90 transition-opacity flex flex-col justify-end p-5">
+                <p className="text-sm font-medium text-white truncate mb-3">
                   {formData.image?.name || 'Current image'}
-                </span>
+                </p>
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-slate-700 text-gray-700 dark:text-slate-300 text-xs font-medium hover:bg-gray-50 dark:hover:bg-slate-800 transition-all"
+                    className="px-4 py-2 rounded-xl bg-white/20 hover:bg-white/30 backdrop-blur-md text-white text-xs font-semibold transition-all border border-white/20 shadow-sm"
                   >
-                    Replace
+                    Replace Image
                   </button>
                   <button
                     type="button"
                     onClick={removeImage}
-                    className="px-3 py-1.5 rounded-lg border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 text-xs font-medium hover:bg-red-50 dark:hover:bg-red-900/20 transition-all"
+                    className="px-4 py-2 rounded-xl bg-red-500/80 hover:bg-red-600 backdrop-blur-md text-white text-xs font-semibold transition-all shadow-sm"
                   >
                     Remove
                   </button>
@@ -447,19 +451,19 @@ export default function MenuForm({
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="w-full flex items-center gap-3 px-4 py-4 rounded-xl border-2 border-dashed border-gray-300 dark:border-slate-700 hover:border-orange-400 dark:hover:border-orange-500 bg-gray-50/60 dark:bg-slate-800/40 hover:bg-orange-50/40 dark:hover:bg-slate-800 text-left transition-all"
+              className="w-full h-56 md:h-64 flex flex-col items-center justify-center gap-3 p-6 rounded-2xl border-2 border-dashed border-gray-300 dark:border-slate-700 hover:border-orange-500 dark:hover:border-orange-500 bg-gray-50/50 dark:bg-slate-800/30 hover:bg-orange-50/30 dark:hover:bg-slate-800/60 transition-all group"
             >
-              <span className="p-2 rounded-lg bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-gray-400">
-                <Image className="w-4 h-4" />
-              </span>
-              <span>
-                <span className="block text-sm font-medium text-gray-700 dark:text-slate-300">
-                  Click to upload an image
+              <div className="p-3.5 rounded-2xl bg-white dark:bg-slate-800 border border-gray-200/80 dark:border-slate-700 text-gray-400 group-hover:text-orange-500 group-hover:scale-110 shadow-sm transition-all">
+                <ImageIcon className="w-5 h-5" />
+              </div>
+              <div className="text-center">
+                <span className="block text-sm font-semibold text-gray-800 dark:text-slate-200">
+                  Click to upload menu item image
                 </span>
-                <span className="block text-xs text-gray-400 dark:text-slate-500">
+                <span className="block text-xs text-gray-400 dark:text-slate-500 mt-1">
                   JPG, PNG or WebP — up to 2MB
                 </span>
-              </span>
+              </div>
             </button>
           )}
 

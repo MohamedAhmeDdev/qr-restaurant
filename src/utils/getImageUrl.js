@@ -1,10 +1,16 @@
-// Add this helper function outside your component
-export  const getImageUrl = (imagePath) => {
+export const getImageUrl = (imagePath) => {
   if (!imagePath) return null;
-  const baseURL = import.meta.env.VITE_API_URL;
-  // Handle if image already has full URL
-  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+  
+  // Return immediately if it is already a complete URL or Blob URL
+  if (imagePath.startsWith('http://') || imagePath.startsWith('https://') || imagePath.startsWith('blob:')) {
     return imagePath;
   }
-  return `${baseURL}${imagePath.startsWith('/') ? '' : '/'}${imagePath}`;
+
+  const baseURL = import.meta.env.VITE_API_URL || '';
+  
+  // Clean trailing slash from base and leading slash from path
+  const cleanBase = baseURL.replace(/\/+$/, '');
+  const cleanPath = imagePath.replace(/^\/+/, '');
+
+  return `${cleanBase}/${cleanPath}`;
 };

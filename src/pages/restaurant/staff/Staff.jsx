@@ -239,10 +239,10 @@ export default function StaffPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-orange-400 bg-clip-text text-transparent">
+            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-orange-600 to-orange-400 bg-clip-text text-transparent leading-tight">
             Staff Management
           </h1>
-          <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
+          <p className="text-md text-gray-500 dark:text-slate-400 mt-1">
             Manage your team members, roles, and operational shift statuses.
           </p>
         </div>

@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { ChefHat, Image as ImageIcon, Save, X, ToggleLeft } from 'lucide-react';
+import { ChefHat, Image as ImageIcon, Save, X } from 'lucide-react';
 
 export default function RestaurantForm({
   formData,
@@ -24,12 +24,22 @@ export default function RestaurantForm({
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        setErrors((prev) => ({ ...prev, logo: 'Image size must be less than 2MB' }));
+        return;
+      }
+      if (!file.type.startsWith('image/')) {
+        setErrors((prev) => ({ ...prev, logo: 'Please upload a valid image file' }));
+        return;
+      }
+
       setImagePreview(URL.createObjectURL(file));
       setFormData((prev) => ({
         ...prev,
         logo: file,
         removeLogo: false,
       }));
+      if (errors.logo) setErrors((prev) => ({ ...prev, logo: undefined }));
     }
   };
 
@@ -56,58 +66,73 @@ export default function RestaurantForm({
         </div>
 
         <div className="p-6 md:p-8 space-y-6">
-          {/* Logo Field */}
+          {/* Expanded Logo Card Field */}
           <div>
             <label className="block text-sm font-semibold text-gray-800 dark:text-slate-200 mb-2">
               Restaurant Logo
             </label>
-            <div className="flex items-center gap-6">
-              <div className="relative group shrink-0">
-                <div
-                  className={`w-28 h-28 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center overflow-hidden transition-all duration-300 ${
-                    imagePreview
-                      ? 'border-orange-500 bg-orange-50/10 shadow-md shadow-orange-500/10'
-                      : 'border-gray-300 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-800/50 hover:border-orange-400 dark:hover:border-orange-500/50'
-                  }`}
-                >
-                  {imagePreview ? (
-                    <img src={imagePreview} alt="Logo Preview" className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="flex flex-col items-center gap-1.5 text-gray-400 dark:text-slate-500 group-hover:text-orange-500 transition-colors">
-                      <ImageIcon className="w-7 h-7" />
-                      <span className="text-[11px] font-medium">Upload</span>
-                    </div>
-                  )}
 
-                  {imagePreview && (
+            {imagePreview ? (
+              <div className="relative group w-full h-64 md:h-72 rounded-2xl overflow-hidden border border-gray-200 dark:border-slate-800 bg-gray-900 shadow-md">
+                <img
+                  src={imagePreview}
+                  alt="Restaurant Logo Preview"
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-90 transition-opacity flex flex-col justify-end p-5">
+                  <p className="text-sm font-medium text-white truncate mb-3">
+                    {formData.logo?.name || 'Current logo'}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="px-4 py-2 rounded-xl bg-white/20 hover:bg-white/30 backdrop-blur-md text-white text-xs font-semibold transition-all border border-white/20 shadow-sm"
+                    >
+                      Replace Logo
+                    </button>
                     <button
                       type="button"
                       onClick={removeImage}
-                      className="absolute top-1 right-1 z-10 w-7 h-7 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-all shadow-lg scale-90 hover:scale-100"
-                      title="Remove image"
+                      className="px-4 py-2 rounded-xl bg-red-500/80 hover:bg-red-600 backdrop-blur-md text-white text-xs font-semibold transition-all shadow-sm"
                     >
-                      <X className="w-4 h-4" />
+                      Remove
                     </button>
-                  )}
+                  </div>
                 </div>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                  aria-label="Upload restaurant logo file"
-                />
               </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full h-56 md:h-64 flex flex-col items-center justify-center gap-3 p-6 rounded-2xl border-2 border-dashed border-gray-300 dark:border-slate-700 hover:border-orange-500 dark:hover:border-orange-500 bg-gray-50/50 dark:bg-slate-800/30 hover:bg-orange-50/30 dark:hover:bg-slate-800/60 transition-all group"
+              >
+                <div className="p-3.5 rounded-2xl bg-white dark:bg-slate-800 border border-gray-200/80 dark:border-slate-700 text-gray-400 group-hover:text-orange-500 group-hover:scale-110 shadow-sm transition-all">
+                  <ImageIcon className="w-5 h-5" />
+                </div>
+                <div className="text-center">
+                  <span className="block text-sm font-semibold text-gray-800 dark:text-slate-200">
+                    Click to upload restaurant logo
+                  </span>
+                  <span className="block text-xs text-gray-400 dark:text-slate-500 mt-1">
+                    PNG, JPG or WebP — recommended 200x200px (up to 2MB)
+                  </span>
+                </div>
+              </button>
+            )}
 
-              <div className="space-y-1.5">
-                <p className="text-sm font-medium text-gray-700 dark:text-slate-300">Brand Identity</p>
-                <p className="text-xs text-gray-500 dark:text-slate-400 leading-relaxed">
-                  Upload a high-resolution square logo. Recommended dimension is{' '}
-                  <span className="font-semibold text-gray-700 dark:text-slate-300">200x200px</span> in PNG or JPG format.
-                </p>
-              </div>
-            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="hidden"
+            />
+            {errors.logo && (
+              <p className="text-xs text-red-500 mt-1.5">
+                {Array.isArray(errors.logo) ? errors.logo[0] : errors.logo}
+              </p>
+            )}
           </div>
 
           <hr className="border-gray-100 dark:border-slate-800" />
@@ -132,80 +157,80 @@ export default function RestaurantForm({
             </div>
           </div>
 
-{/* Status Field - Card Style */}
-<div className="space-y-2">
-  <label className="block text-sm font-semibold text-gray-800 dark:text-slate-200">
-    Status <span className="text-orange-500">*</span>
-  </label>
-  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-    <label
-      className={`relative flex flex-col p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 select-none ${
-        formData.status === 'active'
-          ? 'border-orange-500 bg-orange-50/10 dark:bg-orange-500/10 shadow-sm'
-          : 'border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-800/40 hover:border-gray-300 dark:hover:border-slate-700'
-      }`}
-    >
-      <input
-        type="radio"
-        name="status"
-        value="active"
-        checked={formData.status === 'active'}
-        onChange={(e) => handleInputChange('status', e.target.value)}
-        className="sr-only"
-      />
-      <div className="flex items-center justify-between mb-1">
-        <span className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-emerald-500" />
-          Active
-        </span>
-        <div
-          className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-            formData.status === 'active'
-              ? 'border-orange-500 bg-orange-500'
-              : 'border-gray-300 dark:border-slate-600'
-          }`}
-        >
-          {formData.status === 'active' && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
-        </div>
-      </div>
-      <p className="text-xs text-gray-500 dark:text-slate-400">Visible to customers and ready to accept orders.</p>
-    </label>
+          {/* Status Field - Card Style */}
+          <div className="space-y-2">
+            <label className="block text-sm font-semibold text-gray-800 dark:text-slate-200">
+              Status <span className="text-orange-500">*</span>
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <label
+                className={`relative flex flex-col p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 select-none ${
+                  formData.status === 'active'
+                    ? 'border-orange-500 bg-orange-50/10 dark:bg-orange-500/10 shadow-sm'
+                    : 'border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-800/40 hover:border-gray-300 dark:hover:border-slate-700'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="status"
+                  value="active"
+                  checked={formData.status === 'active'}
+                  onChange={(e) => handleInputChange('status', e.target.value)}
+                  className="sr-only"
+                />
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                    Active
+                  </span>
+                  <div
+                    className={`w-4 h-4 rounded-full border flex items-center justify-center ${
+                      formData.status === 'active'
+                        ? 'border-orange-500 bg-orange-500'
+                        : 'border-gray-300 dark:border-slate-600'
+                    }`}
+                  >
+                    {formData.status === 'active' && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 dark:text-slate-400">Visible to customers and ready to accept orders.</p>
+              </label>
 
-    <label
-      className={`relative flex flex-col p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 select-none ${
-        formData.status === 'suspended'
-          ? 'border-orange-500 bg-orange-50/10 dark:bg-orange-500/10 shadow-sm'
-          : 'border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-800/40 hover:border-gray-300 dark:hover:border-slate-700'
-      }`}
-    >
-      <input
-        type="radio"
-        name="status"
-        value="suspended"
-        checked={formData.status === 'suspended'}
-        onChange={(e) => handleInputChange('status', e.target.value)}
-        className="sr-only"
-      />
-      <div className="flex items-center justify-between mb-1">
-        <span className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-amber-500" />
-          Suspended
-        </span>
-        <div
-          className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-            formData.status === 'suspended'
-              ? 'border-orange-500 bg-orange-500'
-              : 'border-gray-300 dark:border-slate-600'
-          }`}
-        >
-          {formData.status === 'suspended' && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
-        </div>
-      </div>
-      <p className="text-xs text-gray-500 dark:text-slate-400">Temporarily unavailable or under maintenance.</p>
-    </label>
-  </div>
-  {errors.status && <p className="text-xs text-red-500 mt-1">{errors.status}</p>}
-</div>
+              <label
+                className={`relative flex flex-col p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 select-none ${
+                  formData.status === 'suspended'
+                    ? 'border-orange-500 bg-orange-50/10 dark:bg-orange-500/10 shadow-sm'
+                    : 'border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-800/40 hover:border-gray-300 dark:hover:border-slate-700'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="status"
+                  value="suspended"
+                  checked={formData.status === 'suspended'}
+                  onChange={(e) => handleInputChange('status', e.target.value)}
+                  className="sr-only"
+                />
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-amber-500" />
+                    Suspended
+                  </span>
+                  <div
+                    className={`w-4 h-4 rounded-full border flex items-center justify-center ${
+                      formData.status === 'suspended'
+                        ? 'border-orange-500 bg-orange-500'
+                        : 'border-gray-300 dark:border-slate-600'
+                    }`}
+                  >
+                    {formData.status === 'suspended' && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 dark:text-slate-400">Temporarily unavailable or under maintenance.</p>
+              </label>
+            </div>
+            {errors.status && <p className="text-xs text-red-500 mt-1">{errors.status}</p>}
+          </div>
         </div>
       </div>
 

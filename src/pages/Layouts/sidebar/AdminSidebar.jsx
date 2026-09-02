@@ -16,7 +16,8 @@ import {
   Users,
   Table,
   Table2,
-  Layers
+  Layers,
+  Tag
 } from 'lucide-react';
 import { useAuth } from '../../../contexts/AuthContext';
 
@@ -24,7 +25,7 @@ const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Staff', href: '/staff', icon: Users },
   { name: 'QR Codes & Tables', href: '/table', icon: QrCode },
-  { name: 'Categories', href: '/categories', icon: Table2 },
+  { name: 'Categories', href: '/categories', icon: Tag },
     { name: 'Modifiers', href: '/modifier-groups', icon: Layers },
   { name: 'Menus', href: '/menu-items', icon: UtensilsCrossed },
   { name: 'Live Orders', href: '/orders', icon: ShoppingCart, badge: '3' },

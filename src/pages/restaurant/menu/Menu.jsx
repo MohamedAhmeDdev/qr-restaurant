@@ -10,6 +10,7 @@ import toast from 'react-hot-toast';
 import Toolbar from '../../../components/Toolbar';
 import Pagination from '../../../components/common/Pagination';
 import ConfirmationModal from '../../../components/common/ConfirmationModal';
+import StatusBadge from '../../../components/StatusBadge'; // Import StatusBadge
 import api from '../../../services/api';
 import { getImageUrl } from '../../../utils/getImageUrl';
 import Table from '../../../components/Table';
@@ -197,14 +198,16 @@ export default function MenuTable() {
         </td>
 
         <td className="py-3.5 px-6">
-          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${
-            item.is_available 
-              ? 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400' 
-              : 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400'
-          }`}>
-            {item.is_available ? <CheckCircle2 className="w-3.5 h-3.5" /> : <XCircle className="w-3.5 h-3.5" />}
-            {item.is_available ? 'Available' : 'Sold Out'}
-          </span>
+          {/* Using StatusBadge for availability status */}
+          <StatusBadge
+            status={item.is_available ? 'active' : 'inactive'}
+            activeLabel="Available"
+            inactiveLabel="Sold Out"
+            activeColor="green"
+            inactiveColor="rose"
+            showIcon={true}
+            size="sm"
+          />
         </td>
 
         <td className="py-3.5 px-6 text-right">
@@ -245,17 +248,16 @@ export default function MenuTable() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-slate-950 p-6 text-gray-900 dark:text-white">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="p-1 sm:p-4 space-y-6 bg-gray-50 dark:bg-slate-950 min-h-screen text-gray-900 dark:text-slate-100 transition-colors duration-200">
+      
 
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-              <UtensilsCrossed className="w-6 h-6 text-orange-500" />
+            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-orange-600 to-orange-400 bg-clip-text text-transparent leading-tight">
               Menu Inventory
             </h1>
-            <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">
+            <p className="text-md text-gray-500 dark:text-slate-400 mt-1">
               Manage items, prices, and availability status.
             </p>
           </div>
@@ -264,7 +266,7 @@ export default function MenuTable() {
             to="/menu-items/create"
             className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white rounded-xl text-sm font-semibold transition-all duration-200 shadow-lg shadow-orange-500/20 hover:shadow-orange-500/35 active:scale-[0.98]"
           >
-            <PlusCircle className="w-4 h-4" />
+            <UtensilsCrossed className="w-4 h-4" />
             <span>Add Menu Item</span>
           </Link>
         </div>
@@ -288,7 +290,7 @@ export default function MenuTable() {
             loading={loading}
             error={error}
             onRetry={fetchMenuItems}
-            emptyIcon={Search}
+            emptyIcon={UtensilsCrossed}
             emptyTitle={searchQuery || selectedCategory !== 'all' ? "No menu items found" : "No items added yet"}
             emptyDescription={
               searchQuery || selectedCategory !== 'all'
@@ -308,7 +310,7 @@ export default function MenuTable() {
             />
           )}
         </div>
-      </div>
+ 
 
       {/* Confirmation Modal */}
       <ConfirmationModal

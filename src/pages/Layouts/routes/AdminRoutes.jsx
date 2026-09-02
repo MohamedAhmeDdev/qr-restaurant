@@ -7,26 +7,24 @@ import AdminSidebar from '../sidebar/AdminSidebar';
 import RestaurantList from '../../restaurant/restaurant/RestaurantList';
 import CreateRestaurant from '../../restaurant/restaurant/CreateRestaurant';
 import EditRestaurant from '../../restaurant/restaurant/EditRestaurant';
-import CreateStaff from '../../restaurant/staff/CreateStaff';
-import EditStaff from '../../restaurant/staff/EditStaff';
-import TableList from '../../restaurant/table/TableList';
-import CreateTable from '../../restaurant/table/CreateTable';
-import EditTable from '../../restaurant/table/EditTable';
-import Category from '../../restaurant/category/Category';
-import CreateCategory from '../../restaurant/category/CreateCategory';
-import EditCategory from '../../restaurant/category/EditCategory';
-import ModifierGroups from '../../restaurant/modifiers/ModifierGroups';
-import CreateModifierGroup from '../../restaurant/modifiers/CreateModifierGroup';
-import EditModifierGroup from '../../restaurant/modifiers/EditModifierGroup';
-import Menu from '../../restaurant/menu/Menu';
-import CreateMenu from '../../restaurant/menu/CreateMenu';
-import EditMenu from '../../restaurant/menu/EditMenu';
 
-
-
-
+// Lazy load all other components
 const DashboardPage = lazy(() => import('../../restaurant/DashboardPage'));
 const Staff = lazy(() => import('../../restaurant/staff/Staff'));
+const CreateStaff = lazy(() => import('../../restaurant/staff/CreateStaff'));
+const EditStaff = lazy(() => import('../../restaurant/staff/EditStaff'));
+const TableList = lazy(() => import('../../restaurant/table/TableList'));
+const CreateTable = lazy(() => import('../../restaurant/table/CreateTable'));
+const EditTable = lazy(() => import('../../restaurant/table/EditTable'));
+const Category = lazy(() => import('../../restaurant/category/Category'));
+const CreateCategory = lazy(() => import('../../restaurant/category/CreateCategory'));
+const EditCategory = lazy(() => import('../../restaurant/category/EditCategory'));
+const ModifierGroups = lazy(() => import('../../restaurant/modifiers/ModifierGroups'));
+const CreateModifierGroup = lazy(() => import('../../restaurant/modifiers/CreateModifierGroup'));
+const EditModifierGroup = lazy(() => import('../../restaurant/modifiers/EditModifierGroup'));
+const Menu = lazy(() => import('../../restaurant/menu/Menu'));
+const CreateMenu = lazy(() => import('../../restaurant/menu/CreateMenu'));
+const EditMenu = lazy(() => import('../../restaurant/menu/EditMenu'));
 const SettingsPage = lazy(() => import('../../settings/Layout/SettingsPage'));
 
 export const AdminRoutes = {
@@ -40,26 +38,21 @@ export const AdminRoutes = {
       element: <Layout SidebarComponent={AdminSidebar} />,
       children: [
         { index: true, element: <Navigate to="dashboard" replace /> },
-
         { path: 'dashboard', element: <DashboardPage /> },
         { path: 'staff', element: <Staff /> },
         { path: 'staff/create', element: <CreateStaff /> },
         { path: 'staff/edit/:id', element: <EditStaff /> },
-
         { path: 'table', element: <TableList /> },
         { path: 'table/create', element: <CreateTable /> },
         { path: 'table/edit/:id', element: <EditTable /> },
-
         { path: 'categories', element: <Category /> },
         { path: 'category/create', element: <CreateCategory /> },
         { path: 'category/edit/:id', element: <EditCategory /> },
-        
- { path: 'modifier-groups', element: <ModifierGroups /> },
-  { path: 'modifier-groups/create', element: <CreateModifierGroup /> },
+        { path: 'modifier-groups', element: <ModifierGroups /> },
+        { path: 'modifier-groups/create', element: <CreateModifierGroup /> },
         { path: 'modifier-groups/edit/:id', element: <EditModifierGroup /> },
-
-         { path: 'menu-items', element: <Menu /> },
-  { path: 'menu-items/create', element: <CreateMenu /> },
+        { path: 'menu-items', element: <Menu /> },
+        { path: 'menu-items/create', element: <CreateMenu /> },
         { path: 'menu-items/edit/:id', element: <EditMenu /> },
         { path: 'settings', element: <SettingsPage /> },
       ],

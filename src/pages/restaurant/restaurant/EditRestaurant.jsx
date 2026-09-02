@@ -4,6 +4,8 @@ import { ArrowLeft } from 'lucide-react';
 import RestaurantForm from '../../../components/forms/RestaurantForm';
 import toast from 'react-hot-toast';
 import api from '../../../services/api';
+import { getImageUrl } from '../../../utils/getImageUrl';
+
 
 export default function EditRestaurant() {
   const navigate = useNavigate();
@@ -34,13 +36,14 @@ export default function EditRestaurant() {
         removeLogo: false,
       });
 
-      const logoUrl = data.logo;
-      const baseURL = import.meta.env.VITE_API_URL
-      if (logoUrl) {
-        setImagePreview(`${baseURL}${logoUrl}`);
+      // Use getImageUrl to normalize relative paths, external URLs, or nulls safely
+      if (data.logo) {
+        setImagePreview(getImageUrl(data.logo));
+      } else {
+        setImagePreview(null);
       }
     } catch (err) {
-      toast.error(err.response?.data?.message);
+          toast.error(err.response?.data?.message);
     } finally {
       setIsLoading(false);
     }
@@ -68,8 +71,6 @@ export default function EditRestaurant() {
       const formDataToSend = new FormData();
       formDataToSend.append('name', formData.name.trim());
       formDataToSend.append('status', formData.status);
-
-      // Method spoofing to ensure backend receives multipart headers cleanly
       formDataToSend.append('_method', 'PUT');
 
       if (formData.logo) {
@@ -80,15 +81,14 @@ export default function EditRestaurant() {
         formDataToSend.append('remove_logo', '1');
       }
 
-      // Send as POST for multipart handling compatibility
       const response = await api.post(`/restaurants/${id}`, formDataToSend, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
-      toast.success(response?.data?.message);
+      toast.success(response?.data?.message || 'Restaurant updated successfully.');
       navigate('/restaurant');
     } catch (err) {
-      toast.error(err.response?.data?.message);
+      toast.error(err.response?.data?.message || 'Failed to update restaurant.');
     } finally {
       setIsSubmitting(false);
     }

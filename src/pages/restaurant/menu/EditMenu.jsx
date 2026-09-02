@@ -4,6 +4,8 @@ import { ArrowLeft, Edit3 } from 'lucide-react';
 import MenuForm from '../../../components/forms/MenuForm';
 import toast from 'react-hot-toast';
 import api from '../../../services/api';
+import { getImageUrl } from '../../../utils/getImageUrl';
+
 
 export default function EditMenu() {
   const navigate = useNavigate();
@@ -20,40 +22,34 @@ export default function EditMenu() {
     description: '',
     is_available: true,
     image: null,
-    image_preview: null,
     modifier_groups: [],
   });
 
   const fetchMenuItem = useCallback(async () => {
     try {
       const response = await api.get(`/menu-items/${id}`);
-
-
       const data = response.data?.data;
 
-      // Extract group IDs safely whether the backend returns object entities or ID primitives
       const groupIds = Array.isArray(data.modifier_groups)
         ? data.modifier_groups.map((group) => (typeof group === 'object' ? group.id : Number(group)))
         : [];
 
       setFormData({
-        name: data.name,
-        category_id: data.category_id,
+        name: data.name || '',
+        category_id: data.category_id || '',
         price: data.price ? String(data.price) : '',
-        description: data.description,
+        description: data.description || '',
         is_available: data.is_available ?? true,
         image: null,
-        image_preview: data.image || null,
         modifier_groups: groupIds,
       });
 
-      const imageUrl = data.image;
-      const baseURL = import.meta.env.VITE_API_URL;
-      if (imageUrl) {
-        setImagePreview(`${baseURL}${imageUrl}`);
+      // Use the utility function for safe URL construction
+      if (data.image) {
+        setImagePreview(getImageUrl(data.image));
       }
     } catch (err) {
-      toast.error(err.response?.data?.message);
+     toast.error(err.response?.data?.message);
     }
   }, [id]);
 
@@ -101,10 +97,10 @@ export default function EditMenu() {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
-      toast.success(response?.data?.message);
+      toast.success(response?.data?.message || 'Updated successfully');
       navigate('/menu-items');
     } catch (err) {
-      toast.error(err.response?.data?.message);
+      toast.error(err.response?.data?.message || 'An error occurred during save');
     } finally {
       setIsSubmitting(false);
     }
