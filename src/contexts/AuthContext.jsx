@@ -8,24 +8,37 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Check if user is already logged in on mount
+  // ── Helper: auto-assign first restaurant for staff ──
+  const autoAssignStaffRestaurant = useCallback((userData) => {
+    if (userData?.restaurants?.length > 0) {
+      const currentSlug = localStorage.getItem('active_restaurant_slug');
+      const allowedSlugs = userData.restaurants.map((r) => r.slug);
+
+      // Set only if missing or current slug is no longer in their assignment list
+      if (!currentSlug || !allowedSlugs.includes(currentSlug)) {
+        localStorage.setItem('active_restaurant_slug', userData.restaurants[0].slug);
+      }
+    }
+  }, []);
+
+  // ── Mount check ──
   useEffect(() => {
     const checkAuth = async () => {
       const token = localStorage.getItem('authToken');
-
       if (!token) {
         setLoading(false);
         return;
       }
 
       try {
-        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        // NOTE: /verify should NOT have EnsureRestaurantAccess middleware
         const { data } = await api.get('/verify');
         setUser(data.user);
+        autoAssignStaffRestaurant(data.user);
       } catch (err) {
         console.error('Auth check failed:', err);
         localStorage.removeItem('authToken');
-        api.defaults.headers.common['Authorization'] = '';
+        localStorage.removeItem('active_restaurant_slug');
         setUser(null);
       } finally {
         setLoading(false);
@@ -33,14 +46,13 @@ export const AuthProvider = ({ children }) => {
     };
 
     checkAuth();
-  }, []);
+  }, [autoAssignStaffRestaurant]);
 
-  // Login function
+  // ── Login ──
   const login = async (email, password) => {
     try {
       const { data } = await api.post('/login', { email, password });
 
-      // 2FA required — return flag WITHOUT setting session yet
       if (data.two_factor_required) {
         return {
           success: true,
@@ -50,17 +62,15 @@ export const AuthProvider = ({ children }) => {
         };
       }
 
-      // Normal login — set session immediately
       localStorage.setItem('authToken', data.token);
-      api.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
       setUser(data.user);
+      autoAssignStaffRestaurant(data.user);
 
-      return { 
-        success: true, 
+      return {
+        success: true,
         user: data.user,
-        message: data.message
+        message: data.message,
       };
-
     } catch (error) {
       return {
         success: false,
@@ -69,14 +79,14 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Call this after 2FA verification to set the final session
+  // ── 2FA completion ──
   const setAuthSession = ({ token, user }) => {
     localStorage.setItem('authToken', token);
-    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     setUser(user);
+    autoAssignStaffRestaurant(user);
   };
 
-  // Logout function
+  // ── Logout ──
   const logout = useCallback(async () => {
     try {
       await api.post('/logout');
@@ -84,48 +94,45 @@ export const AuthProvider = ({ children }) => {
       console.error('Logout error:', err);
     } finally {
       localStorage.removeItem('authToken');
-      api.defaults.headers.common['Authorization'] = '';
+      localStorage.removeItem('active_restaurant_slug');
       setUser(null);
     }
   }, []);
 
-  // Register function
-// Register function - cleaned up version
-const register = useCallback(async (userData) => {
-  try {
-    const { data } = await api.post('/register', userData);
+  // ── Register ──
+  const register = useCallback(async (userData) => {
+    try {
+      const { data } = await api.post('/register', userData);
 
-    if (data.token) {
-      localStorage.setItem('authToken', data.token);
-      api.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
-      setUser(data.user);
+      if (data.token) {
+        localStorage.setItem('authToken', data.token);
+        setUser(data.user);
+        autoAssignStaffRestaurant(data.user);
+      }
+
+      return {
+        success: true,
+        user: data.user,
+        token: data.token,
+        message: data.message,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error?.response?.data?.message,
+      };
     }
+  }, [autoAssignStaffRestaurant]);
 
-    return { 
-      success: true, 
-      user: data.user,
-      token: data.token,  
-      message: data.message
-    };
-  } catch (error) {
-    return {
-      success: false,
-      error: error?.response?.data?.message,
-    };
-  }
-}, []);
-
-  // Update user profile (local only)
+  // ── Profile update ──
   const updateUser = useCallback((updatedData) => {
     setUser((prev) => (prev ? { ...prev, ...updatedData } : null));
   }, []);
 
-  // Check if user has specific role
+  // ── Role check ──
   const hasRole = useCallback((role) => {
     if (!user || !user.role) return false;
-    if (Array.isArray(role)) {
-      return role.includes(user.role);
-    }
+    if (Array.isArray(role)) return role.includes(user.role);
     return user.role === role;
   }, [user]);
 
@@ -151,8 +158,6 @@ const register = useCallback(async (userData) => {
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an <AuthProvider>');
-  }
+  if (!context) throw new Error('useAuth must be used within an <AuthProvider>');
   return context;
 };

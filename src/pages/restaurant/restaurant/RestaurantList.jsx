@@ -5,6 +5,7 @@ import {
   Archive, Layers, ArrowRight, X, PlusCircle, AlertCircle
 } from 'lucide-react';
 import api from '../../../services/api';
+import { useRestaurant } from '../../../contexts/RestaurantContext';
 import ConfirmationModal from '../../../components/common/ConfirmationModal';
 import EmptyState from '../../../components/common/EmptyState';
 import StatusBadge from '../../../components/StatusBadge';
@@ -12,20 +13,24 @@ import StatusBadge from '../../../components/StatusBadge';
 export default function RestaurantList() {
   const navigate = useNavigate();
 
-  // State
+  // ── Shared context ──
+  const {
+    activeSlug,
+    switchRestaurant,
+    clearActiveRestaurant,
+    fetchRestaurants: refreshContextRestaurants,
+  } = useRestaurant();
+
+  // ── Local page state ──
   const [restaurants, setRestaurants] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('active'); // 'active' | 'trashed'
   const [searchQuery, setSearchQuery] = useState('');
 
-  const [selectedRestaurantSlug, setSelectedRestaurantSlug] = useState(
-    localStorage.getItem('active_restaurant_slug')
-  );
-
   const [isSwitching, setIsSwitching] = useState(null);
   const [openMenuId, setOpenMenuId] = useState(null);
-  const [pendingAction, setPendingAction] = useState(null); // { id, type: 'restore' | 'trash' }
+  const [pendingAction, setPendingAction] = useState(null);
 
   // Delete modal state
   const [deleteModalState, setDeleteModalState] = useState({
@@ -36,7 +41,7 @@ export default function RestaurantList() {
 
   const searchInputRef = useRef(null);
 
-  // Fetch function accepting explicit arguments to maintain function identity
+  // Fetch list (search + tab aware)
   const fetchRestaurants = useCallback(async (search, tab) => {
     setIsLoading(true);
     setError(null);
@@ -49,26 +54,25 @@ export default function RestaurantList() {
       const response = await api.get('/restaurants', { params });
 
       if (response.data?.data) {
-        const formattedData = response.data.data.map(r => ({
+        const formattedData = response.data.data.map((r) => ({
           ...r,
-          isTrashed: r.deleted_at !== null
+          isTrashed: r.deleted_at !== null,
         }));
         setRestaurants(formattedData);
       }
     } catch (err) {
-      console.error("Failed to fetch restaurants", err);
+      console.error('Failed to fetch restaurants', err);
       setError(err.response?.data?.message);
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  // Handle Debounced Search & Tab Switch Effects
+  // Debounced search & tab switch
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchRestaurants(searchQuery, activeTab);
     }, 300);
-
     return () => clearTimeout(timer);
   }, [searchQuery, activeTab, fetchRestaurants]);
 
@@ -81,7 +85,6 @@ export default function RestaurantList() {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  // Tab change handler
   const handleTabChange = (tab) => {
     if (tab === activeTab) return;
     setActiveTab(tab);
@@ -89,28 +92,25 @@ export default function RestaurantList() {
     setOpenMenuId(null);
   };
 
-  // Workspace Switching
-  // 1. Updated Workspace Switching Handler
+  // ── Workspace Switching (uses shared context) ──
   const handleSwitchRestaurant = (restaurant) => {
     if (restaurant.isTrashed) return;
 
-    // If already active, navigate directly to dashboard
-    if (restaurant.slug === selectedRestaurantSlug) {
+    if (restaurant.slug === activeSlug) {
       navigate('/dashboard');
       return;
     }
 
-    // Switch to new restaurant workspace
     setIsSwitching(restaurant.id);
-    localStorage.setItem('active_restaurant_slug', restaurant.slug);
-    setSelectedRestaurantSlug(restaurant.slug);
+    switchRestaurant(restaurant.slug);
 
     setTimeout(() => {
       setIsSwitching(null);
       navigate('/dashboard');
     }, 600);
   };
-  // Soft Delete Handler (With Optimistic UI Update)
+
+  // Soft Delete (optimistic + refresh sidebar)
   const handleSoftDelete = async (e, restaurant) => {
     e.stopPropagation();
     setOpenMenuId(null);
@@ -118,16 +118,17 @@ export default function RestaurantList() {
 
     try {
       await api.delete(`/restaurants/${restaurant.id}`);
-      setRestaurants(prev => prev.filter(r => r.id !== restaurant.id));
+      setRestaurants((prev) => prev.filter((r) => r.id !== restaurant.id));
+      refreshContextRestaurants(); // keep sidebar in sync
     } catch (err) {
-      console.error("Failed to soft delete", err);
+      console.error('Failed to soft delete', err);
       await fetchRestaurants(searchQuery, activeTab);
     } finally {
       setPendingAction(null);
     }
   };
 
-  // Restore Handler (With Optimistic UI Update)
+  // Restore (optimistic + refresh sidebar)
   const handleRestore = async (e, restaurant) => {
     e.stopPropagation();
     setOpenMenuId(null);
@@ -135,9 +136,10 @@ export default function RestaurantList() {
 
     try {
       await api.post(`/restaurants/${restaurant.id}/restore`, {});
-      setRestaurants(prev => prev.filter(r => r.id !== restaurant.id));
+      setRestaurants((prev) => prev.filter((r) => r.id !== restaurant.id));
+      refreshContextRestaurants(); // keep sidebar in sync
     } catch (err) {
-      console.error("Failed to restore", err);
+      console.error('Failed to restore', err);
       await fetchRestaurants(searchQuery, activeTab);
     } finally {
       setPendingAction(null);
@@ -165,22 +167,22 @@ export default function RestaurantList() {
     }
   };
 
-  // Permanent Delete Handler
+  // Permanent Delete
   const handlePermanentDelete = async () => {
     const { restaurant } = deleteModalState;
     if (!restaurant) return;
 
-    setDeleteModalState(prev => ({ ...prev, isDeleting: true }));
+    setDeleteModalState((prev) => ({ ...prev, isDeleting: true }));
 
     try {
       await api.delete(`/restaurants/${restaurant.id}/force`);
 
-      if (restaurant.slug === selectedRestaurantSlug) {
-        localStorage.removeItem('active_restaurant_slug');
-        setSelectedRestaurantSlug(null);
+      if (restaurant.slug === activeSlug) {
+        clearActiveRestaurant();
       }
 
-      setRestaurants(prev => prev.filter(r => r.id !== restaurant.id));
+      setRestaurants((prev) => prev.filter((r) => r.id !== restaurant.id));
+      refreshContextRestaurants(); // keep sidebar in sync
 
       setDeleteModalState({
         isOpen: false,
@@ -188,14 +190,13 @@ export default function RestaurantList() {
         isDeleting: false,
       });
     } catch (err) {
-      console.error("Failed to force delete", err);
-      setDeleteModalState(prev => ({ ...prev, isDeleting: false }));
+      console.error('Failed to force delete', err);
+      setDeleteModalState((prev) => ({ ...prev, isDeleting: false }));
     }
   };
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 px-4 py-10 sm:px-6 md:py-14 flex flex-col items-center">
-
       {/* Header Section */}
       <div className="w-full max-w-6xl mb-8 text-center">
         <div className="inline-flex items-center justify-center w-11 h-11 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-400 text-white shadow-lg shadow-orange-500/25 mb-4">
@@ -211,32 +212,44 @@ export default function RestaurantList() {
 
       {/* Main Container */}
       <div className="w-full max-w-6xl bg-white dark:bg-slate-900 rounded-2xl shadow-sm ring-1 ring-slate-200/70 dark:ring-slate-800 overflow-hidden">
-
         {/* Navigation & Control Header */}
         <div className="bg-white dark:bg-slate-900">
           <div className="flex items-center justify-between px-5 sm:px-6 border-b border-slate-100 dark:border-slate-800">
-
             {/* Tabs */}
             <div className="flex gap-7 -mb-px">
               <button
                 onClick={() => handleTabChange('active')}
-                className={`group flex items-center gap-1.5 py-3.5 text-[13px] font-medium border-b-2 transition-colors duration-150 ${activeTab === 'active'
+                className={`group flex items-center gap-1.5 py-3.5 text-[13px] font-medium border-b-2 transition-colors duration-150 ${
+                  activeTab === 'active'
                     ? 'border-orange-500 text-slate-900 dark:text-white'
                     : 'border-transparent text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
-                  }`}
+                }`}
               >
-                <Layers className={`w-3.5 h-3.5 transition-colors ${activeTab === 'active' ? 'text-orange-500' : 'text-slate-300 dark:text-slate-600 group-hover:text-slate-400'}`} />
+                <Layers
+                  className={`w-3.5 h-3.5 transition-colors ${
+                    activeTab === 'active'
+                      ? 'text-orange-500'
+                      : 'text-slate-300 dark:text-slate-600 group-hover:text-slate-400'
+                  }`}
+                />
                 Active locations
               </button>
 
               <button
                 onClick={() => handleTabChange('trashed')}
-                className={`group flex items-center gap-1.5 py-3.5 text-[13px] font-medium border-b-2 transition-colors duration-150 ${activeTab === 'trashed'
+                className={`group flex items-center gap-1.5 py-3.5 text-[13px] font-medium border-b-2 transition-colors duration-150 ${
+                  activeTab === 'trashed'
                     ? 'border-orange-500 text-slate-900 dark:text-white'
                     : 'border-transparent text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
-                  }`}
+                }`}
               >
-                <Archive className={`w-3.5 h-3.5 transition-colors ${activeTab === 'trashed' ? 'text-orange-500' : 'text-slate-300 dark:text-slate-600 group-hover:text-slate-400'}`} />
+                <Archive
+                  className={`w-3.5 h-3.5 transition-colors ${
+                    activeTab === 'trashed'
+                      ? 'text-orange-500'
+                      : 'text-slate-300 dark:text-slate-600 group-hover:text-slate-400'
+                  }`}
+                />
                 Trash
               </button>
             </div>
@@ -245,18 +258,26 @@ export default function RestaurantList() {
           {/* Search & Actions Bar */}
           <div className="px-5 sm:px-6 py-4 flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
             <div className="relative w-full sm:w-72">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" strokeWidth={2} />
+              <Search
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400"
+                strokeWidth={2}
+              />
               <input
                 ref={searchInputRef}
                 type="text"
-                placeholder={`Search ${activeTab === 'trashed' ? 'trash' : 'locations'}`}
+                placeholder={`Search ${
+                  activeTab === 'trashed' ? 'trash' : 'locations'
+                }`}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-9 pr-8 py-2 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 rounded-lg text-[13px] placeholder:text-slate-400 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-400 hover:border-slate-300 dark:hover:border-slate-600 transition-all duration-150"
               />
               {searchQuery && (
                 <button
-                  onClick={() => { setSearchQuery(''); searchInputRef.current?.focus(); }}
+                  onClick={() => {
+                    setSearchQuery('');
+                    searchInputRef.current?.focus();
+                  }}
                   aria-label="Clear search"
                   className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-0.5 rounded-full hover:bg-slate-200/60 dark:hover:bg-slate-700 transition-colors"
                 >
@@ -280,7 +301,10 @@ export default function RestaurantList() {
         {isLoading ? (
           <div className="p-6 sm:p-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.from({ length: 6 }).map((_, index) => (
-              <div key={index} className="rounded-2xl border border-slate-200/70 dark:border-slate-800 p-6 h-56 flex flex-col justify-between relative overflow-hidden bg-white dark:bg-slate-900">
+              <div
+                key={index}
+                className="rounded-2xl border border-slate-200/70 dark:border-slate-800 p-6 h-56 flex flex-col justify-between relative overflow-hidden bg-white dark:bg-slate-900"
+              >
                 <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.6s_infinite] bg-gradient-to-r from-transparent via-slate-100 dark:via-slate-800/60 to-transparent" />
                 <div className="space-y-3">
                   <div className="h-5 bg-slate-200 dark:bg-slate-800 rounded-md w-3/4" />
@@ -318,15 +342,15 @@ export default function RestaurantList() {
                 searchQuery
                   ? 'No matching locations'
                   : activeTab === 'trashed'
-                    ? 'Trash is empty'
-                    : 'No restaurants registered yet'
+                  ? 'Trash is empty'
+                  : 'No restaurants registered yet'
               }
               description={
                 searchQuery
                   ? `No locations found matching "${searchQuery}".`
                   : activeTab === 'trashed'
-                    ? 'Soft-deleted restaurants will appear here.'
-                    : 'Get started by setting up your first restaurant location.'
+                  ? 'Soft-deleted restaurants will appear here.'
+                  : 'Get started by setting up your first restaurant location.'
               }
               action={
                 !searchQuery && activeTab === 'active' ? (
@@ -350,7 +374,8 @@ export default function RestaurantList() {
         ) : (
           <div className="p-6 sm:p-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {restaurants.map((restaurant) => {
-              const isActive = selectedRestaurantSlug === restaurant.slug && !restaurant.isTrashed;
+              const isActive =
+                activeSlug === restaurant.slug && !restaurant.isTrashed;
               const isSwitchingThis = isSwitching === restaurant.id;
               const isMenuOpen = openMenuId === restaurant.id;
               const isBusy = pendingAction?.id === restaurant.id;
@@ -360,9 +385,10 @@ export default function RestaurantList() {
                   key={restaurant.id}
                   className={`
                     relative group rounded-2xl border p-6 transition-all duration-200 flex flex-col justify-between gap-6 outline-none bg-white dark:bg-slate-900
-                    ${restaurant.isTrashed
-                      ? 'border-slate-200 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/40'
-                      : isActive
+                    ${
+                      restaurant.isTrashed
+                        ? 'border-slate-200 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/40'
+                        : isActive
                         ? 'border-orange-400 dark:border-orange-500/50 ring-2 ring-orange-500/10 shadow-lg shadow-orange-500/5'
                         : 'border-slate-200 dark:border-slate-800 hover:border-orange-300 dark:hover:border-orange-800 hover:shadow-xl hover:shadow-slate-200/50 dark:hover:shadow-none hover:-translate-y-1'
                     }
@@ -374,16 +400,16 @@ export default function RestaurantList() {
                     <div className="flex items-start justify-between gap-3 mb-4">
                       <div className="min-w-0">
                         <h3
-                          className={`font-bold text-lg leading-snug truncate ${restaurant.isTrashed
+                          className={`font-bold text-lg leading-snug truncate ${
+                            restaurant.isTrashed
                               ? 'line-through text-slate-400 dark:text-slate-500'
                               : 'text-slate-900 dark:text-white'
-                            }`}
+                          }`}
                           title={restaurant.name}
                         >
                           {restaurant.name}
                         </h3>
 
-                        {/* New StatusBadge implementation */}
                         {restaurant.isTrashed ? (
                           <StatusBadge
                             status="inactive"
@@ -393,7 +419,11 @@ export default function RestaurantList() {
                           />
                         ) : (
                           <StatusBadge
-                            status={restaurant.status === 'active' ? 'active' : 'inactive'}
+                            status={
+                              restaurant.status === 'active'
+                                ? 'active'
+                                : 'inactive'
+                            }
                             activeLabel="Active"
                             inactiveLabel="Suspended"
                             activeColor="emerald"
@@ -421,7 +451,10 @@ export default function RestaurantList() {
                           <>
                             <div
                               className="fixed inset-0 z-20"
-                              onClick={(e) => { e.stopPropagation(); setOpenMenuId(null); }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setOpenMenuId(null);
+                              }}
                             />
                             <div className="absolute right-0 top-10 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-xl ring-1 ring-slate-200 dark:ring-slate-700 py-1.5 z-30 origin-top-right">
                               {!restaurant.isTrashed ? (
@@ -469,23 +502,25 @@ export default function RestaurantList() {
                     <div className="space-y-1.5 text-xs text-slate-500 dark:text-slate-400 border-t border-slate-100 dark:border-slate-800/80 pt-4">
                       <div className="flex justify-between">
                         <span>Slug handle</span>
-                        <span className="font-mono text-slate-700 dark:text-slate-300">{restaurant.slug || '—'}</span>
+                        <span className="font-mono text-slate-700 dark:text-slate-300">
+                          {restaurant.slug || '—'}
+                        </span>
                       </div>
                     </div>
                   </div>
 
                   {/* Footer Switch Action */}
-                  {/* 2. Updated Footer Switch Action UI */}
                   <div>
                     {!restaurant.isTrashed ? (
                       <button
                         type="button"
                         onClick={() => handleSwitchRestaurant(restaurant)}
                         disabled={isSwitchingThis}
-                        className={`w-full py-2.5 px-4 rounded-xl font-semibold text-xs flex items-center justify-center gap-2 transition-all ${isActive
+                        className={`w-full py-2.5 px-4 rounded-xl font-semibold text-xs flex items-center justify-center gap-2 transition-all ${
+                          isActive
                             ? 'bg-orange-50 hover:bg-orange-100 text-orange-600 dark:bg-orange-950/30 dark:hover:bg-orange-900/40 dark:text-orange-400 border border-orange-200 dark:border-orange-800/50 cursor-pointer shadow-sm'
                             : 'bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-white dark:text-slate-900 shadow-sm'
-                          }`}
+                        }`}
                       >
                         {isSwitchingThis ? (
                           <>
@@ -494,7 +529,8 @@ export default function RestaurantList() {
                           </>
                         ) : isActive ? (
                           <>
-                            <ChefHat className="w-4 h-4 text-orange-500" /> Open Active Workspace <ArrowRight className="w-3.5 h-3.5" />
+                            <ChefHat className="w-4 h-4 text-orange-500" /> Open Active Workspace{' '}
+                            <ArrowRight className="w-3.5 h-3.5" />
                           </>
                         ) : (
                           <>
@@ -504,7 +540,9 @@ export default function RestaurantList() {
                       </button>
                     ) : (
                       <div className="py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 font-medium text-xs text-center">
-                        {isBusy && pendingAction?.type === 'restore' ? 'Restoring location…' : 'Location in trash'}
+                        {isBusy && pendingAction?.type === 'restore'
+                          ? 'Restoring location…'
+                          : 'Location in trash'}
                       </div>
                     )}
                   </div>
@@ -534,7 +572,6 @@ export default function RestaurantList() {
         confirmText="Delete permanently"
         cancelText="Cancel"
       />
-
     </div>
   );
 }

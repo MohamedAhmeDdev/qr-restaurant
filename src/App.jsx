@@ -23,6 +23,7 @@ import Login from './pages/authentication/Login';
 import ForgotPassword from './pages/authentication/ForgotPassword';
 import ResetPassword from './pages/authentication/ResetPassword';
 import Register from './pages/authentication/Register';
+import { RestaurantProvider } from './contexts/RestaurantContext';
 
 const router = createBrowserRouter([
   // 1. PUBLIC STAFF AUTHENTICATION ROUTES (No login required)
@@ -78,7 +79,9 @@ const router = createBrowserRouter([
 export default function App() {
   return (
     <AuthProvider>
+          <RestaurantProvider>
       <RouterProvider router={router} />
+          </RestaurantProvider>
     </AuthProvider>
   );
 }
