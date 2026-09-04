@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { 
-  Plus, Search, Users, Trash2, 
-  Coffee, AlertCircle,
-  QrCode, PlusCircle, RefreshCw, Download, 
-  RotateCcw, LayoutGrid, Edit
+import {
+  Search, Users, Trash2,
+  AlertCircle, QrCode, PlusCircle, RefreshCw, Download,
+  Edit, Hash, Calendar, Activity
 } from 'lucide-react';
 import StatsCard from '../../../components/cards/StatsCard';
 import Toolbar from '../../../components/Toolbar';
@@ -28,7 +27,7 @@ export default function TableList() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [paginationMeta, setPaginationMeta] = useState({ total: 0, lastPage: 1 });
-  
+
   // Per-item Action Loading State
   const [actionLoadingId, setActionLoadingId] = useState(null);
 
@@ -54,16 +53,16 @@ export default function TableList() {
       if (statusFilter !== 'all') params.status = statusFilter;
 
       const response = await api.get('/tables', { params });
-      
+
       const paginatedData = response.data.data;
       setTables(paginatedData.data || []);
       setPaginationMeta({
         total: paginatedData.total || 0,
         lastPage: paginatedData.last_page || 1
       });
-      
+
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to fetch tables.');
+      setError(err.response?.data?.message);
     } finally {
       setLoading(false);
     }
@@ -94,13 +93,13 @@ export default function TableList() {
 
     const blob = new Blob([table.qr_code], { type: 'image/svg+xml;charset=utf-8' });
     const url = window.URL.createObjectURL(blob);
-    
+
     const link = document.createElement('a');
     link.href = url;
     link.setAttribute('download', `table-${table.slug}-qr.svg`);
     document.body.appendChild(link);
     link.click();
-    
+
     link.remove();
     window.URL.revokeObjectURL(url);
   };
@@ -111,16 +110,15 @@ export default function TableList() {
     setActionLoadingId(tableId);
 
     try {
-      const response = await api.post(`/${tableId}/regenerate-qr`);
+      const response = await api.post(`/tables/${tableId}/regenerate-qr`);
 
-      setTables(prev => prev.map(table => 
+      setTables(prev => prev.map(table =>
         table.id === tableId ? response.data.data : table
       ));
-      
+
       toast.success(response.data.message);
     } catch (err) {
-      const errorMsg = err.response?.data?.message;
-      toast.error(errorMsg);
+      toast.error(err.response?.data?.message);
     } finally {
       setActionLoadingId(null);
     }
@@ -173,7 +171,7 @@ export default function TableList() {
 
   return (
     <div className="p-1 sm:p-4 space-y-6 bg-gray-50 dark:bg-slate-950 min-h-screen text-gray-900 dark:text-slate-100 transition-colors duration-200">
-      
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex items-center gap-3">
@@ -186,7 +184,7 @@ export default function TableList() {
             </p>
           </div>
         </div>
-        <button 
+        <button
           onClick={() => navigate('/table/create')}
           className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-xl text-sm font-medium transition-all duration-200 shadow-lg shadow-orange-500/20 hover:shadow-orange-500/30 active:scale-[0.98]"
         >
@@ -196,14 +194,14 @@ export default function TableList() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-2 gap-4">
-        <StatsCard 
-          label="Total" 
-          value={loading ? '...' : paginationMeta.total} 
+        <StatsCard
+          label="Total"
+          value={loading ? '...' : paginationMeta.total}
           valueColor="text-orange-600 dark:text-orange-400"
         />
-        <StatsCard 
-          label="Active" 
-          value={loading ? '...' : tables.filter(t => t.is_active).length} 
+        <StatsCard
+          label="Active"
+          value={loading ? '...' : tables.filter(t => t.is_active).length}
           valueColor="text-blue-600 dark:text-blue-400"
         />
       </div>
@@ -222,8 +220,8 @@ export default function TableList() {
       {loading ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           {Array.from({ length: 6 }).map((_, idx) => (
-            <div 
-              key={idx} 
+            <div
+              key={idx}
               className="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200/80 dark:border-slate-800 flex gap-4 animate-pulse"
             >
               <div className="w-40 h-40 rounded-xl bg-slate-200 dark:bg-slate-800 shrink-0" />
@@ -241,7 +239,7 @@ export default function TableList() {
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-12">
           <EmptyState
             icon={AlertCircle}
-               title={error}
+            title={error}
           />
         </div>
       ) : tables.length === 0 ? (
@@ -282,129 +280,147 @@ export default function TableList() {
           />
         </div>
       ) : (
-        /* 4. LIST/GRID DISPLAY STATE */
+        /* 4. LIST/GRID DISPLAY STATE - IMPROVED CARD UI */
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 gap-5">
           {tables.map((table) => {
             const isActionBusy = actionLoadingId === table.id;
 
             return (
-              <div 
+              <div
                 key={table.id}
-                className={`group relative bg-white dark:bg-slate-900 rounded-2xl p-4 transition-all duration-300 border border-slate-200/80 dark:border-slate-800/80 shadow-sm hover:shadow-lg hover:shadow-slate-200/50 dark:hover:shadow-black/40 hover:border-orange-500/30 dark:hover:border-orange-500/30 flex flex-col sm:flex-row gap-4 items-center sm:items-stretch ${
-                  isActionBusy ? 'opacity-60 pointer-events-none' : ''
-                }`}
+                className={`group relative bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800  hover:border-orange-500/30 dark:hover:border-orange-500/30 transition-all duration-300 overflow-hidden ${isActionBusy ? 'opacity-60 pointer-events-none' : ''
+                  }`}
               >
-                {/* QR CODE SECTION (Full size preserved) */}
-                <div className="relative shrink-0 flex items-center justify-center p-2 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 group-hover:border-slate-200 dark:group-hover:border-slate-700 transition-colors">
-                  {table.qr_code ? (
-                    <div 
-                      className="w-40 h-40 rounded-lg bg-white p-2 shadow-sm flex items-center justify-center overflow-hidden [&>svg]:w-full [&>svg]:h-full [&>svg]:max-w-full [&>svg]:max-h-full"
-                      dangerouslySetInnerHTML={{ __html: table.qr_code }}
-                    />
-                  ) : (
-                    <div className="w-40 h-40 rounded-lg border-2 border-dashed border-slate-200 dark:border-slate-700 p-3 bg-white dark:bg-slate-900 flex flex-col items-center justify-center gap-2">
-                      <QrCode className="w-10 h-10 text-slate-300 dark:text-slate-600" />
-                      <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">No QR Code</span>
-                    </div>
-                  )}
-                </div>
+                <div className="flex flex-col sm:flex-row h-full">
 
-                {/* CONTENT SECTION */}
-                <div className="flex-1 flex flex-col justify-between w-full min-w-0">
-                  {/* Top Header: Title + Edit/Delete */}
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-between gap-2">
-                      <h3 className="font-bold text-lg text-slate-900 dark:text-slate-100 truncate group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
-                        {table.name}
-                      </h3>
+                  {/* QR CODE SECTION - Left Side */}
+                  <div className="sm:w-48 shrink-0 bg-slate-50 dark:bg-slate-800/30 border-b sm:border-b-0 sm:border-r border-slate-100 dark:border-slate-800 p-4 flex flex-col items-center justify-center gap-3 relative">
+                    {table.qr_code ? (
+                      <>
+                        <div
+                          className="w-32 h-32 rounded-lg bg-white p-2 shadow-sm flex items-center justify-center overflow-hidden [&>svg]:w-full [&>svg]:h-full"
+                          dangerouslySetInnerHTML={{ __html: table.qr_code }}
+                        />
+                        <span className="text-[10px] uppercase tracking-wider text-slate-400 font-medium">QR code</span>
+                      </>
+                    ) : (
+                      <div className="w-32 h-32 rounded-lg border-2 border-dashed border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 flex flex-col items-center justify-center gap-2">
+                        <QrCode className="w-8 h-8 text-slate-300 dark:text-slate-600" />
+                        <span className="text-[10px] text-slate-400 font-medium">No QR</span>
+                      </div>
+                    )}
+                  </div>
 
-                      <div className="flex items-center gap-1 shrink-0 bg-slate-50 dark:bg-slate-800/60 p-1 rounded-lg border border-slate-100 dark:border-slate-800"> 
-                        <Link 
-                          to={`/table/edit/${table.id}`} 
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <button 
-                            className="p-1 rounded text-slate-400 hover:text-orange-600 hover:bg-white dark:hover:bg-slate-700 dark:text-slate-400 dark:hover:text-orange-400 transition-all shadow-none hover:shadow-xs"
-                            title="Edit table"
-                            aria-label="Edit table"
+                  {/* CONTENT SECTION - Right Side */}
+                  <div className="flex-1 p-4 flex flex-col justify-between min-w-0">
+
+                    {/* Header: Title & Actions */}
+                    <div className="flex items-start justify-between gap-3 mb-3">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-sm text-slate-400">Name:</span>
+                          <h3 className="font-bold text-lg text-slate-900 dark:text-slate-100 truncate pr-2">
+                            {table.name}
+                          </h3>
+                        </div>
+
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs text-slate-400">Slug:</span>
+                          <p className="text-xs text-slate-400 dark:text-slate-500 font-mono truncate flex items-center gap-1">
+                            {table.slug}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Quick Actions */}
+                      <div className="flex items-center gap-1 shrink-0">
+                        <Link to={`/table/edit/${table.id}`} onClick={(e) => e.stopPropagation()}>
+                          <button
+                          className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg text-gray-500 hover:text-blue-600 transition-colors inline-block"
+              title="Edit"
                           >
-                            <Edit className="w-3.5 h-3.5" />
+                            <Edit className="w-4 h-4" />
                           </button>
                         </Link>
-                        <button 
+                        <button
                           onClick={(e) => openDeleteModal(e, table)}
-                          className="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-white dark:hover:bg-slate-700 dark:text-slate-400 dark:hover:text-rose-400 transition-all shadow-none hover:shadow-xs"
-                          title="Delete table"
-                          aria-label="Delete table"
+              className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-gray-500 hover:text-red-600 transition-colors cursor-pointer"
+                          title="Remove"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     </div>
 
-                    <p className="text-xs text-slate-400 dark:text-slate-500 font-mono truncate">
-                      /{table.slug}
-                    </p>
-                  </div>
-
-                  {/* Metadata Chips: Occupancy & Statuses */}
-                  <div className="py-2 space-y-2">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <StatusBadge
-                        status={table.is_active ? 'active' : 'inactive'}
-                        activeLabel="Active"
-                        inactiveLabel="Inactive"
-                        activeColor="emerald"
-                        inactiveColor="rose"
-                        showIcon={true}
-                        size="xs"
-                      />
-
-                      <StatusBadge
-                        status={table.status}
-                        activeLabel="Available"
-                        inactiveLabel={table.status ? table.status.charAt(0).toUpperCase() + table.status.slice(1) : ''}
-                        activeColor="emerald"
-                        inactiveColor={
-                          table.status === 'occupied' ? 'rose' :
-                          table.status === 'reserved' ? 'blue' :
-                          table.status === 'cleaning' ? 'amber' :
-                          'gray'
-                        }
-                        showIcon={false}
-                        size="xs"
-                      />
+                    {/* Badges Row with Labels */}
+                    <div className="flex flex-wrap items-center gap-4 mb-4">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] uppercase font-semibold text-slate-400">Table:</span>
+                        <StatusBadge status={table.is_active ? 'active' : 'inactive'} size="sm" />
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] uppercase font-semibold text-slate-400">Status:</span>
+                        <StatusBadge status={table.status} size="sm" />
+                      </div>
                     </div>
 
-                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-medium">
-                      <Users className="w-3.5 h-3.5 text-slate-400" />
-                      <span>{table.capacity} Capacity Seats</span>
+                    {/* Metadata Grid */}
+                    <div className="grid grid-cols-2 gap-y-3 gap-x-4 mb-4">
+                      <div className="flex items-center gap-2">
+                        <div className="p-1.5 rounded-md bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
+                          <Users className="w-3.5 h-3.5" />
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-[10px] text-slate-400 uppercase font-medium">Capacity</span>
+                          <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">{table.capacity} Seats</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <div className="p-1.5 rounded-md bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400">
+                          <Hash className="w-3.5 h-3.5" />
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-[10px] text-slate-400 uppercase font-medium">Table No.</span>
+                          <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">{table.table_number}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 col-span-2 sm:col-span-1">
+                        <div className="p-1.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
+                          <Calendar className="w-3.5 h-3.5" />
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-[10px] text-slate-400 uppercase font-medium">Last Updated</span>
+                          <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                            {new Date(table.updated_at).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Action Bar */}
-                  <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2">
-                    <button 
-                      onClick={(e) => handleRegenerateQr(e, table.id)}
-                      disabled={isActionBusy}
-                      className="flex-1 py-1.5 px-3 text-xs font-medium bg-slate-100 hover:bg-orange-50 dark:bg-slate-800 dark:hover:bg-orange-950/40 text-slate-700 hover:text-orange-600 dark:text-slate-300 dark:hover:text-orange-400 rounded-lg transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
-                      title="Regenerate QR Code"
-                    >
-                      <RefreshCw className={`w-3.5 h-3.5 ${isActionBusy ? 'animate-spin' : ''}`} />
-                      Regenerate
-                    </button>
+                    {/* Footer Actions */}
+                    <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2 mt-auto">
+                      <button
+                        onClick={(e) => handleRegenerateQr(e, table.id)}
+                        disabled={isActionBusy}
+                        className="flex-1 py-2 px-3 text-xs font-medium bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                      >
+                        <RefreshCw className={`w-3.5 h-3.5 ${isActionBusy ? 'animate-spin' : ''}`} />
+                        Regenerate QR
+                      </button>
 
-                    <button 
-                      onClick={(e) => handleDownloadQr(e, table)}
-                      className="flex-1 py-1.5 px-3 text-xs font-medium bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors flex items-center justify-center gap-1.5 shadow-sm shadow-orange-500/20"
-                      title="Download QR Code"
-                    >
-                      <Download className="w-3.5 h-3.5" />
-                      Download
-                    </button>
+                      <button
+                        onClick={(e) => handleDownloadQr(e, table)}
+                        className="flex-1 py-2 px-3 text-xs font-medium bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors flex items-center justify-center gap-2 shadow-sm shadow-orange-500/20"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        Download
+                      </button>
+                    </div>
+
                   </div>
                 </div>
-
               </div>
             );
           })}
@@ -413,13 +429,15 @@ export default function TableList() {
 
       {/* Pagination */}
       {!loading && !error && tables.length > 0 && (
-        <Pagination
-          currentPage={currentPage}
-          totalPages={paginationMeta.lastPage}
-          totalRecords={paginationMeta.total}
-          onPageChange={setCurrentPage}
-          maxVisible={5}
-        />
+        <div className="flex justify-center">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={paginationMeta.lastPage}
+            totalRecords={paginationMeta.total}
+            onPageChange={setCurrentPage}
+            maxVisible={5}
+          />
+        </div>
       )}
 
       {/* Confirmation Modal */}
