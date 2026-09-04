@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { 
-  UserPlus, Trash2, Edit3, Power, CheckCircle, 
+  UserPlus, Trash2, CheckCircle, 
   Users, AlertCircle, Mail, Search, Shield, Clock,
-  Edit
+  Edit, Calendar
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -16,6 +16,7 @@ import ConfirmationModal from '../../../components/common/ConfirmationModal';
 
 import api from '../../../services/api';
 import RoleService from '../../../services/Roles';
+import { formatDate } from '../../../utils/formatDate';
 
 export default function StaffPage() {
   // State
@@ -108,17 +109,6 @@ export default function StaffPage() {
     setCurrentPage(1);
   };
 
-  const handleStatusToggle = async (staff) => {
-    const newStatus = staff.status === 'active' ? 'inactive' : 'active';
-    try {
-      await api.put(`/staff/${staff.id}`, { status: newStatus });
-      toast.success('Staff status updated successfully');
-      await fetchStaff();
-    } catch (err) {
-      console.error('Failed to update status:', err);
-    }
-  };
-
   // Open delete confirmation modal
   const handleOpenDeleteModal = (staff) => {
     setStaffToDelete(staff);
@@ -131,11 +121,13 @@ export default function StaffPage() {
     setIsDeleting(true);
     try {
       await api.delete(`/staff/${staffToDelete.id}`);
+      toast.success('Staff member removed successfully');
       setIsDeleteModalOpen(false);
       setStaffToDelete(null);
       await fetchStaff();
     } catch (err) {
       console.error('Failed to delete staff member:', err);
+      toast.error('Failed to delete staff member');
     } finally {
       setIsDeleting(false);
     }
@@ -155,13 +147,12 @@ export default function StaffPage() {
     { label: 'Employee', align: 'left' },
     { label: 'Roles', align: 'left' },
     { label: 'Shift Type', align: 'left' },
+    { label: 'Started At', align: 'left' },
     { label: 'Status', align: 'left' },
     { label: 'Actions', align: 'right' },
   ];
 
   const renderRow = (staff) => {
-    const isActive = staff.status === 'active';
-
     return (
       <tr
         key={staff.id}
@@ -183,37 +174,21 @@ export default function StaffPage() {
           </div>
         </td>
         <td className="px-6 py-4 text-gray-700 dark:text-slate-300">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 text-xs font-medium border border-blue-100 dark:border-blue-800">
-            <Shield className="w-3 h-3" /> {staff.role?.name || 'N/A'}
-          </span>
+          {staff.role?.name}
         </td>
         <td className="px-6 py-4 text-gray-700 dark:text-slate-300">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 text-xs font-medium border border-purple-100 dark:border-purple-800">
-            <Clock className="w-3 h-3" /> {formatShiftType(staff.shift_type)}
+          {formatShiftType(staff.shift_type)}
+        </td>
+        <td className="px-6 py-4 text-gray-700 dark:text-slate-300">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1  text-gray-700 dark:text-slate-300 text-xs font-medium">
+            <Calendar className="w-3 h-3" /> {formatDate(staff.started_at)}
           </span>
         </td>
         <td className="px-6 py-4">
-          <StatusBadge
-            status={staff.status}
-            activeLabel="Active"
-            inactiveLabel="Inactive"
-            showIcon={true}
-            size="sm"
-          />
+          <StatusBadge status={staff.status} />
         </td>
         <td className="px-6 py-4 text-right">
           <div className="flex items-center justify-end gap-1">
-            <button
-              onClick={() => handleStatusToggle(staff)}
-              className={`p-2 rounded-lg transition-all duration-200 cursor-pointer ${
-                isActive
-                  ? 'text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:scale-110'
-                  : 'text-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800/20 hover:scale-110'
-              }`}
-              title={isActive ? 'Deactivate' : 'Activate'}
-            >
-              <Power className="w-4 h-4" />
-            </button>
             <Link
               to={`/staff/edit/${staff.id}`}
               className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg text-gray-500 hover:text-blue-600 transition-colors inline-block"
@@ -239,7 +214,7 @@ export default function StaffPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-orange-600 to-orange-400 bg-clip-text text-transparent leading-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-orange-600 to-orange-400 bg-clip-text text-transparent leading-tight">
             Staff Management
           </h1>
           <p className="text-md text-gray-500 dark:text-slate-400 mt-1">
@@ -319,28 +294,28 @@ export default function StaffPage() {
       </div>
 
       {/* Reusable Delete Confirmation Modal */}
-<ConfirmationModal
-  isOpen={isDeleteModalOpen}
-  onClose={() => {
-    if (!isDeleting) {
-      setIsDeleteModalOpen(false);
-      setStaffToDelete(null);
-    }
-  }}
-  onConfirm={handleConfirmDelete}
-  title="Remove Staff Member"
-  message={
-    <>
-      Are you sure you want to delete the{' '}
-      <span className="font-bold text-slate-900 dark:text-slate-200">
-        {staffToDelete?.name}
-      </span>{' '}
-      staff member? This action cannot be undone.
-    </>
-  }
-  isLoading={isDeleting}
-  confirmText="Remove"
-/>
+      <ConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          if (!isDeleting) {
+            setIsDeleteModalOpen(false);
+            setStaffToDelete(null);
+          }
+        }}
+        onConfirm={handleConfirmDelete}
+        title="Remove Staff Member"
+        message={
+          <>
+            Are you sure you want to delete the{' '}
+            <span className="font-bold text-slate-900 dark:text-slate-200">
+              {staffToDelete?.name}
+            </span>{' '}
+            staff member? This action cannot be undone.
+          </>
+        }
+        isLoading={isDeleting}
+        confirmText="Remove"
+      />
     </div>
   );
 }

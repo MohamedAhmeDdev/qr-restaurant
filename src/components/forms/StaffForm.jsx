@@ -114,7 +114,8 @@ export default function StaffForm({
               >
                 <option value="">Select Status</option>
                 <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
+                <option value="on_leave">On leave</option>
+                <option value="suspended">Suspended</option>
               </select>
               {errors.status && <p className="text-xs text-red-500 mt-1">{Array.isArray(errors.status) ? errors.status[0] : errors.status}</p>}
             </div>
