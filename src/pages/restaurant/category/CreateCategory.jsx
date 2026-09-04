@@ -13,7 +13,7 @@ export default function CreateCategory() {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    sort_order: '',
+    // sort_order: '',
     is_active: '',
   });
 
@@ -21,13 +21,13 @@ export default function CreateCategory() {
     const newErrors = {};
     if (!formData.name?.trim()) newErrors.name = 'Category name is required';
     if (!formData.description?.trim()) newErrors.description = 'Description is required';
-    if (formData.sort_order === '' || formData.sort_order === null) {
-      newErrors.sort_order = 'Sort order is required';
-    } else if (formData.sort_order < 0) {
-      newErrors.sort_order = 'Sort order must be 0 or greater';
-    } else if (formData.sort_order > 999) {
-      newErrors.sort_order = 'Sort order cannot exceed 999';
-    }
+    // if (formData.sort_order === '' || formData.sort_order === null) {
+    //   newErrors.sort_order = 'Sort order is required';
+    // } else if (formData.sort_order < 0) {
+    //   newErrors.sort_order = 'Sort order must be 0 or greater';
+    // } else if (formData.sort_order > 999) {
+    //   newErrors.sort_order = 'Sort order cannot exceed 999';
+    // }
     if (formData.is_active === '') newErrors.is_active = 'Active status is required';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -43,7 +43,7 @@ export default function CreateCategory() {
       const payload = {
         name: formData.name.trim(),
         description: formData.description.trim(),
-        sort_order: parseInt(formData.sort_order),
+        // sort_order: parseInt(formData.sort_order),
         is_active: formData.is_active === 'true'
       };
 

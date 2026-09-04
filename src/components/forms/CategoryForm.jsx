@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutGrid, AlignLeft, ListOrdered, Save } from 'lucide-react';
+import { LayoutGrid, AlignLeft, Save } from 'lucide-react';
 
 export default function CategoryForm({
   formData,
@@ -32,7 +32,7 @@ export default function CategoryForm({
           <label className="block text-sm font-semibold text-gray-800 dark:text-slate-200 mb-2">
             Category Information
           </label>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
                 Category Name <span className="text-orange-500">*</span>
@@ -49,7 +49,7 @@ export default function CategoryForm({
               {errors.name && <p className="text-xs text-red-500 mt-1">{Array.isArray(errors.name) ? errors.name[0] : errors.name}</p>}
             </div>
 
-            <div className="space-y-1.5">
+            {/* <div className="space-y-1.5">
               <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
                 Sort Order <span className="text-orange-500">*</span>
               </label>
@@ -68,7 +68,7 @@ export default function CategoryForm({
                 />
               </div>
               {errors.sort_order && <p className="text-xs text-red-500 mt-1">{Array.isArray(errors.sort_order) ? errors.sort_order[0] : errors.sort_order}</p>}
-            </div>
+            </div> */}
           </div>
         </div>
 
