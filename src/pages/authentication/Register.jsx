@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Eye, EyeOff, ArrowRight, Check, AlertCircle, Loader2, Store, User, Lock, Mail, Building2 } from 'lucide-react';
+import { Eye, EyeOff, ArrowRight, Check, AlertCircle, Loader2, User, Lock, Mail, Building2 } from 'lucide-react';
 import { Link, useNavigate, useSearchParams, useLocation } from 'react-router-dom'; 
 import toast from 'react-hot-toast';
 import { useAuth } from '../../contexts/AuthContext';
@@ -24,7 +24,6 @@ function Register() {
     name: '',
     email: '',
     organizationName: '',
-    restaurantName: '',
     password: '',
     password_confirmation: '',
   });
@@ -95,10 +94,6 @@ function Register() {
       newErrors.organizationName = 'Organization name is required';
     }
 
-    if (!form.restaurantName.trim()) {
-      newErrors.restaurantName = 'Restaurant name is required';
-    }
-
     if (!form.password) {
       newErrors.password = 'Password is required';
     } else if (form.password.length < 8) {
@@ -127,7 +122,6 @@ function Register() {
         password: form.password,
         password_confirmation: form.password_confirmation,
         organization_name: form.organizationName,
-        restaurant_name: form.restaurantName,
       };
 
       const result = await register(userData);
@@ -149,7 +143,6 @@ function Register() {
         setErrors({
           name: serverErrors.name?.[0],
           organizationName: serverErrors.organization_name?.[0],
-          restaurantName: serverErrors.restaurant_name?.[0],
           general: error?.response?.data?.message,
         });
       } else {
@@ -185,7 +178,7 @@ function Register() {
                 Complete Registration
               </h1>
               <p className="text-sm text-slate-400">
-                Set up your account and restaurant details to access your dashboard.
+                Set up your account and organization details to access your dashboard.
               </p>
             </div>
 
@@ -200,7 +193,7 @@ function Register() {
               {/* Admin Name */}
               <div className="space-y-1.5">
                 <label className="block text-xs font-medium text-slate-400 tracking-wide uppercase">
-                  Admin Name <span className="text-orange-500">*</span>
+                  Name <span className="text-orange-500">*</span>
                 </label>
                 <div className="relative">
                   <input
@@ -259,29 +252,6 @@ function Register() {
                   <div className="flex items-center gap-1.5 text-red-400 text-xs mt-1">
                     <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
                     <span>{errors.organizationName || errors.organization_name}</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Restaurant Name */}
-              <div className="space-y-1.5">
-                <label className="block text-xs font-medium text-slate-400 tracking-wide uppercase">
-                  Restaurant Name <span className="text-orange-500">*</span>
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={form.restaurantName}
-                    onChange={update('restaurantName')}
-                    placeholder="e.g. Urban Bistro"
-                    className="w-full pl-10 pr-4 py-3.5 bg-slate-900/60 border border-slate-800 rounded-xl text-sm text-white placeholder-slate-600 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
-                  />
-                  <Store className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                </div>
-                {errors.restaurantName && (
-                  <div className="flex items-center gap-1.5 text-red-400 text-xs mt-1">
-                    <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
-                    <span>{errors.restaurantName}</span>
                   </div>
                 )}
               </div>

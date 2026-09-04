@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutGrid, Users, Save } from 'lucide-react';
+import { LayoutGrid, Users, Hash, Save } from 'lucide-react';
 
 export default function TableForm({
   formData,
@@ -41,12 +41,28 @@ export default function TableForm({
                 type="text"
                 value={formData.name || ''}
                 onChange={(e) => handleChange('name', e.target.value)}
-                placeholder="e.g. Table 1, Window Seat, VIP Section"
-                className={`w-full px-4 py-2.5 rounded-xl border ${
-                  errors.name ? 'border-red-500' : 'border-gray-300/80 dark:border-slate-700'
-                } bg-white dark:bg-slate-800/80 focus:ring-4 focus:ring-orange-500/15 focus:border-orange-500 outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 transition-all text-sm shadow-sm`}
+                placeholder="e.g. Window Seat, VIP Section"
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-300/80 dark:border-slate-700 bg-white dark:bg-slate-800/80 focus:ring-4 focus:ring-orange-500/15 focus:border-orange-500 outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 transition-all text-sm shadow-sm"
               />
               {errors.name && <p className="text-xs text-red-500 mt-1">{Array.isArray(errors.name) ? errors.name[0] : errors.name}</p>}
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
+                Table Number <span className="text-orange-500">*</span>
+              </label>
+              <div className="relative">
+                <Hash className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-slate-500 pointer-events-none" />
+                <input
+                  type="number"
+                  min="1"
+                  value={formData.table_number || ''}
+                  onChange={(e) => handleChange('table_number', e.target.value ? parseInt(e.target.value) : '')}
+                  placeholder="e.g. 1, 2, 3"
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-300/80 dark:border-slate-700 bg-white dark:bg-slate-800/80 focus:ring-4 focus:ring-orange-500/15 focus:border-orange-500 outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 transition-all text-sm shadow-sm"
+                />
+              </div>
+              {errors.table_number && <p className="text-xs text-red-500 mt-1">{Array.isArray(errors.table_number) ? errors.table_number[0] : errors.table_number}</p>}
             </div>
 
             <div className="space-y-1.5">
@@ -62,9 +78,7 @@ export default function TableForm({
                   value={formData.capacity || ''}
                   onChange={(e) => handleChange('capacity', e.target.value ? parseInt(e.target.value) : '')}
                   placeholder="e.g. 4"
-                  className={`w-full pl-10 pr-4 py-2.5 rounded-xl border ${
-                    errors.capacity ? 'border-red-500' : 'border-gray-300/80 dark:border-slate-700'
-                  } bg-white dark:bg-slate-800/80 focus:ring-4 focus:ring-orange-500/15 focus:border-orange-500 outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 transition-all text-sm shadow-sm`}
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-300/80 dark:border-slate-700 bg-white dark:bg-slate-800/80 focus:ring-4 focus:ring-orange-500/15 focus:border-orange-500 outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 transition-all text-sm shadow-sm"
                 />
               </div>
               {errors.capacity && <p className="text-xs text-red-500 mt-1">{Array.isArray(errors.capacity) ? errors.capacity[0] : errors.capacity}</p>}

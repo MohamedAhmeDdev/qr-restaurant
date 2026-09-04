@@ -4,11 +4,9 @@ import { Navigate } from 'react-router-dom';
 import Layout from '../Layout';
 import { ProtectedRoute } from '../../../utils/ProtectedRoute';
 import AdminSidebar from '../sidebar/AdminSidebar';
-import RestaurantList from '../../restaurant/restaurant/RestaurantList';
+import Restaurants from '../../restaurant/restaurant/Restaurants';
 import CreateRestaurant from '../../restaurant/restaurant/CreateRestaurant';
 import EditRestaurant from '../../restaurant/restaurant/EditRestaurant';
-import Orders from '../../restaurant/orders/Orders';
-import OrderDetails from '../../restaurant/orders/OrderDetails';
 
 // Lazy load all other components
 const DashboardPage = lazy(() => import('../../restaurant/DashboardPage'));
@@ -27,13 +25,15 @@ const EditModifierGroup = lazy(() => import('../../restaurant/modifiers/EditModi
 const Menu = lazy(() => import('../../restaurant/menu/Menu'));
 const CreateMenu = lazy(() => import('../../restaurant/menu/CreateMenu'));
 const EditMenu = lazy(() => import('../../restaurant/menu/EditMenu'));
+const Orders = lazy(() => import('../../restaurant/orders/Orders'));
+const OrderDetails = lazy(() => import('../../restaurant/orders/OrderDetails'));
 const SettingsPage = lazy(() => import('../../settings/Layout/SettingsPage'));
 
 export const AdminRoutes = {
   path: '/',
   element: <ProtectedRoute allowedRoles={['restaurant_admin']} />,
   children: [
-    { path: 'restaurant', element: <RestaurantList /> },
+    { path: 'restaurant', element: <Restaurants /> },
     { path: 'restaurant/create', element: <CreateRestaurant /> },
     { path: 'restaurant/edit/:id', element: <EditRestaurant /> },
     {
