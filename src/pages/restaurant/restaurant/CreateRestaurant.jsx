@@ -9,18 +9,31 @@ export default function CreateRestaurant() {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
+  const [bgImagePreview, setBgImagePreview] = useState(null);
   const [errors, setErrors] = useState({});
 
   const [formData, setFormData] = useState({
     name: '',
     status: 'active',
     logo: null,
+    currency: '',
+    background_image: null,
   });
 
-  const validate = () => {
+const validate = () => {
     const newErrors = {};
     if (!formData.name.trim()) newErrors.name = 'Restaurant name is required.';
     if (!formData.status) newErrors.status = 'Status is required.';
+    if (!formData.currency) newErrors.currency = 'Currency is required.';
+    
+    // Enforce file uploads if they haven't been provided or pre-loaded
+    if (!formData.logo && !imagePreview) {
+      newErrors.logo = 'Restaurant logo is required.';
+    }
+    if (!formData.background_image && !bgImagePreview) {
+      newErrors.background_image = 'Background image is required.';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -35,18 +48,24 @@ export default function CreateRestaurant() {
       const formDataToSend = new FormData();
       formDataToSend.append('name', formData.name.trim());
       formDataToSend.append('status', formData.status);
+      formDataToSend.append('currency', formData.currency);
+      
       if (formData.logo) {
         formDataToSend.append('logo', formData.logo);
+      }
+
+      if (formData.background_image) {
+        formDataToSend.append('background_image', formData.background_image);
       }
 
       const response = await api.post('/restaurants', formDataToSend, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
-      toast.success(response?.data?.message);
+      toast.success(response?.data?.message || 'Restaurant created successfully.');
       navigate('/restaurant');
     } catch (err) {
-      toast.error(err.response?.data?.message);
+      toast.error(err.response?.data?.message || 'Failed to create restaurant.');
     } finally {
       setIsSubmitting(false);
     }
@@ -86,6 +105,8 @@ export default function CreateRestaurant() {
           setErrors={setErrors}
           imagePreview={imagePreview}
           setImagePreview={setImagePreview}
+          bgImagePreview={bgImagePreview}
+          setBgImagePreview={setBgImagePreview}
           onSubmit={handleSubmit}
           onCancel={handleCancel}
           isSubmitting={isSubmitting}

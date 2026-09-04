@@ -6,7 +6,6 @@ import toast from 'react-hot-toast';
 import api from '../../../services/api';
 import { getImageUrl } from '../../../utils/getImageUrl';
 
-
 export default function EditRestaurant() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -14,6 +13,7 @@ export default function EditRestaurant() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [imagePreview, setImagePreview] = useState(null);
+  const [bgImagePreview, setBgImagePreview] = useState(null);
   const [errors, setErrors] = useState({});
 
   const [formData, setFormData] = useState({
@@ -21,6 +21,9 @@ export default function EditRestaurant() {
     logo: null,
     status: 'active',
     removeLogo: false,
+    currency: '',
+    background_image: null,
+    removeBackgroundImage: false,
   });
 
   const fetchRestaurant = useCallback(async () => {
@@ -34,6 +37,9 @@ export default function EditRestaurant() {
         status: data.status,
         logo: null,
         removeLogo: false,
+        currency: data.currency || 'USD',
+        background_image: null,
+        removeBackgroundImage: false,
       });
 
       // Use getImageUrl to normalize relative paths, external URLs, or nulls safely
@@ -42,8 +48,14 @@ export default function EditRestaurant() {
       } else {
         setImagePreview(null);
       }
+
+      if (data.background_image) {
+        setBgImagePreview(getImageUrl(data.background_image));
+      } else {
+        setBgImagePreview(null);
+      }
     } catch (err) {
-          toast.error(err.response?.data?.message);
+      toast.error(err.response?.data?.message || 'Failed to fetch restaurant data.');
     } finally {
       setIsLoading(false);
     }
@@ -53,10 +65,20 @@ export default function EditRestaurant() {
     fetchRestaurant();
   }, [fetchRestaurant]);
 
-  const validate = () => {
+const validate = () => {
     const newErrors = {};
     if (!formData.name.trim()) newErrors.name = 'Restaurant name is required.';
     if (!formData.status) newErrors.status = 'Status is required.';
+    if (!formData.currency) newErrors.currency = 'Currency is required.';
+    
+    // Enforce file uploads if they haven't been provided or pre-loaded
+    if (!formData.logo && !imagePreview) {
+      newErrors.logo = 'Restaurant logo is required.';
+    }
+    if (!formData.background_image && !bgImagePreview) {
+      newErrors.background_image = 'Background image is required.';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -71,6 +93,7 @@ export default function EditRestaurant() {
       const formDataToSend = new FormData();
       formDataToSend.append('name', formData.name.trim());
       formDataToSend.append('status', formData.status);
+      formDataToSend.append('currency', formData.currency);
       formDataToSend.append('_method', 'PUT');
 
       if (formData.logo) {
@@ -79,6 +102,14 @@ export default function EditRestaurant() {
 
       if (formData.removeLogo) {
         formDataToSend.append('remove_logo', '1');
+      }
+
+      if (formData.background_image) {
+        formDataToSend.append('background_image', formData.background_image);
+      }
+
+      if (formData.removeBackgroundImage) {
+        formDataToSend.append('remove_background_image', '1');
       }
 
       const response = await api.post(`/restaurants/${id}`, formDataToSend, {
@@ -139,6 +170,8 @@ export default function EditRestaurant() {
           setErrors={setErrors}
           imagePreview={imagePreview}
           setImagePreview={setImagePreview}
+          bgImagePreview={bgImagePreview}
+          setBgImagePreview={setBgImagePreview}
           onSubmit={handleSubmit}
           onCancel={handleCancel}
           isSubmitting={isSubmitting}
