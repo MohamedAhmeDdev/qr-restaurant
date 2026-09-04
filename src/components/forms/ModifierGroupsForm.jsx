@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, Trash2, DollarSign, Save, Layers, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Plus, Trash2, DollarSign, Save, Layers, AlertCircle, Power, PowerOff } from 'lucide-react';
 
 export default function ModifierGroupForm({
   formData,
@@ -50,6 +50,36 @@ export default function ModifierGroupForm({
             <p className="text-xs text-gray-500 dark:text-slate-400">Configure customer selection limits and pricing choices</p>
           </div>
         </div>
+        
+        {/* Status Toggle Buttons */}
+        {isEdit && (
+          <div className="flex items-center gap-1 p-1 bg-gray-100 dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700">
+            <button
+              type="button"
+              onClick={() => handleChange('is_active', true)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                formData.is_active
+                  ? 'bg-green-500 text-white shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+              }`}
+            >
+              <Power className="w-3.5 h-3.5" />
+              Active
+            </button>
+            <button
+              type="button"
+              onClick={() => handleChange('is_active', false)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                !formData.is_active
+                  ? 'bg-red-600 text-white shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+              }`}
+            >
+              <PowerOff className="w-3.5 h-3.5" />
+              Inactive
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="p-6 md:p-8 space-y-8">
@@ -196,12 +226,10 @@ export default function ModifierGroupForm({
                 key={index} 
                 className="group relative flex flex-col sm:flex-row items-stretch sm:items-center gap-3 bg-white dark:bg-slate-800/40 p-3 rounded-xl border border-gray-200/80 dark:border-slate-800 hover:border-gray-300 dark:hover:border-slate-700 shadow-sm transition-all"
               >
-                {/* Index badge */}
                 <div className="hidden sm:flex items-center justify-center w-6 h-6 rounded-md bg-gray-100 dark:bg-slate-800 text-xs text-gray-400 font-mono">
                   {index + 1}
                 </div>
 
-                {/* Option Name Placeholder Context */}
                 <div className="flex-1">
                   <input
                     type="text"
@@ -217,7 +245,6 @@ export default function ModifierGroupForm({
                   />
                 </div>
 
-                {/* Price */}
                 <div className="relative w-full sm:w-32">
                   <DollarSign className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500" />
                   <input
@@ -231,7 +258,6 @@ export default function ModifierGroupForm({
                   />
                 </div>
 
-                {/* Controls (Available & Delete) */}
                 <div className="flex items-center justify-between sm:justify-end gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-100 dark:border-slate-800">
                   <label htmlFor={`available-${index}`} className="inline-flex items-center gap-2 cursor-pointer">
                     <input

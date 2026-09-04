@@ -18,6 +18,7 @@ export default function EditModifierGroup() {
     min_select: 0,
     max_select: 1,
     is_required: false,
+    is_active: true,
     options: [{ name: '', price: '0.00', is_available: true }],
   });
 
@@ -32,6 +33,7 @@ export default function EditModifierGroup() {
         min_select: data.min_select ?? 0,
         max_select: data.max_select ?? 1,
         is_required: data.is_required ?? false,
+        is_active: data.is_active ?? true,
         options: data.options?.length
           ? data.options.map(o => ({
               name: o.name || '',
@@ -77,6 +79,7 @@ export default function EditModifierGroup() {
         min_select: formData.min_select,
         max_select: formData.max_select,
         is_required: formData.is_required,
+        is_active: formData.is_active,
         options: formData.options.map(opt => ({
           name: opt.name.trim(),
           price: parseFloat(opt.price) || 0,
@@ -89,7 +92,7 @@ export default function EditModifierGroup() {
       navigate('/modifier-groups');
     } catch (err) {
       toast.error(err.response?.data?.message);
-      } finally {
+    } finally {
       setIsSubmitting(false);
     }
   };

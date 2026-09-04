@@ -16,6 +16,7 @@ export default function CreateModifierGroup() {
     min_select: 0,
     max_select: 1,
     is_required: false,
+    is_active: true,
     options: [{ name: '', price: '0.00', is_available: true }],
   });
 
@@ -47,6 +48,7 @@ export default function CreateModifierGroup() {
         min_select: formData.min_select,
         max_select: formData.max_select,
         is_required: formData.is_required,
+        is_active: formData.is_active,
         options: formData.options.map(opt => ({
           name: opt.name.trim(),
           price: parseFloat(opt.price) || 0,
