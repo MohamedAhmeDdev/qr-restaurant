@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import api from '../services/api';
 import { useAuth } from './AuthContext';
+import { RestaurantService } from '../services/restaurant';
 
 const RestaurantContext = createContext(null);
 
@@ -18,9 +18,9 @@ export function RestaurantProvider({ children }) {
   const fetchRestaurants = useCallback(async () => {
     setIsLoading(true);
     try {
-      const res = await api.get('/restaurants', { params: { with_trashed: 0 } });
-      if (res.data?.data) {
-        const active = res.data.data
+      const data = await RestaurantService.getRestaurants({ with_trashed: 0 });
+      if (data) {
+        const active = data
           .map((r) => ({ ...r, isTrashed: r.deleted_at !== null }))
           .filter((r) => !r.isTrashed);
         setRestaurants(active);

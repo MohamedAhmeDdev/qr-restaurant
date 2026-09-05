@@ -62,10 +62,10 @@ const validate = () => {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
-      toast.success(response?.data?.message || 'Restaurant created successfully.');
+      toast.success(response?.data?.message);
       navigate('/restaurant');
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to create restaurant.');
+      toast.error(err.response?.data?.message);
     } finally {
       setIsSubmitting(false);
     }

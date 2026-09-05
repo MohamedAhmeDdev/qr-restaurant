@@ -55,7 +55,7 @@ export default function EditRestaurant() {
         setBgImagePreview(null);
       }
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to fetch restaurant data.');
+      toast.error(err.response?.data?.message);
     } finally {
       setIsLoading(false);
     }
@@ -116,10 +116,10 @@ const validate = () => {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
-      toast.success(response?.data?.message || 'Restaurant updated successfully.');
+      toast.success(response?.data?.message);
       navigate('/restaurant');
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to update restaurant.');
+      toast.error(err.response?.data?.message);
     } finally {
       setIsSubmitting(false);
     }

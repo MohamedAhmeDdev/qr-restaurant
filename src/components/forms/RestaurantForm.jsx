@@ -10,9 +10,12 @@ import {
   CheckCircle2,
   AlertCircle,
   Type,
-  Palette
+  Palette,
+  Power,
+  PowerOff
 } from 'lucide-react';
 import cc from 'currency-codes';
+
 export default function RestaurantForm({
   formData,
   setFormData,
@@ -229,7 +232,7 @@ export default function RestaurantForm({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Name Field - Prominent */}
-              <div className="space-y-2 md:col-span-2">
+              <div className="space-y-2">
                 <label htmlFor="restaurant-name" className="block text-sm font-medium text-gray-700 dark:text-slate-300">
                   Restaurant Name <span className="text-orange-500">*</span>
                 </label>
@@ -280,44 +283,6 @@ export default function RestaurantForm({
                   </p>
                 )}
               </div>
-
-              {/* Status Field - Compact Card Selector */}
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300">
-                  Visibility Status <span className="text-orange-500">*</span>
-                </label>
-                <div className="grid grid-cols-2 gap-3 h-[54px]">
-                  {['active', 'suspended'].map((status) => (
-                    <label
-                      key={status}
-                      className={`relative flex items-center justify-center gap-2 rounded-xl border-2 cursor-pointer transition-all duration-200 select-none text-sm font-semibold
-                        ${formData.status === status
-                          ? status === 'active'
-                            ? 'border-emerald-500 bg-emerald-50/50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400'
-                            : 'border-amber-500 bg-amber-50/50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400'
-                          : 'border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800/40 text-gray-500 hover:border-gray-300 dark:hover:border-slate-600'
-                        }`}
-                    >
-                      <input
-                        type="radio"
-                        name="status"
-                        value={status}
-                        required
-                        checked={formData.status === status}
-                        onChange={(e) => handleInputChange('status', e.target.value)}
-                        className="sr-only"
-                      />
-                      {formData.status === status && <CheckCircle2 className="w-4 h-4" />}
-                      <span className="capitalize">{status}</span>
-                    </label>
-                  ))}
-                </div>
-                {errors.status && (
-                  <p className="text-xs text-red-500 flex items-center gap-1.5 mt-1">
-                    {errors.status}
-                  </p>
-                )}
-              </div>
             </div>
           </section>
 
@@ -355,6 +320,72 @@ export default function RestaurantForm({
                 icon={BgImageIcon}
                 aspectClass="aspect-square"
               />
+            </div>
+          </section>
+
+          {/* SECTION 3: STATUS - NEW TOGGLE DESIGN */}
+          <section className="pt-2">
+            <SectionHeader
+              icon={Power}
+              title="Restaurant Status"
+              description="Control your restaurant's visibility and availability"
+            />
+
+            <div className="grid grid-cols-1 gap-4">
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300">
+                  Visibility Status <span className="text-orange-500">*</span>
+                </label>
+                
+                {/* Status Toggle Card */}
+                <div className="relative p-4 rounded-xl border-2 transition-all duration-200 group hover:border-orange-200 dark:hover:border-orange-800/40 cursor-pointer bg-white dark:bg-slate-800/40 border-gray-200 dark:border-slate-700/80 hover:bg-orange-50/30 dark:hover:bg-orange-500/5">
+                  <label htmlFor="is_active" className="flex items-start gap-4 cursor-pointer">
+                    <div className="relative flex items-center justify-center mt-0.5">
+                      <input
+                        type="checkbox"
+                        id="is_active"
+                        className="w-5 h-5 text-orange-500 rounded-md border-2 border-gray-300 dark:border-slate-600 focus:ring-2 focus:ring-orange-500/30 focus:ring-offset-2 dark:focus:ring-offset-slate-900 cursor-pointer transition-all checked:border-orange-500 checked:bg-orange-500 hover:border-orange-400"
+                        checked={formData.status === 'active' || formData.status === true}
+                        onChange={(e) => handleInputChange('status', e.target.checked ? 'active' : 'suspended')}
+                      />
+                      {formData.status === 'active' && (
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                          <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold text-gray-800 dark:text-slate-200 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
+                          Active Restaurant
+                        </span>
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium transition-colors ${
+                          formData.status === 'active'
+                            ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
+                            : 'bg-gray-100 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400'
+                        }`}>
+                          {formData.status === 'active' ? 'Active' : 'Suspended'}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5 leading-relaxed">
+                        {formData.status === 'active'
+                          ? 'Restaurant is visible to customers and fully operational'
+                          : 'Restaurant is suspended and hidden from all customers'}
+                      </p>
+                    </div>
+                  </label>
+                </div>
+
+                {errors.status && (
+                  <p className="text-xs text-red-500 flex items-center gap-1.5 mt-1">
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    {errors.status}
+                  </p>
+                )}
+              </div>
             </div>
           </section>
         </div>

@@ -38,7 +38,7 @@ export default function RestaurantCard({
                     ? 'border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30 opacity-75'
                     : isActiveWorkspace
                         ? 'border-orange-400 dark:border-orange-500/60 bg-gradient-to-br from-orange-50/50 to-white dark:from-orange-950/20 dark:to-slate-900 ring-2 ring-orange-500/20 shadow-xl shadow-orange-500/10'
-                        : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-orange-300 dark:hover:border-orange-700 hover:shadow-xl hover:shadow-slate-200/50 dark:hover:shadow-none hover:-translate-y-1'
+                        : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-orange-300 dark:hover:border-orange-700 hover:shadow-xl hover:shadow-slate-200/50 dark:hover:shadow-none'
                 }
                       ${isSwitchingThis || isBusy ? 'opacity-60 pointer-events-none' : ''}
                     `}

@@ -11,6 +11,7 @@ import StatusBadge from '../../../components/StatusBadge';
 import EmptyState from '../../../components/common/EmptyState';
 import api from '../../../services/api';
 import { formatDate } from '../../../utils/formatDate';
+import { getImageUrl } from '../../../utils/getImageUrl';
 
 export default function RestaurantsPage() {
   const { id } = useParams();
@@ -198,7 +199,7 @@ export default function RestaurantsPage() {
                   group relative rounded-2xl border p-4 transition-all duration-300 flex flex-col gap-3 outline-none
                   ${restaurant.isTrashed 
                     ? 'border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30 opacity-75'
-                    : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-xl hover:shadow-slate-200/50 dark:hover:shadow-none hover:-translate-y-1'
+                    : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-xl hover:shadow-slate-200/50 dark:hover:shadow-none '
                   }
                   ${isTogglingThis ? 'opacity-60 pointer-events-none' : ''}
                 `}
@@ -208,7 +209,7 @@ export default function RestaurantsPage() {
                   <div className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
                     {restaurant.logo ? (
                       <img
-                        src={restaurant.logo}
+                        src={getImageUrl(restaurant.logo)}
                         alt={restaurant.name}
                         className="w-full h-full object-cover rounded-xl"
                       />
@@ -283,7 +284,7 @@ export default function RestaurantsPage() {
                     className={`w-full py-2 px-4 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all duration-200 ${
                       isRestaurantActive
                         ? 'bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white shadow-lg shadow-rose-500/25 hover:shadow-xl hover:shadow-rose-500/30 active:scale-[0.98]'
-                        : 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/30 active:scale-[0.98]'
+                        : 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white  active:scale-[0.98]'
                     }`}
                   >
                     {isTogglingThis ? (

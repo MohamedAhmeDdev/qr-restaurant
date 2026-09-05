@@ -10,7 +10,7 @@ import { useRestaurant } from '../../../contexts/RestaurantContext';
 import ConfirmationModal from '../../../components/common/ConfirmationModal';
 import RestaurantGrid from '../../../components/cards/RestaurantGrid';
 import toast from 'react-hot-toast';
-
+import { RestaurantService } from '../../../services/restaurant';
 
 export default function Restaurants() {
   const navigate = useNavigate();
@@ -44,29 +44,27 @@ export default function Restaurants() {
   const menuRefs = useRef({});
 
   // Fetch list (search + tab aware)
-  const fetchRestaurants = useCallback(async (search, tab) => {
+  const fetchRestaurants = useCallback(async (query = '', tab = 'active') => {
     setIsLoading(true);
     setError(null);
     try {
       const params = {
-        search: search,
-        ...(tab === 'trashed' ? { only_trashed: 1 } : { with_trashed: 0 }),
+        search: query || undefined,
+        with_trashed: tab === 'trashed' ? 1 : 0,
+        only_trashed: tab === 'trashed' ? 1 : 0,
       };
 
-      const response = await api.get('/restaurants', { params });
-
-      if (response.data?.data) {
-        const formattedData = response.data.data.map((r) => ({
+      const data = await RestaurantService.getRestaurants(params);
+      if (data) {
+        const formatted = data.map((r) => ({
           ...r,
           isTrashed: r.deleted_at !== null,
         }));
-        setRestaurants(formattedData);
+        setRestaurants(formatted);
       }
     } catch (err) {
-      console.error('Failed to fetch restaurants', err);
-      setError(err.response?.data?.message || 'Failed to fetch restaurants');
-    }
-    finally {
+      setError(err.response?.data?.message);
+    } finally {
       setIsLoading(false);
     }
   }, []);
@@ -107,12 +105,10 @@ export default function Restaurants() {
   };
 
   // ── Workspace Switching ──
-    const handleSwitchRestaurant = (restaurant) => {
+  const handleSwitchRestaurant = (restaurant) => {
     if (restaurant.isTrashed) return;
-    
-    // NEW: prevent switching to deactivated restaurants
-    const isActive =
-      restaurant.is_active === true 
+
+    const isActive = restaurant.is_active === true;
     if (!isActive) {
       toast.error('This restaurant is deactivated.');
       return;
@@ -148,7 +144,6 @@ export default function Restaurants() {
       );
       toast.success(response.data?.message);
       refreshContextRestaurants();
-
     } catch (err) {
       toast.error(err.response?.data?.message);
       await fetchRestaurants(searchQuery, activeTab);
@@ -290,39 +285,43 @@ export default function Restaurants() {
               <div className="flex gap-1 p-1 bg-slate-100 dark:bg-slate-800/50 rounded-xl w-fit">
                 <button
                   onClick={() => handleTabChange('active')}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${activeTab === 'active'
-                    ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                    }`}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    activeTab === 'active'
+                      ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                  }`}
                 >
                   <Layers className="w-4 h-4" />
                   Active
                   <span
-                    className={`ml-1 px-2 py-0.5 text-xs rounded-full ${activeTab === 'active'
-                      ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400'
-                      : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
-                      }`}
+                    className={`ml-1 px-2 py-0.5 text-xs rounded-full ${
+                      activeTab === 'active'
+                        ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400'
+                        : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
+                    }`}
                   >
-                    {restaurants.filter((r) => !r.isTrashed).length}
+                    {activeTab === 'active' ? restaurants.length : '-'}
                   </span>
                 </button>
 
                 <button
                   onClick={() => handleTabChange('trashed')}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${activeTab === 'trashed'
-                    ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                    }`}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    activeTab === 'trashed'
+                      ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                  }`}
                 >
                   <Archive className="w-4 h-4" />
                   Trash
                   <span
-                    className={`ml-1 px-2 py-0.5 text-xs rounded-full ${activeTab === 'trashed'
-                      ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400'
-                      : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
-                      }`}
+                    className={`ml-1 px-2 py-0.5 text-xs rounded-full ${
+                      activeTab === 'trashed'
+                        ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400'
+                        : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
+                    }`}
                   >
-                    {restaurants.filter((r) => r.isTrashed).length}
+                    {activeTab === 'trashed' ? restaurants.length : '-'}
                   </span>
                 </button>
               </div>
