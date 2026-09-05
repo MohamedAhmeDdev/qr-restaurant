@@ -4,12 +4,14 @@ import { ArrowLeft } from 'lucide-react';
 import StaffForm from '../../../components/forms/StaffForm';
 import toast from 'react-hot-toast';
 import api from '../../../services/api';
+import LoadingScreen from '../../../components/LoadingScreen';
 
 export default function EditStaff() {
   const navigate = useNavigate();
   const { id } = useParams();
   
   const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
   const [errors, setErrors] = useState({});
   
   const [formData, setFormData] = useState({
@@ -22,6 +24,8 @@ export default function EditStaff() {
 
 const fetchStaff = useCallback(async () => {
   try {
+          setIsLoading(true);
+
     const response = await api.get(`/staff/${id}`);
     const data = response.data?.data;
     console.log(response);
@@ -36,7 +40,9 @@ const fetchStaff = useCallback(async () => {
   } catch (err) {
     toast.error(err.response?.data?.message);
     navigate('/staff');
-  }
+  }finally {
+      setIsLoading(false);
+    }
 }, [id, navigate]);
 
   useEffect(() => {
@@ -102,6 +108,9 @@ const fetchStaff = useCallback(async () => {
     navigate('/staff');
   };
 
+  if (isLoading) {
+    return <LoadingScreen label="Loading staff details..." />;
+  }
 
 
   return (

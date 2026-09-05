@@ -4,12 +4,14 @@ import { ArrowLeft } from 'lucide-react';
 import TableForm from '../../../components/forms/TableForm';
 import toast from 'react-hot-toast';
 import api from '../../../services/api';
+import LoadingScreen from '../../../components/LoadingScreen';
 
 export default function EditTable() {
   const navigate = useNavigate();
   const { id } = useParams();
   
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [errors, setErrors] = useState({});
   
   const [formData, setFormData] = useState({
@@ -22,6 +24,7 @@ export default function EditTable() {
 
   const fetchTable = useCallback(async () => {
     try {
+      setIsLoading(true);
       const response = await api.get(`/tables/${id}`);
       const data = response.data?.data
       
@@ -34,6 +37,8 @@ export default function EditTable() {
       });
     } catch (err) {
       toast.error(err.response?.data?.message);
+    }finally {
+      setIsLoading(false);
     } 
   }, [id]);
 
@@ -82,6 +87,11 @@ export default function EditTable() {
   const handleCancel = () => {
     navigate('/table');
   };
+
+    if (isLoading) {
+      return <LoadingScreen label="Loading table details..." />;
+    }
+  
 
   return (
     <div className="p-1 sm:p-4 max-w-4xl mx-auto min-h-screen space-y-6 bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 transition-colors duration-200">

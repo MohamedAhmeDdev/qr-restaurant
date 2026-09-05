@@ -4,12 +4,14 @@ import { ArrowLeft, Edit3 } from 'lucide-react';
 import ModifierGroupForm from '../../../components/forms/ModifierGroupsForm';
 import toast from 'react-hot-toast';
 import api from '../../../services/api';
+import LoadingScreen from '../../../components/LoadingScreen';
 
 export default function EditModifierGroup() {
   const navigate = useNavigate();
   const { id } = useParams();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+   const [isLoading, setIsLoading] = useState(true);
   const [errors, setErrors] = useState({});
 
   const [formData, setFormData] = useState({
@@ -24,6 +26,7 @@ options: [{ name: '', price: '0.00', is_available: false }],
 
   const fetchModifierGroup = useCallback(async () => {
     try {
+        setIsLoading(true);
       const response = await api.get(`/modifier-groups/${id}`);
       const data = response.data?.data;
 
@@ -44,6 +47,8 @@ options: [{ name: '', price: '0.00', is_available: false }],
       });
     } catch (err) {
       toast.error(err.response?.data?.message);
+    }finally {
+      setIsLoading(false);
     }
   }, [id]);
 
@@ -100,6 +105,10 @@ options: [{ name: '', price: '0.00', is_available: false }],
   const handleCancel = () => {
     navigate('/modifier-groups');
   };
+
+    if (isLoading) {
+      return <LoadingScreen label="Loading modifier group details..." />;
+    }
 
   return (
     <div className="p-1 md:p-4 max-w-4xl mx-auto min-h-screen space-y-6 bg-gray-50/50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 transition-colors duration-200">

@@ -338,13 +338,13 @@ export default function RestaurantForm({
                 </label>
                 
                 {/* Status Toggle Card */}
-                <div className="relative p-4 rounded-xl border-2 transition-all duration-200 group hover:border-orange-200 dark:hover:border-orange-800/40 cursor-pointer bg-white dark:bg-slate-800/40 border-gray-200 dark:border-slate-700/80 hover:bg-orange-50/30 dark:hover:bg-orange-500/5">
+                <div className="relative p-4 rounded-xl border-2 transition-all duration-200  cursor-pointer bg-white dark:bg-slate-800/40 border-gray-200 dark:border-slate-700/80 ">
                   <label htmlFor="is_active" className="flex items-start gap-4 cursor-pointer">
                     <div className="relative flex items-center justify-center mt-0.5">
                       <input
                         type="checkbox"
                         id="is_active"
-                        className="w-5 h-5 text-orange-500 rounded-md border-2 border-gray-300 dark:border-slate-600 focus:ring-2 focus:ring-orange-500/30 focus:ring-offset-2 dark:focus:ring-offset-slate-900 cursor-pointer transition-all checked:border-orange-500 checked:bg-orange-500 hover:border-orange-400"
+                        className="w-5 h-5 text-orange-500 rounded-md border-2 border-gray-300 dark:border-slate-600 cursor-pointer transition-all checked:border-orange-500 checked:bg-orange-500 hover:border-orange-400"
                         checked={formData.status === 'active' || formData.status === true}
                         onChange={(e) => handleInputChange('status', e.target.checked ? 'active' : 'suspended')}
                       />

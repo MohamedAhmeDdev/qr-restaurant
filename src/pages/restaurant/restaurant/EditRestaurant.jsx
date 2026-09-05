@@ -5,6 +5,7 @@ import RestaurantForm from '../../../components/forms/RestaurantForm';
 import toast from 'react-hot-toast';
 import api from '../../../services/api';
 import { getImageUrl } from '../../../utils/getImageUrl';
+import LoadingScreen from '../../../components/LoadingScreen';
 
 export default function EditRestaurant() {
   const navigate = useNavigate();
@@ -130,19 +131,12 @@ const validate = () => {
   };
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100/50 to-gray-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 p-6 md:p-10 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-orange-500/30 border-t-orange-500 rounded-full animate-spin mx-auto"></div>
-          <p className="mt-4 text-gray-500 dark:text-slate-400">Loading restaurant...</p>
-        </div>
-      </div>
-    );
+    return <LoadingScreen label="Loading restaurant details..." />;
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100/50 to-gray-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 p-6 md:p-10 transition-colors">
-      <div className="max-w-2xl mx-auto mb-8 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto mb-8 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <button
             onClick={handleCancel}
@@ -162,7 +156,7 @@ const validate = () => {
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto">
+      <div className=" mx-auto">
         <RestaurantForm
           formData={formData}
           setFormData={setFormData}

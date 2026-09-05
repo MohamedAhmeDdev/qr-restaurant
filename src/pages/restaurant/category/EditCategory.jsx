@@ -4,12 +4,14 @@ import { ArrowLeft } from 'lucide-react';
 import CategoryForm from '../../../components/forms/CategoryForm';
 import toast from 'react-hot-toast';
 import api from '../../../services/api';
+import LoadingScreen from '../../../components/LoadingScreen';
 
 export default function EditCategory() {
   const navigate = useNavigate();
   const { id } = useParams();
   
   const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
   const [errors, setErrors] = useState({});
   
   const [formData, setFormData] = useState({
@@ -21,6 +23,7 @@ export default function EditCategory() {
 
   const fetchCategory = useCallback(async () => {
     try {
+         setIsLoading(true);
       const response = await api.get(`/categories/${id}`);
       const data = response.data?.data
       
@@ -32,7 +35,9 @@ export default function EditCategory() {
       });
     } catch (err) {
       toast.error(err.response?.data?.message);
-    } 
+    } finally {
+      setIsLoading(false);
+    }
   }, [id, navigate]);
 
   useEffect(() => {
@@ -80,7 +85,9 @@ export default function EditCategory() {
   const handleCancel = () => {
     navigate('/categories');
   };
-
+ if (isLoading) {
+    return <LoadingScreen label="Loading category details..." />;
+  }
 
   return (
     <div className="p-1 sm:p-4 max-w-4xl mx-auto min-h-screen space-y-6 bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 transition-colors duration-200">
