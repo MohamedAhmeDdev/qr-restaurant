@@ -15,7 +15,7 @@ import MenuPage from './pages/customer/MenuPage';
 import ItemDetailPage from './pages/customer/ItemDetailPage';
 import CartPage from './pages/customer/CartPage';
 import CheckOutPage from './pages/customer/CheckOutPage';
-import OrderConfirmationPage from './pages/customer/OrderConfirmationPage';
+import OrderConfirmationPage from './pages/customer/OrderConfirmationPage'; 
 import OrderTrackingPage from './pages/customer/OrderTrackingPage';
 
 // Public Auth Pages

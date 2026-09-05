@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Eye, EyeOff, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../contexts/AuthContext';
 import TwoFactorAuthentication from './TwoFactorAuthentication';
@@ -8,17 +8,19 @@ import { getDefaultRouteForRole } from '../../utils/getDefaultRouteForRole';
 
 function Login() {
   const navigate = useNavigate();
-  const location = useLocation();
+  const [searchParams] = useSearchParams();
   const { login, setAuthSession } = useAuth();
 
-  const from = location.state?.from?.pathname || '/';
-
+  // Form & UI States
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [step, setStep] = useState('login'); // 'login' | '2fa'
+
+  // Extract session expired query param
+  const isExpired = searchParams.get('expired') === 'true';
 
   const validateForm = () => {
     const newErrors = {};
@@ -52,10 +54,10 @@ function Login() {
 
       if (result?.success) {
         toast.success(result.message);
-        const redirectPath =  getDefaultRouteForRole(result.user?.role);
-        navigate(redirectPath, { replace: true });
+        const defaultPath = getDefaultRouteForRole(result.user?.role);
+        navigate(defaultPath, { replace: true });
       } else {
-        setErrors({ general: result?.error});
+        setErrors({ general: result?.error || 'Invalid email or password.' });
       }
     } catch (error) {
       setErrors({ general: 'An unexpected error occurred.' });
@@ -64,14 +66,12 @@ function Login() {
     }
   };
 
-const handle2FAVerified = (data) => {
-  setAuthSession({ token: data.token, user: data.user });
-  toast.success(data.message);
-  
-  // ✅ Fixed: derive role directly from data.user
-  const redirectPath = getDefaultRouteForRole(data.user?.role);
-  navigate(redirectPath, { replace: true });
-};
+  const handle2FAVerified = (data) => {
+    setAuthSession({ token: data.token, user: data.user });
+    toast.success(data.message);
+    const defaultPath = getDefaultRouteForRole(data.user?.role);
+    navigate(defaultPath, { replace: true });
+  };
 
   const handleBackToLogin = () => {
     setStep('login');
@@ -99,6 +99,13 @@ const handle2FAVerified = (data) => {
                     Sign in to manage your menu and orders.
                   </p>
                 </div>
+
+                {/* Session Expired Banner */}
+                {isExpired && !errors.general && (
+                  <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-medium flex items-center gap-2">
+                    <span>Your session has expired. Please log in again to continue.</span>
+                  </div>
+                )}
 
                 {errors.general && (
                   <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-medium flex items-center gap-2">

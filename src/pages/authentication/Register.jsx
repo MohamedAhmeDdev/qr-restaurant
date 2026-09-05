@@ -51,7 +51,7 @@ function Register() {
         }
       } catch (err) {
         setErrors({
-          general: err?.response?.data?.message || 'Invalid or expired invitation token.',
+          general: err?.response?.data?.message,
         });
       } finally {
         setIsVerifyingToken(false);

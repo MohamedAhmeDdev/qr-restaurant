@@ -23,6 +23,7 @@ const ModifierGroups = lazy(() => import('../../restaurant/modifiers/ModifierGro
 const CreateModifierGroup = lazy(() => import('../../restaurant/modifiers/CreateModifierGroup'));
 const EditModifierGroup = lazy(() => import('../../restaurant/modifiers/EditModifierGroup'));
 const Menu = lazy(() => import('../../restaurant/menu/Menu'));
+const MenuItemsDetails = lazy(() => import('../../restaurant/menu/MenuItemsDetails'));
 const CreateMenu = lazy(() => import('../../restaurant/menu/CreateMenu'));
 const EditMenu = lazy(() => import('../../restaurant/menu/EditMenu'));
 const Orders = lazy(() => import('../../restaurant/orders/Orders'));
@@ -54,6 +55,7 @@ export const AdminRoutes = {
         { path: 'modifier-groups/create', element: <CreateModifierGroup /> },
         { path: 'modifier-groups/edit/:id', element: <EditModifierGroup /> },
         { path: 'menu-items', element: <Menu /> },
+        { path: 'menu-items-details/:id', element: <MenuItemsDetails /> },
         { path: 'menu-items/create', element: <CreateMenu /> },
         { path: 'menu-items/edit/:id', element: <EditMenu /> },
         { path: 'orders', element: <Orders /> },
