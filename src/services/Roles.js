@@ -14,7 +14,7 @@ export const RoleService = {
     try {
       const response = await api.get('/roles/options');
       // Axios automatically parses response data; adjust if endpoint nests data inside response.data.data
-      return response.data?.data || response.data || [];
+      return response.data?.data;
     } catch (error) {
       console.error('Failed to fetch roles:', error);
       throw error;

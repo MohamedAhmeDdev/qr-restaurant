@@ -10,12 +10,8 @@ export const CategoriesService = {
    */
   async getCategories() {
     try {
-      const response = await api.get("public/categories");
-      console.log(response);
-   
-      return response.data?.data || response.data || [];
-
-      
+      const response = await api.get("/option/categories");
+      return response.data?.data;      
     } catch (error) {
       console.error("Failed to fetch categories:", error);
       throw error;

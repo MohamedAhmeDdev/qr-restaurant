@@ -16,7 +16,7 @@ api.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-  if (!('X-Restaurant-Slug' in config.headers)) {
+    if (!('X-Restaurant-Slug' in config.headers)) {
       const activeSlug = localStorage.getItem('active_restaurant_slug');
       if (activeSlug) {
         config.headers['X-Restaurant-Slug'] = activeSlug;
@@ -29,13 +29,19 @@ api.interceptors.request.use(
 );
 
 // Global 401 handler — auto-clear invalid sessions
+let isRedirecting = false;
+
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401 && !isRedirecting) {
+      isRedirecting = true; // Prevent parallel 401 calls from running multiple redirects
+
       localStorage.removeItem('authToken');
-      localStorage.removeItem('active_restaurant_slug'); // Clear workspace on logout
+      localStorage.removeItem('active_restaurant_slug');
       delete api.defaults.headers.common['Authorization'];
+
+      window.location.href = '/login?expired=true';
     }
     return Promise.reject(error);
   }

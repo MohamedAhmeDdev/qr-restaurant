@@ -13,7 +13,7 @@ export const permissionService = {
   async getGroups() {
     try {
       const response = await api.get('/permissions/group');
-      return response.data?.data || response.data || [];
+      return response.data?.data;
     } catch (error) {
       throw error;
     }

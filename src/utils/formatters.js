@@ -1,17 +1,15 @@
 /**
- * Formats a numeric price into a currency string or 'Free'.
+ * Formats a numeric price into a localized currency string or 'Free'.
  * 
  * @param {number|string} price - The price value to format.
- * @param {Object} options - Optional configuration settings.
- * @param {string} [options.currencySymbol='$'] - Symbol to prepend (e.g., '$', '€', '£').
- * @param {boolean} [options.showPlus=false] - Whether to include '+' for non-zero prices.
- * @param {string} [options.freeText='Free'] - Text display for $0.00 prices.
+ * @param {Object} [options]
+ * @param {string} [options.currency='USD'] - ISO 4217 currency code (e.g., 'KES', 'USD', 'EUR').
+ * @param {string} [options.freeText='Free'] - Text display when price is 0 or invalid.
  * @returns {string} Formatted price string.
  */
 export const formatPrice = (price, options = {}) => {
   const {
-    currencySymbol = '$',
-    showPlus = false, // Changed default to false
+    currency = 'USD',
     freeText = 'Free',
   } = options;
 
@@ -21,6 +19,10 @@ export const formatPrice = (price, options = {}) => {
     return freeText;
   }
 
-  const prefix = showPlus ? '+' : '';
-  return `${prefix}${currencySymbol}${numericPrice.toFixed(2)}`;
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: currency,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(numericPrice);
 };
