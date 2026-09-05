@@ -45,34 +45,30 @@ export default function StaffForm({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
-                Full Name <span className="text-orange-500">*</span>
+                Full Name
               </label>
               <input
                 type="text"
-                value={formData.name || ''}
+                value={formData.name}
                 onChange={(e) => handleChange('name', e.target.value)}
                 placeholder="e.g. Jane Doe"
-                className={`w-full px-4 py-2.5 rounded-xl border ${
-                  errors.name ? 'border-red-500' : 'border-gray-300/80 dark:border-slate-700'
-                } bg-white dark:bg-slate-800/80 focus:ring-4 focus:ring-orange-500/15 focus:border-orange-500 outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 transition-all text-sm shadow-sm`}
+             className="w-full px-4 py-2.5 rounded-xl border border-gray-300/80 dark:border-slate-700 bg-white dark:bg-slate-800/80 focus:ring-4 focus:ring-orange-500/15 focus:border-orange-500 outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 transition-all text-sm shadow-sm"
               />
               {errors.name && <p className="text-xs text-red-500 mt-1">{Array.isArray(errors.name) ? errors.name[0] : errors.name}</p>}
             </div>
 
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
-                Email Address <span className="text-orange-500">*</span>
+                Email Address
               </label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-slate-500 pointer-events-none" />
                 <input
                   type="email"
-                  value={formData.email || ''}
+                  value={formData.email}
                   onChange={(e) => handleChange('email', e.target.value)}
                   placeholder="jane@restopos.com"
-                  className={`w-full pl-10 pr-4 py-2.5 rounded-xl border ${
-                    errors.email ? 'border-red-500' : 'border-gray-300/80 dark:border-slate-700'
-                  } bg-white dark:bg-slate-800/80 focus:ring-4 focus:ring-orange-500/15 focus:border-orange-500 outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 transition-all text-sm shadow-sm`}
+                 className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-300/80 dark:border-slate-700 bg-white dark:bg-slate-800/80 focus:ring-4 focus:ring-orange-500/15 focus:border-orange-500 outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 transition-all text-sm shadow-sm"
                 />
               </div>
               {errors.email && <p className="text-xs text-red-500 mt-1">{Array.isArray(errors.email) ? errors.email[0] : errors.email}</p>}
@@ -91,24 +87,24 @@ export default function StaffForm({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-gray-700 dark:text-slate-300">Role Assignment</label>
-              <select
-                value={formData.role || formData.role_id || ''}
-                onChange={(e) => handleChange('role_id', e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-300/80 dark:border-slate-700 bg-white dark:bg-slate-800/80 focus:ring-4 focus:ring-orange-500/15 focus:border-orange-500 outline-none text-gray-900 dark:text-white appearance-none cursor-pointer transition-all text-sm shadow-sm"
-              >
-                <option value="">Select Role</option>
-                {roles.map(r => (
-                  <option key={r.id} value={r.id}>{r.name}</option>
-                ))}
-              </select>
+            {/* In StaffForm component */}
+<select
+  value={formData.role}
+  onChange={(e) => handleChange('role', e.target.value)}
+  className="w-full px-4 py-2.5 rounded-xl border border-gray-300/80 dark:border-slate-700 bg-white dark:bg-slate-800/80 focus:ring-4 focus:ring-orange-500/15 focus:border-orange-500 outline-none text-gray-900 dark:text-white appearance-none cursor-pointer transition-all text-sm shadow-sm"
+>
+  <option value="">Select Role</option>
+  {roles.map(r => (
+    <option key={r.id} value={r.id}>{r.name}</option>
+  ))}
+</select>
               {errors.role && <p className="text-xs text-red-500 mt-1">{Array.isArray(errors.role) ? errors.role[0] : errors.role}</p>}
-              {errors.role_id && <p className="text-xs text-red-500 mt-1">{Array.isArray(errors.role_id) ? errors.role_id[0] : errors.role_id}</p>}
             </div>
 
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-gray-700 dark:text-slate-300">Account Status</label>
               <select
-                value={formData.status || ''}
+                value={formData.status}
                 onChange={(e) => handleChange('status', e.target.value)}
                 className="w-full px-4 py-2.5 rounded-xl border border-gray-300/80 dark:border-slate-700 bg-white dark:bg-slate-800/80 focus:ring-4 focus:ring-orange-500/15 focus:border-orange-500 outline-none text-gray-900 dark:text-white appearance-none cursor-pointer transition-all text-sm shadow-sm"
               >
@@ -125,7 +121,7 @@ export default function StaffForm({
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-gray-700 dark:text-slate-300">Shift Type</label>
               <select
-                value={formData.shift_type || ''}
+                value={formData.shift_type}
                 onChange={(e) => handleChange('shift_type', e.target.value)}
                 className="w-full px-4 py-2.5 rounded-xl border border-gray-300/80 dark:border-slate-700 bg-white dark:bg-slate-800/80 focus:ring-4 focus:ring-orange-500/15 focus:border-orange-500 outline-none text-gray-900 dark:text-white appearance-none cursor-pointer transition-all text-sm shadow-sm"
               >

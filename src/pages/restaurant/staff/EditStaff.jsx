@@ -43,14 +43,34 @@ const fetchStaff = useCallback(async () => {
     fetchStaff();
   }, [fetchStaff]);
 
-  const validate = () => {
-    const newErrors = {};
-    if (!formData.name?.trim()) newErrors.name = 'Full name is required';
-    if (!formData.email?.trim()) newErrors.email = 'Email is required';
-    else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Invalid email format';
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+ const validate = () => {
+  const newErrors = {};
+
+  if (!formData.name?.trim()) {
+    newErrors.name = 'Full name is required';
+  }
+
+  if (!formData.email?.trim()) {
+    newErrors.email = 'Email is required';
+  } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+    newErrors.email = 'Invalid email format';
+  }
+
+  if (!formData.role?.trim()) {
+    newErrors.role = 'Role is required';
+  }
+
+  if (!formData.status?.trim()) {
+    newErrors.status = 'Status is required';
+  }
+
+  if (!formData.shift_type?.trim()) {
+    newErrors.shift_type = 'Shift type is required';
+  }
+
+  setErrors(newErrors);
+  return Object.keys(newErrors).length === 0;
+};
 
   const handleSubmit = async (e) => {
     e.preventDefault();
