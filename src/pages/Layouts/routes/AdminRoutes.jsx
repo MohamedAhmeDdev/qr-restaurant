@@ -60,7 +60,7 @@ export const AdminRoutes = {
         { path: 'menu-items/edit/:id', element: <EditMenu /> },
         { path: 'orders', element: <Orders /> },
         { path: 'orders-details/:orderId', element: <OrderDetails /> },
-        { path: 'settings', element: <SettingsPage /> },
+        { path: '/admin/settings', element: <SettingsPage /> },
       ],
     },
   ],

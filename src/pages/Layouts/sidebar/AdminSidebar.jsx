@@ -33,7 +33,7 @@ const navigation = [
   { name: 'Menus', href: '/menu-items', icon: UtensilsCrossed },
   { name: 'Live Orders', href: '/orders', icon: ShoppingCart },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
-  { name: 'Settings', href: '/settings', icon: Settings },
+  { name: 'Settings', href: '/admin/settings', icon: Settings },
 ];
 
 const COLLAPSED_WIDTH = 72;
