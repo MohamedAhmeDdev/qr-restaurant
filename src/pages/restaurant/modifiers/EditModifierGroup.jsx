@@ -18,8 +18,8 @@ export default function EditModifierGroup() {
     min_select: 0,
     max_select: 1,
     is_required: false,
-    is_active: true,
-    options: [{ name: '', price: '0.00', is_available: true }],
+    is_active: false, // Changed from "" to boolean false
+options: [{ name: '', price: '0.00', is_available: false }], 
   });
 
   const fetchModifierGroup = useCallback(async () => {
@@ -32,15 +32,15 @@ export default function EditModifierGroup() {
         description: data.description || '',
         min_select: data.min_select ?? 0,
         max_select: data.max_select ?? 1,
-        is_required: data.is_required ?? false,
-        is_active: data.is_active ?? true,
+        is_required: Boolean(data.is_required),
+        is_active: Boolean(data.is_active),
         options: data.options?.length
           ? data.options.map(o => ({
               name: o.name || '',
               price: String(o.price || 0),
               is_available: o.is_available !== false,
             }))
-          : [{ name: '', price: '0.00', is_available: true }],
+          : [{ name: '', price: '0.00', is_available: false }],
       });
     } catch (err) {
       toast.error(err.response?.data?.message);
@@ -78,8 +78,8 @@ export default function EditModifierGroup() {
         description: formData.description?.trim() || '',
         min_select: formData.min_select,
         max_select: formData.max_select,
-        is_required: formData.is_required,
-        is_active: formData.is_active,
+        is_required: Boolean(formData.is_required),
+        is_active: Boolean(formData.is_active),
         options: formData.options.map(opt => ({
           name: opt.name.trim(),
           price: parseFloat(opt.price) || 0,
@@ -103,7 +103,6 @@ export default function EditModifierGroup() {
 
   return (
     <div className="p-1 md:p-4 max-w-4xl mx-auto min-h-screen space-y-6 bg-gray-50/50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 transition-colors duration-200">
-      {/* Header */}
       <div className="flex items-center gap-4 pb-2 border-b border-gray-200/60 dark:border-slate-800">
         <button 
           onClick={handleCancel}

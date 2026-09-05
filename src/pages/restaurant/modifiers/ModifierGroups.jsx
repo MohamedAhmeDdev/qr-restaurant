@@ -12,7 +12,7 @@ import EmptyState from '../../../components/common/EmptyState';
 import StatusBadge from '../../../components/StatusBadge';
 import api from '../../../services/api';
 import toast from 'react-hot-toast';
-import { formatPrice } from '../../../utils/formatters';
+import { useFormatPrice } from '../../../contexts/useFormatPrice';
 
 export default function ModifierGroups() {
   const [groups, setGroups] = useState([]);
@@ -25,6 +25,8 @@ export default function ModifierGroups() {
     from: 0,
     to: 0,
   });
+  const formatPrice = useFormatPrice();
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 

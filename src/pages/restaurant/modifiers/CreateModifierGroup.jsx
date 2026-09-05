@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Sparkles } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../../services/api';
 import ModifierGroupForm from '../../../components/forms/ModifierGroupsForm';
@@ -15,9 +15,9 @@ export default function CreateModifierGroup() {
     description: '',
     min_select: 0,
     max_select: 1,
-    is_required: false,
-    is_active: true,
-    options: [{ name: '', price: '0.00', is_available: true }],
+    is_required: false, 
+    is_active: false,   
+  options: [{ name: '', price: '0.00', is_available: false }], 
   });
 
   const validate = () => {
@@ -47,8 +47,8 @@ export default function CreateModifierGroup() {
         description: formData.description?.trim(),
         min_select: formData.min_select,
         max_select: formData.max_select,
-        is_required: formData.is_required,
-        is_active: formData.is_active,
+        is_required: Boolean(formData.is_required),
+        is_active: Boolean(formData.is_active),
         options: formData.options.map(opt => ({
           name: opt.name.trim(),
           price: parseFloat(opt.price) || 0,
@@ -72,7 +72,6 @@ export default function CreateModifierGroup() {
 
   return (
     <div className="p-1 md:p-4 max-w-4xl mx-auto min-h-screen space-y-6 bg-gray-50/50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 transition-colors duration-200">
-      {/* Header */}
       <div className="flex items-center gap-4 pb-2 border-b border-gray-200/60 dark:border-slate-800">
         <button 
           onClick={handleCancel}
@@ -82,10 +81,12 @@ export default function CreateModifierGroup() {
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white">Add New Modifier Group</h1>
-          </div>
-          <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5">Create a new modifier group and configure its settings.</p>
+          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white">
+            Add New Modifier Group
+          </h1>
+          <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5">
+            Create a new modifier group and configure its settings.
+          </p>
         </div>
       </div>
 
