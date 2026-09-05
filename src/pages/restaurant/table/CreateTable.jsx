@@ -27,7 +27,6 @@ export default function CreateTable() {
     else if (formData.capacity < 1) newErrors.capacity = 'Capacity must be at least 1';
     else if (formData.capacity > 20) newErrors.capacity = 'Capacity cannot exceed 20';
     if (!formData.status) newErrors.status = 'Status is required';
-    if (formData.is_active === '') newErrors.is_active = 'Active status is required';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };

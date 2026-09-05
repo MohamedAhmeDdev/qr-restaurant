@@ -26,10 +26,10 @@ export default function EditTable() {
       const data = response.data?.data
       
       setFormData({
-        name: data.name || '',
-        table_number: data.table_number || '',
-        capacity: data.capacity || '',
-        status: data.status || '',
+        name: data.name,
+        table_number: data.table_number,
+        capacity: data.capacity,
+        status: data.status,
         is_active: data.is_active !== undefined ? String(data.is_active) : '',
       });
     } catch (err) {
@@ -50,7 +50,6 @@ export default function EditTable() {
     else if (formData.capacity < 1) newErrors.capacity = 'Capacity must be at least 1';
     else if (formData.capacity > 20) newErrors.capacity = 'Capacity cannot exceed 20';
     if (!formData.status) newErrors.status = 'Status is required';
-    if (formData.is_active === '') newErrors.is_active = 'Active status is required';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
