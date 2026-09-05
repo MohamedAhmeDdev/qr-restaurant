@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutGrid, AlignLeft, Save } from 'lucide-react';
+import { LayoutGrid, Save } from 'lucide-react';
 
 export default function CategoryForm({
   formData,
@@ -35,105 +35,91 @@ export default function CategoryForm({
           <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
-                Category Name <span className="text-orange-500">*</span>
+                Category Name
               </label>
               <input
                 type="text"
-                value={formData.name || ''}
+                value={formData.name}
                 onChange={(e) => handleChange('name', e.target.value)}
                 placeholder="e.g. Electronics, Clothing, Books"
-                className={`w-full px-4 py-2.5 rounded-xl border ${
-                  errors.name ? 'border-red-500' : 'border-gray-300/80 dark:border-slate-700'
-                } bg-white dark:bg-slate-800/80 focus:ring-4 focus:ring-orange-500/15 focus:border-orange-500 outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 transition-all text-sm shadow-sm`}
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-300/80 dark:border-slate-700 bg-white dark:bg-slate-800/80 focus:ring-4 focus:ring-orange-500/15 focus:border-orange-500 outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 transition-all text-sm shadow-sm"
               />
               {errors.name && <p className="text-xs text-red-500 mt-1">{Array.isArray(errors.name) ? errors.name[0] : errors.name}</p>}
             </div>
-
-            {/* <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
-                Sort Order <span className="text-orange-500">*</span>
-              </label>
-              <div className="relative">
-                <ListOrdered className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-slate-500 pointer-events-none" />
-                <input
-                  type="number"
-                  min="0"
-                  max="999"
-                  value={formData.sort_order || ''}
-                  onChange={(e) => handleChange('sort_order', e.target.value ? parseInt(e.target.value) : '')}
-                  placeholder="e.g. 1, 2, 3"
-                  className={`w-full pl-10 pr-4 py-2.5 rounded-xl border ${
-                    errors.sort_order ? 'border-red-500' : 'border-gray-300/80 dark:border-slate-700'
-                  } bg-white dark:bg-slate-800/80 focus:ring-4 focus:ring-orange-500/15 focus:border-orange-500 outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 transition-all text-sm shadow-sm`}
-                />
-              </div>
-              {errors.sort_order && <p className="text-xs text-red-500 mt-1">{Array.isArray(errors.sort_order) ? errors.sort_order[0] : errors.sort_order}</p>}
-            </div> */}
           </div>
         </div>
 
         {/* Description */}
         <div className="space-y-1.5">
           <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
-            Description <span className="text-orange-500">*</span>
+            Description <span className="text-xs text-gray-400 font-normal">(Optional)</span>
           </label>
-          <div className="relative">
-            <AlignLeft className="absolute left-3 top-3 w-4 h-4 text-gray-400 dark:text-slate-500 pointer-events-none" />
-            <textarea
-              value={formData.description || ''}
-              onChange={(e) => handleChange('description', e.target.value)}
-              placeholder="Enter category description"
-              rows="3"
-              className={`w-full pl-10 pr-4 py-2.5 rounded-xl border ${
-                errors.description ? 'border-red-500' : 'border-gray-300/80 dark:border-slate-700'
-              } bg-white dark:bg-slate-800/80 focus:ring-4 focus:ring-orange-500/15 focus:border-orange-500 outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 transition-all text-sm shadow-sm resize-y`}
-            />
-          </div>
+          <textarea
+            value={formData.description}
+            onChange={(e) => handleChange('description', e.target.value)}
+            placeholder="Enter category description"
+            rows="3"
+            className="w-full px-4 py-2.5 rounded-xl border border-gray-300/80 dark:border-slate-700 bg-white dark:bg-slate-800/80 focus:ring-4 focus:ring-orange-500/15 focus:border-orange-500 outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 transition-all text-sm shadow-sm resize-y"
+          />
           {errors.description && <p className="text-xs text-red-500 mt-1">{Array.isArray(errors.description) ? errors.description[0] : errors.description}</p>}
         </div>
 
         {/* Divider */}
         <hr className="border-gray-100 dark:border-slate-800" />
 
-        {/* Status & Settings */}
+        {/* Status & Settings - Improved Toggle */}
         <div>
           <label className="block text-sm font-semibold text-gray-800 dark:text-slate-200 mb-2">
             Status & Settings
           </label>
+          <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5 mb-4">
+            Control how this category appears across your store
+          </p>
           
           <div className="grid grid-cols-1 gap-4">
-            {/* Active Status - Radio Buttons */}
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
-                Active Status <span className="text-orange-500">*</span>
+            {/* Active Status - Toggle Card */}
+            <div className="relative p-4 rounded-xl border-2 transition-all duration-200    cursor-pointer bg-white dark:bg-slate-800/40 border-gray-200 dark:border-slate-700/80">
+              <label htmlFor="is_active" className="flex items-start gap-4 cursor-pointer">
+                <div className="relative flex items-center justify-center mt-0.5">
+                  <input
+                    type="checkbox"
+                    id="is_active"
+                    className="w-5 h-5 text-orange-500 rounded-md border-2 border-gray-300 dark:border-slate-600 cursor-pointer transition-all checked:border-orange-500 checked:bg-orange-500 hover:border-orange-400"
+                    checked={formData.is_active === 'true' || formData.is_active === true}
+                    onChange={(e) => handleChange('is_active', e.target.checked ? 'true' : 'false')}
+                  />
+                  {formData.is_active === 'true' && (
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+                
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold text-gray-800 dark:text-slate-200 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
+                      Active Category
+                    </span>
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium transition-colors ${
+                      formData.is_active === 'true'
+                        ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
+                        : 'bg-gray-100 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400'
+                    }`}>
+                      {formData.is_active === 'true' ? 'Active' : 'Inactive'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5 leading-relaxed">
+                    {formData.is_active === 'true'
+                      ? 'Visible to customers and available for product assignment'
+                      : 'Hidden from customers and unavailable for product assignment'}
+                  </p>
+                </div>
               </label>
-              <div className="flex items-center gap-6 pt-1.5">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="is_active"
-                    value="true"
-                    checked={formData.is_active === 'true'}
-                    onChange={() => handleChange('is_active', 'true')}
-                    className="w-4 h-4 text-orange-500 border-gray-300 dark:border-slate-600"
-                  />
-                  <span className="text-sm font-medium text-gray-700 dark:text-slate-300">Active</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="is_active"
-                    value="false"
-                    checked={formData.is_active === 'false'}
-                    onChange={() => handleChange('is_active', 'false')}
-                    className="w-4 h-4 text-orange-500 border-gray-300 dark:border-slate-600"
-                  />
-                  <span className="text-sm font-medium text-gray-700 dark:text-slate-300">Inactive</span>
-                </label>
-              </div>
-              {errors.is_active && <p className="text-xs text-red-500 mt-1">{Array.isArray(errors.is_active) ? errors.is_active[0] : errors.is_active}</p>}
             </div>
           </div>
+
         </div>
       </div>
 

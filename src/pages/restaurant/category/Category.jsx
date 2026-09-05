@@ -158,9 +158,9 @@ export default function CategoryPage() {
           {cat.slug}
         </span>
       </td>
-      <td className="py-4 px-4 hidden md:table-cell text-xs text-gray-600 dark:text-slate-400 max-w-xs truncate">
-        {cat.description}
-      </td>
+<td className="py-4 px-4 hidden md:table-cell text-xs text-gray-600 dark:text-slate-400 max-w-xs truncate">
+  {cat.description?.trim() || "—"}
+</td>
       <td className="py-4 px-4">
         <StatusBadge status={cat.is_active ? 'active' : 'inactive'} />
       </td>

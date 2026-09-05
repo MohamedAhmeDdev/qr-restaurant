@@ -20,7 +20,6 @@ export default function CreateCategory() {
   const validate = () => {
     const newErrors = {};
     if (!formData.name?.trim()) newErrors.name = 'Category name is required';
-    if (!formData.description?.trim()) newErrors.description = 'Description is required';
     // if (formData.sort_order === '' || formData.sort_order === null) {
     //   newErrors.sort_order = 'Sort order is required';
     // } else if (formData.sort_order < 0) {
@@ -28,7 +27,6 @@ export default function CreateCategory() {
     // } else if (formData.sort_order > 999) {
     //   newErrors.sort_order = 'Sort order cannot exceed 999';
     // }
-    if (formData.is_active === '') newErrors.is_active = 'Active status is required';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
