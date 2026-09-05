@@ -1,13 +1,15 @@
 import React, { useContext } from 'react';
 import { Navigate, useLocation, Outlet } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
+import LoadingScreen from '../components/LoadingScreen';
+
 
 export const ProtectedRoute = ({ allowedRoles }) => {
   const { user, loading, isAuthenticated } = useContext(AuthContext);
   const location = useLocation();
 
   if (loading) {
-    return null;
+    return <LoadingScreen label="Verifying access" />;
   }
 
   if (!isAuthenticated || !user) {

@@ -46,7 +46,7 @@ export default function TableList() {
     try {
       const params = {
         page: currentPage,
-        per_page: 6,
+        per_page: 15,
       };
 
       if (searchQuery) params.search = searchQuery;
@@ -319,7 +319,7 @@ export default function TableList() {
                       <div className="min-w-0">
                         <div className="flex items-center gap-1.5">
                           <span className="text-sm text-slate-400">Name:</span>
-                          <h3 className="font-bold text-lg text-slate-900 dark:text-slate-100 truncate pr-2">
+                          <h3 className="font-bold text-md text-slate-900 dark:text-slate-100 truncate pr-2">
                             {table.name}
                           </h3>
                         </div>
@@ -355,11 +355,11 @@ export default function TableList() {
                     {/* Badges Row with Labels */}
                     <div className="flex flex-wrap items-center gap-4 mb-4">
                       <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] uppercase font-semibold text-slate-400">Table:</span>
+                        <span className="text-xs  text-slate-400">Table:</span>
                         <StatusBadge status={table.is_active ? 'active' : 'inactive'} size="sm" />
                       </div>
                       <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] uppercase font-semibold text-slate-400">Status:</span>
+                        <span className="text-sm  text-slate-400">Status:</span>
                         <StatusBadge status={table.status} size="sm" />
                       </div>
                     </div>
@@ -372,7 +372,7 @@ export default function TableList() {
                         </div>
                         <div className="flex flex-col">
                           <span className="text-[10px] text-slate-400 uppercase font-medium">Capacity</span>
-                          <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">{table.capacity} Seats</span>
+                          <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">{table.capacity} Seats</span>
                         </div>
                       </div>
 
@@ -382,7 +382,7 @@ export default function TableList() {
                         </div>
                         <div className="flex flex-col">
                           <span className="text-[10px] text-slate-400 uppercase font-medium">Table No.</span>
-                          <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">{table.table_number}</span>
+                          <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">{table.table_number}</span>
                         </div>
                       </div>
 
@@ -392,7 +392,7 @@ export default function TableList() {
                         </div>
                         <div className="flex flex-col">
                           <span className="text-[10px] text-slate-400 uppercase font-medium">Last Updated</span>
-                          <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                          <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">
                             {new Date(table.updated_at).toLocaleDateString()}
                           </span>
                         </div>
