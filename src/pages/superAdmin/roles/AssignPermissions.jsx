@@ -64,7 +64,7 @@ export default function AssignPermissions() {
       setInitialPermissionIds(currentAssigned);
 
     } catch (err) {
-      setApiError(err.response?.data?.message || 'Failed to load role data.');
+      setApiError(err.response?.data?.message);
       toast.error(err.response?.data?.message);
     } finally {
       setIsLoading(false);

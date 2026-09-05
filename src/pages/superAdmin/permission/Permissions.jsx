@@ -69,7 +69,7 @@ export default function PermissionsPage() {
       );
       setTotalCount(total);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to load permissions.');
+      setError(err.response?.data?.message);
     } finally {
       setLoading(false);
     }
@@ -86,7 +86,7 @@ export default function PermissionsPage() {
       const data = await permissionService.getGroups();
       setGroups(Array.isArray(data) ? data : []);
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to fetch categories.');
+      toast.error(err.response?.data?.message);
     } finally {
       setGroupsLoading(false);
     }
@@ -114,7 +114,7 @@ export default function PermissionsPage() {
       setModalOpen(false);
       setSelectedPermission(null);
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to delete permission.');
+      toast.error(err.response?.data?.message);
     } finally {
       setDeletingId(null);
     }
