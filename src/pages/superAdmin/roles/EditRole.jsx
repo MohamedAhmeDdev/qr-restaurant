@@ -4,6 +4,7 @@ import RoleForm from '../../../components/forms/RoleForm';
 import { ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../../services/api';
+import LoadingScreen from '../../../components/LoadingScreen';
 
 export default function EditRole() {
   const navigate = useNavigate();
@@ -79,6 +80,11 @@ export default function EditRole() {
   const handleCancel = () => {
     navigate('/roles');
   };
+
+   if (isLoading) {
+        return <LoadingScreen label="Loading menu item details..." />;
+      }
+  
 
   return (
     <div className="p-2 sm:p-4 max-w-4xl mx-auto min-h-screen space-y-6 bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 transition-colors duration-200">
