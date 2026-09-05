@@ -91,7 +91,7 @@ export default function SecurityTab() {
           confirmPassword: serverErrors.new_password_confirmation?.[0],
         });
       } else {
-        toast.error(err?.response?.data?.message || 'Failed to update password.');
+        toast.error(err?.response?.data?.message);
       }
     } finally {
       setSavingPassword(false);
@@ -119,8 +119,7 @@ export default function SecurityTab() {
       toast.success(data.message || `2FA ${newStatus ? 'enabled' : 'disabled'} successfully.`);
       setTimeout(() => setTwoFASaved(false), 2500);
     } catch (err) {
-      const msg = err?.response?.data?.message || 'Failed to update 2FA status.';
-      toast.error(msg);
+      toast.error(err?.response?.data?.message);
       setPendingTwoFactor(twoFactor);
     } finally {
       setLoading2FA(false);

@@ -5,6 +5,7 @@ import Layout from '../Layout';
 import SuperAdminSidebar from '../sidebar/SuperAdminSidebar';
 import { ProtectedRoute } from '../../../utils/ProtectedRoute';
 
+
 const Organizations = lazy(() => import('../../superAdmin/Organizations/Organizations'));
 const RestaurantList = lazy(() => import('../../superAdmin/Organizations/RestaurantList'));
 const Invitations = lazy(() => import('../../superAdmin/Invitations'));
@@ -15,7 +16,7 @@ const PermissionsPage = lazy(() => import('../../superAdmin/permission/Permissio
 const CreatePermission = lazy(() => import('../../superAdmin/permission/CreatePermission'));
 const EditPermission = lazy(() => import('../../superAdmin/permission/EditPermission'));
 const AssignPermissions = lazy(() => import('../../superAdmin/roles/AssignPermissions'));
-const SettingsPage = lazy(() => import('../../settings/Layout/SettingsPage'));
+const SuperAdminSettings = lazy(() => import('../../settings/settings/SuperAdminSettings'));
 
 export const SuperAdminRoutes = {
   path: '/',
@@ -35,7 +36,7 @@ export const SuperAdminRoutes = {
         { path: 'permissions/create', element: <CreatePermission /> },
         { path: 'permissions/edit/:id', element: <EditPermission /> },
         { path: 'roles/:roleId/permissions', element: <AssignPermissions /> },
-        { path: 'settings', element: <SettingsPage /> },
+        { path: '/settings', element: <SuperAdminSettings /> },
       ],
     },
   ],

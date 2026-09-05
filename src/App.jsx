@@ -15,7 +15,7 @@ import MenuPage from './pages/customer/MenuPage';
 import ItemDetailPage from './pages/customer/ItemDetailPage';
 import CartPage from './pages/customer/CartPage';
 import CheckOutPage from './pages/customer/CheckOutPage';
-import OrderConfirmationPage from './pages/customer/OrderConfirmationPage';
+import OrderConfirmationPage from './pages/customer/OrderConfirmationPage'; 
 import OrderTrackingPage from './pages/customer/OrderTrackingPage';
 
 // Public Auth Pages
@@ -23,12 +23,13 @@ import Login from './pages/authentication/Login';
 import ForgotPassword from './pages/authentication/ForgotPassword';
 import ResetPassword from './pages/authentication/ResetPassword';
 import Register from './pages/authentication/Register';
+import { RestaurantProvider } from './contexts/RestaurantContext';
 
 const router = createBrowserRouter([
   // 1. PUBLIC STAFF AUTHENTICATION ROUTES (No login required)
   { path: '/login', element: <Login /> },
   { path: '/forgot-password', element: <ForgotPassword /> },
-  { path: '/reset-password/token', element: <ResetPassword /> },
+  { path: '/reset-password', element: <ResetPassword /> },
   { path: '/register', element: <Register /> },
 
   // 2. PROTECTED ADMIN & STAFF MODULES (Auth Guards handle these internally)
@@ -39,7 +40,7 @@ const router = createBrowserRouter([
 
   // 3. 100% PUBLIC TENANT CUSTOMER ROUTES (No login check)
   {
-    path: '/r/:restaurantSlug',
+    path: '/:restaurantSlug/menu/:tableSlug',
     element: <Outlet />, // Public Customer Outlet
     children: [
       { index: true, element: <MenuPage /> },
@@ -78,7 +79,9 @@ const router = createBrowserRouter([
 export default function App() {
   return (
     <AuthProvider>
+          <RestaurantProvider>
       <RouterProvider router={router} />
+          </RestaurantProvider>
     </AuthProvider>
   );
 }

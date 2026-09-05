@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom';
 import { Building2 } from 'lucide-react';
 import StatsCard from '../../../components/cards/StatsCard';
 import Toolbar from '../../../components/Toolbar';
-import StatusBadge from '../../../components/ui/StatusBadge';
-import Table from '../../../components/ui/Table';
+import StatusBadge from '../../../components/StatusBadge';
+import Table from '../../../components/Table';
 import api from '../../../services/api';
 
 export default function Organizations() {
@@ -34,13 +34,16 @@ export default function Organizations() {
 
   const filteredTenants = tenants.filter((tenant) => {
     const tenantEmail = tenant.owner?.email || '';
-    const statusLabel = tenant.is_active ? 'Active' : 'Suspended';
 
     const matchesSearch =
       tenant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       tenantEmail.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const matchesStatus = statusFilter === 'All' || statusLabel === statusFilter;
+    const matchesStatus =
+      statusFilter === 'All' ||
+      (statusFilter === 'Active' && tenant.is_active) ||
+      (statusFilter === 'Suspended' && !tenant.is_active);
+
     return matchesSearch && matchesStatus;
   });
 
@@ -53,7 +56,6 @@ export default function Organizations() {
 
   return (
     <div className="p-2 sm:p-4 space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen text-slate-900 dark:text-slate-100 transition-colors duration-200">
-
       {/* PAGE HEADER */}
       <div>
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white transition-colors duration-200">
@@ -80,7 +82,6 @@ export default function Organizations() {
 
       {/* TABLE CONTAINER */}
       <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden transition-colors duration-200">
-
         <Toolbar
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
@@ -121,20 +122,17 @@ export default function Organizations() {
                       {tenant.name}
                     </p>
                     <p className="text-xs text-slate-500 dark:text-slate-400 transition-colors duration-200">
-                      {tenant.owner?.email}
+                      {tenant.owner?.email || 'N/A'}
                     </p>
                   </div>
                 </div>
               </td>
               <td className="px-6 py-4 text-slate-600 dark:text-slate-300 font-medium transition-colors duration-200">
-                {tenant.restaurants_count}
+                {tenant.restaurants_count ?? 0}
               </td>
               <td className="px-6 py-4">
-                <StatusBadge
-                  status={tenant.is_active ? 'Active' : 'Suspended'}
-                  activeLabel="Active"
-                  inactiveLabel="Suspended"
-                />
+                {/* Cleaned StatusBadge Usage */}
+                <StatusBadge status={tenant.is_active ? 'active' : 'suspended'} />
               </td>
               <td className="px-6 py-4 text-right">
                 <div className="flex items-center justify-end gap-2">
@@ -150,9 +148,7 @@ export default function Organizations() {
             </tr>
           )}
         />
-
       </div>
-
     </div>
   );
 }

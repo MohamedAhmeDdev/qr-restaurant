@@ -7,15 +7,16 @@ import {
   RotateCw,
   Send,
   Users,
-  User // Added for invited by icon
+  User, // Added for invited by icon
+  Calendar
 } from 'lucide-react';
 import RestaurantInviteModal from '../../components/modal/RestaurantInviteModal';
 import StatsCard from '../../components/cards/StatsCard';
 import Toolbar from '../../components/Toolbar';
-import Table from '../../components/ui/Table';
-import StatusBadge from '../../components/ui/StatusBadge';
+import Table from '../../components/Table';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
+import { formatDate } from '../../utils/formatDate';
 
 export default function Invitations() {
   const [invitations, setInvitations] = useState([]);
@@ -155,84 +156,92 @@ export default function Invitations() {
     { label: 'Actions', align: 'right' }
   ];
 
-  const renderRow = (item, idx) => {
-    const statusText = item.accepted_at || item.status === 'Accepted' ? 'Accepted' : 'Pending';
-    const isResending = resendingId === item.id;
+const renderRow = (item, idx) => {
+  const isResending = resendingId === item.id;
+  const isAccepted = Boolean(item.accepted_at);
 
-    // Get invited by info
-    const invitedByName = item.invited_by?.name || item.invited_by || 'System';
-    const invitedByEmail = item.invited_by?.email || '';
+  const invitedByName = item.invited_by?.name;
+  const invitedByEmail = item.invited_by?.email;
 
-    return (
-      <tr 
-        key={item.id} 
-        className={`hover:bg-gray-50 dark:hover:bg-slate-800/60 transition-colors duration-200 ${
-          idx !== filteredInvitations.length - 1 ? 'border-b border-gray-100 dark:border-slate-800' : ''
-        }`}
-      >
-        <td className="px-6 py-4">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center text-white font-bold text-xs shrink-0 shadow-sm">
-              {getInitials(item.name, item.email)}
-            </div>
-            <div>
-              <p className="font-medium text-gray-900 dark:text-slate-100 transition-colors duration-200">
-                {item.name || 'Invited User'}
-              </p>
-              <p className="text-xs text-gray-500 dark:text-slate-400 flex items-center gap-1 transition-colors duration-200">
-                <Mail className="w-3 h-3" /> {item.email}
-              </p>
-            </div>
+  return (
+    <tr 
+      key={item.id} 
+      className={`hover:bg-gray-50 dark:hover:bg-slate-800/60 transition-colors duration-200 ${
+        idx !== filteredInvitations.length - 1 ? 'border-b border-gray-100 dark:border-slate-800' : ''
+      }`}
+    >
+      <td className="px-6 py-4">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center text-white font-bold text-xs shrink-0 shadow-sm">
+            {getInitials(item.name, item.email)}
           </div>
-        </td>
-
-        <td className="px-6 py-4 text-xs font-medium text-gray-600 dark:text-slate-300 transition-colors duration-200">
-          <div className="flex items-center gap-1.5">
-            <Building2 className="w-3.5 h-3.5 text-gray-400 dark:text-slate-500 transition-colors duration-200" />
-            {item.organization?.name || item.organization || 'N/A'}
+          <div>
+            <p className="font-medium text-gray-900 dark:text-slate-100 transition-colors duration-200">
+              {item.name || 'Invited User'}
+            </p>
+            <p className="text-xs text-gray-500 dark:text-slate-400 flex items-center gap-1 transition-colors duration-200">
+              <Mail className="w-3 h-3" /> {item.email}
+            </p>
           </div>
-        </td>
+        </div>
+      </td>
 
-        {/* New "Invited By" column */}
-        <td className="px-6 py-4 text-xs font-medium text-gray-600 dark:text-slate-300 transition-colors duration-200">
-          <div className="flex items-center gap-1.5">
-            <User className="w-3.5 h-3.5 text-gray-400 dark:text-slate-500 transition-colors duration-200" />
-            <div>
-              <p className="font-medium text-gray-900 dark:text-slate-100">
-                {invitedByName}
+      <td className="px-6 py-4 text-xs font-medium text-gray-600 dark:text-slate-300 transition-colors duration-200">
+        <div className="flex items-center gap-1.5">
+          <Building2 className="w-3.5 h-3.5 text-gray-400 dark:text-slate-500 transition-colors duration-200" />
+          {item.organization?.name || item.organization || 'N/A'}
+        </div>
+      </td>
+
+      <td className="px-6 py-4 text-xs font-medium text-gray-600 dark:text-slate-300 transition-colors duration-200">
+        <div className="flex items-center gap-1.5">
+          <User className="w-3.5 h-3.5 text-gray-400 dark:text-slate-500 transition-colors duration-200" />
+          <div>
+            <p className="font-medium text-gray-900 dark:text-slate-100">
+              {invitedByName}
+            </p>
+            {invitedByEmail && (
+              <p className="text-xs text-gray-500 dark:text-slate-400 flex items-center gap-1">
+                <Mail className="w-3 h-3" /> {invitedByEmail}
               </p>
-              {invitedByEmail && (
-                <p className="text-xs text-gray-500 dark:text-slate-400 flex items-center gap-1">
-                  <Mail className="w-3 h-3" /> {invitedByEmail}
-                </p>
-              )}
-            </div>
+            )}
           </div>
-        </td>
+        </div>
+      </td>
 
-        <td className="px-6 py-4">
-          <StatusBadge
-            status={statusText} 
-            activeLabel="Accepted"
-            inactiveLabel="Pending"
-          />
-        </td>
+      {/* Dynamic Status Display */}
+      <td className="px-6 py-4">
+        {isAccepted ? (
+          <div className="flex items-center gap-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+            <Calendar className="w-3.5 h-3.5" />
+            <span>{formatDate(item.accepted_at)}</span>
+          </div>
+        ) : (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
+            Pending
+          </span>
+        )}
+      </td>
 
-        <td className="px-6 py-4 text-right">
-          <div className="flex items-center justify-end gap-2">
+      {/* Actions: Hide button if accepted */}
+      <td className="px-6 py-4 text-right">
+        <div className="flex items-center justify-end gap-2">
+          {!isAccepted && (
             <button
               onClick={() => handleResendInvitation(item)}
               disabled={isResending}
               title="Resend Invitation"
-              className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-950 rounded-lg transition-colors duration-200 disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/50 rounded-lg transition-colors duration-200 disabled:opacity-50"
             >
-              <RotateCw className={`w-4 h-4 ${isResending ? 'animate-spin' : ''}`} />
+              <RotateCw className={`w-3.5 h-3.5 ${isResending ? 'animate-spin' : ''}`} />
+              <span>Resend Invitation</span>
             </button>
-          </div>
-        </td>
-      </tr>
-    );
-  };
+          )}
+        </div>
+      </td>
+    </tr>
+  );
+};
 
   // Get modal title and description based on context
   const getModalConfig = () => {

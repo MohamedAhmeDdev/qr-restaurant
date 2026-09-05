@@ -5,7 +5,7 @@ import Layout from '../Layout';
 import { ProtectedRoute } from '../../../utils/ProtectedRoute';
 import StaffSidebar from '../sidebar/StaffSidebar';
 
-const OrdersPage = lazy(() => import('../../restaurant/OrdersPage'));
+const OrdersPage = lazy(() => import('../../restaurant/DashboardPage'));
 const SettingsPage = lazy(() => import('../../settings/Layout/SettingsPage'));
 
 export const StaffRoutes = {
