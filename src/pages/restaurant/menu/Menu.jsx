@@ -1,8 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { 
-  Trash2, CheckCircle2, 
-  XCircle, Image as ImageIcon, UtensilsCrossed, 
-  Search, Edit, PlusCircle, Power 
+import {
+  Trash2,
+  Image as ImageIcon,
+  UtensilsCrossed,
+  Edit,
+  ArrowUpDown,
+  Power,
+  Eye
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -10,17 +14,19 @@ import toast from 'react-hot-toast';
 import Toolbar from '../../../components/Toolbar';
 import Pagination from '../../../components/common/Pagination';
 import ConfirmationModal from '../../../components/common/ConfirmationModal';
-import StatusBadge from '../../../components/StatusBadge'; // Import StatusBadge
+import StatusBadge from '../../../components/StatusBadge';
 import api from '../../../services/api';
 import { getImageUrl } from '../../../utils/getImageUrl';
 import Table from '../../../components/Table';
+import CategoriesService from '../../../services/categories';
+import { useFormatPrice } from '../../../contexts/useFormatPrice';
 
 export default function MenuTable() {
   const [categories, setCategories] = useState([]);
   const [items, setItems] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-
+const formatPrice = useFormatPrice();
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
@@ -37,21 +43,31 @@ export default function MenuTable() {
 
   // Table Column Definitions
   const columns = [
+    // {
+    //   label: (
+    //     <div className="flex items-center gap-1">
+    //       <ArrowUpDown className="w-3 h-3" />
+    //       <span>Order</span>
+    //     </div>
+    //   )
+    // },
     { label: 'Item Details' },
+    { label: 'Description' },
     { label: 'Category' },
     { label: 'Price' },
+    { label: 'Availability' },
     { label: 'Status' },
     { label: 'Actions', align: 'right' },
   ];
 
-  // Fetch Categories once on mount
   useEffect(() => {
-    api.get('/option/categories')
-      .then((res) => setCategories(res.data.data || []))
-      .catch((err) => console.error('Failed to fetch categories:', err));
-  }, []);
+  CategoriesService.getCategories()
+    .then((data) => setCategories(data || []))
+    .catch((err) => {;
+    setError(err.response?.data?.message); 
+    });
+}, []);
 
-  // Fetch Paginated & Filtered Menu Items from Backend
   const fetchMenuItems = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -78,18 +94,16 @@ export default function MenuTable() {
       setLastPage(paginatedData.last_page || 1);
       setTotalItems(paginatedData.total || 0);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to fetch menu items.');
+      setError(err.response?.data?.message);
     } finally {
       setLoading(false);
     }
   }, [currentPage, selectedCategory, searchQuery]);
 
-  // Refetch items whenever filters, search, or page changes
   useEffect(() => {
     fetchMenuItems();
   }, [fetchMenuItems]);
 
-  // Filter & Search Handlers
   const handleFilterChange = (filterLabel) => {
     setCurrentPage(1);
     if (filterLabel === 'All Items') {
@@ -126,15 +140,29 @@ export default function MenuTable() {
     );
 
     try {
-      const response = await api.put(`/menu-items/${id}`, { is_available: !currentStatus });
-      toast.success(response?.data?.message || 'Availability updated.');
+      const response = await api.patch(`/menu-items/${id}/toggle-availability`);
+      toast.success(response?.data?.message);
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to update availability.');
-      fetchMenuItems(); // Revert state on failure
+      toast.error(err.response?.data?.message);
+      fetchMenuItems();
     }
   };
 
-  // Delete Action Handlers
+  // Toggle Active/Inactive Status Optimistically
+  const toggleStatus = async (item) => {
+    setItems((prev) =>
+      prev.map((i) => (i.id === item.id ? { ...i, is_active: !i.is_active } : i))
+    );
+
+    try {
+      const response = await api.patch(`/menu-items/${item.id}/toggle-active`);
+      toast.success(response?.data?.message);
+    } catch (err) {
+      toast.error(err.response?.data?.message);
+      fetchMenuItems();
+    }
+  };
+
   const handleOpenDeleteModal = (item) => {
     setItemToDelete(item);
     setIsDeleteModalOpen(true);
@@ -145,33 +173,38 @@ export default function MenuTable() {
     setIsDeleting(true);
     try {
       const response = await api.delete(`/menu-items/${itemToDelete.id}`);
-      toast.success(response?.data?.message || 'Menu item deleted.');
+      toast.success(response?.data?.message);
       setIsDeleteModalOpen(false);
       setItemToDelete(null);
       fetchMenuItems();
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to delete menu item.');
+      toast.error(err.response?.data?.message);
     } finally {
       setIsDeleting(false);
     }
   };
 
-  // Row Renderer for Table
   const renderRow = (item) => {
     const category = item.category || categories.find((c) => c.id === item.category_id);
 
     return (
-      <tr 
-        key={item.id} 
+      <tr
+        key={item.id}
         className="transition-colors border-b border-slate-100 dark:border-slate-800 hover:bg-gray-50/50 dark:hover:bg-slate-800/50"
       >
+        {/* <td className="py-4 px-4 sm:px-6 font-mono text-xs font-semibold text-gray-500 dark:text-slate-400">
+          <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300">
+            {item.sort_order}
+          </span>
+        </td> */}
+
         <td className="py-3.5 px-6">
           <div className="flex items-center gap-3">
             {item.image ? (
-              <img 
-                src={getImageUrl(item.image)} 
-                alt={item.name} 
-                className="w-11 h-11 rounded-lg object-cover border border-gray-100 dark:border-slate-700 shrink-0" 
+              <img
+                src={getImageUrl(item.image)}
+                alt={item.name}
+                className="w-11 h-11 rounded-lg object-cover border border-gray-100 dark:border-slate-700 shrink-0"
               />
             ) : (
               <div className="w-11 h-11 rounded-lg bg-gray-100 dark:bg-slate-800 flex items-center justify-center text-gray-400 shrink-0">
@@ -180,64 +213,85 @@ export default function MenuTable() {
             )}
             <div className="min-w-0">
               <div className="font-semibold text-gray-900 dark:text-white truncate">{item.name}</div>
-              <div className="text-xs text-gray-500 dark:text-slate-400 max-w-[200px] truncate">
-                {item.description || 'No description provided.'}
-              </div>
+              {item.slug && (
+                <div className="text-xs text-gray-400 dark:text-slate-500 font-mono truncate">
+                  {item.slug}
+                </div>
+              )}
             </div>
           </div>
         </td>
 
         <td className="py-3.5 px-6">
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300 border border-blue-100 dark:border-blue-800">
-            {category ? category.name : 'Uncategorized'}
-          </span>
+          <div className="text-xs text-gray-500 dark:text-slate-400 max-w-[200px] truncate">
+            {item.description}
+          </div>
         </td>
 
-        <td className="py-3.5 px-6 font-bold text-gray-900 dark:text-white tabular-nums">
-          ${parseFloat(item.price || 0).toFixed(2)}
+        <td className="py-3.5 px-6 text-xs">
+          {category?.name}
         </td>
 
-        <td className="py-3.5 px-6">
-          {/* Using StatusBadge for availability status */}
+        <td className="py-3.5 px-6 font-semibold text-gray-900 dark:text-white tabular-nums">
+          {formatPrice(item.price)}
+        </td>
+
+        <td className="py-3.5 px-6 whitespace-nowrap">
           <StatusBadge
-            status={item.is_available ? 'active' : 'inactive'}
-            activeLabel="Available"
-            inactiveLabel="Sold Out"
-            activeColor="green"
-            inactiveColor="rose"
-            showIcon={true}
-            size="sm"
+            status={item.is_available ? 'available' : 'sold_out'}
           />
         </td>
 
-        <td className="py-3.5 px-6 text-right">
+        <td className="py-3.5 px-6">
+          <StatusBadge
+            status={item.is_active ? 'active' : 'inactive'}
+          />
+        </td>
+
+        <td className="py-3.5 px-2 text-right">
           <div className="flex items-center justify-end gap-1">
             <button
               type="button"
               onClick={() => handleToggleAvailability(item.id, item.is_available)}
-              className={`p-2 rounded-lg transition-colors ${
-                item.is_available 
-                  ? 'text-green-500 hover:text-green-600 dark:hover:text-green-300 hover:bg-green-50 dark:hover:bg-green-900/20' 
-                  : 'text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20'
-              }`}
-              title={item.is_available ? 'Mark as Sold Out' : 'Mark as Available'}
+              className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${item.is_available
+                  ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 dark:bg-amber-950/40 dark:text-amber-400 dark:hover:bg-amber-900/40 border border-amber-200 dark:border-amber-800/50'
+                  : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-400 dark:hover:bg-emerald-900/40 border border-emerald-200 dark:border-emerald-800/50'
+                }`}
+            >
+              {item.is_available ? 'Mark as Sold Out' : 'Mark Available'}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => toggleStatus(item)}
+              className={`p-2 rounded-lg transition-colors ${item.is_active
+                  ? 'text-red-500 hover:bg-red-100/50 dark:text-red-400 dark:hover:bg-red-950/30'
+                  : 'text-emerald-600 hover:bg-emerald-100/50 dark:text-emerald-400 dark:hover:bg-emerald-950/30'
+                }`}
+              title={item.is_active ? 'Deactivate' : 'Activate'}
             >
               <Power className="w-4 h-4" />
             </button>
-
-            <Link 
+              <Link
+              to={`/menu-items-details/${item.id}`}
+              className="p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg text-gray-500 hover:text-green-600 transition-colors inline-block"
+              title="View"
+            >
+              <Eye className="w-4 h-4" />
+            </Link>
+            <Link
               to={`/menu-items/edit/${item.id}`}
-              className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-white rounded-lg transition-colors"
+              className="p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg text-gray-500 hover:text-blue-600 transition-colors inline-block"
               title="Edit"
             >
               <Edit className="w-4 h-4" />
             </Link>
 
-            <button 
+            <button
               type="button"
               onClick={() => handleOpenDeleteModal(item)}
-              className="p-2 text-gray-400 hover:text-red-600 rounded-lg transition-colors"
-              title="Delete"
+            className="p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-gray-500 hover:text-red-600 transition-colors cursor-pointer"
+              title="Remove"
             >
               <Trash2 className="w-4 h-4" />
             </button>
@@ -249,70 +303,62 @@ export default function MenuTable() {
 
   return (
     <div className="p-1 sm:p-4 space-y-6 bg-gray-50 dark:bg-slate-950 min-h-screen text-gray-900 dark:text-slate-100 transition-colors duration-200">
-      
-
-        {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-orange-600 to-orange-400 bg-clip-text text-transparent leading-tight">
-              Menu Inventory
-            </h1>
-            <p className="text-md text-gray-500 dark:text-slate-400 mt-1">
-              Manage items, prices, and availability status.
-            </p>
-          </div>
-
-          <Link 
-            to="/menu-items/create"
-            className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white rounded-xl text-sm font-semibold transition-all duration-200 shadow-lg shadow-orange-500/20 hover:shadow-orange-500/35 active:scale-[0.98]"
-          >
-            <UtensilsCrossed className="w-4 h-4" />
-            <span>Add Menu Item</span>
-          </Link>
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-orange-600 to-orange-400 bg-clip-text text-transparent leading-tight">
+            Menu Inventory
+          </h1>
+          <p className="text-md text-gray-500 dark:text-slate-400 mt-1">
+            Manage items, prices, and availability status.
+          </p>
         </div>
 
-        {/* Toolbar */}
-        <Toolbar
-          searchQuery={searchQuery}
-          onSearchChange={handleSearchChange}
-          searchPlaceholder="Search menu items..."
-          filters={filterLabels}
-          activeFilter={getActiveFilterLabel()}
-          onFilterChange={handleFilterChange}
+        <Link
+          to="/menu-items/create"
+          className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white rounded-xl text-sm font-semibold transition-all duration-200 shadow-lg shadow-orange-500/20 hover:shadow-orange-500/35 active:scale-[0.98]"
+        >
+          <UtensilsCrossed className="w-4 h-4" />
+          <span>Add Menu Item</span>
+        </Link>
+      </div>
+
+      <Toolbar
+        searchQuery={searchQuery}
+        onSearchChange={handleSearchChange}
+        searchPlaceholder="Search menu items..."
+        filters={filterLabels}
+        activeFilter={getActiveFilterLabel()}
+        onFilterChange={handleFilterChange}
+      />
+
+      <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-800 overflow-hidden shadow-sm">
+        <Table
+          columns={columns}
+          data={items}
+          renderRow={renderRow}
+          loading={loading}
+          error={error}
+          onRetry={fetchMenuItems}
+          emptyIcon={UtensilsCrossed}
+          emptyTitle={searchQuery || selectedCategory !== 'all' ? "No menu items found" : "No items added yet"}
+          emptyDescription={
+            searchQuery || selectedCategory !== 'all'
+              ? "No menu items matched your current filter or search criteria."
+              : "Get started by adding your first menu item to the inventory."
+          }
         />
 
-        {/* Generic Table Component handling Loading, Error, Empty, and List States */}
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-800 overflow-hidden shadow-sm">
-          <Table
-            columns={columns}
-            data={items}
-            renderRow={renderRow}
-            loading={loading}
-            error={error}
-            onRetry={fetchMenuItems}
-            emptyIcon={UtensilsCrossed}
-            emptyTitle={searchQuery || selectedCategory !== 'all' ? "No menu items found" : "No items added yet"}
-            emptyDescription={
-              searchQuery || selectedCategory !== 'all'
-                ? "No menu items matched your current filter or search criteria."
-                : "Get started by adding your first menu item to the inventory."
-            }
+        {!loading && !error && items.length > 0 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={lastPage}
+            totalRecords={totalItems}
+            onPageChange={handlePageChange}
+            maxVisible={5}
           />
+        )}
+      </div>
 
-          {/* Pagination Component */}
-          {!loading && !error && items.length > 0 && (
-            <Pagination
-              currentPage={currentPage}
-              totalPages={lastPage}
-              totalRecords={totalItems}
-              onPageChange={handlePageChange}
-              maxVisible={5}
-            />
-          )}
-        </div>
- 
-
-      {/* Confirmation Modal */}
       <ConfirmationModal
         isOpen={isDeleteModalOpen}
         onClose={() => {

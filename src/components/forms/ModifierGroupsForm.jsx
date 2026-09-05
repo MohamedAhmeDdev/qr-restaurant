@@ -24,12 +24,12 @@ export default function ModifierGroupForm({
     if (errors.options) setErrors(prev => ({ ...prev, options: undefined }));
   };
 
-  const addOptionRow = () => {
-    setFormData(prev => ({
-      ...prev,
-      options: [...prev.options, { name: '', price: '0.00', is_available: true }],
-    }));
-  };
+const addOptionRow = () => {
+  setFormData(prev => ({
+    ...prev,
+    options: [...prev.options, { name: '', price: '0.00', is_available: false }],
+  }));
+};
 
   const removeOptionRow = (index) => {
     if (formData.options.length <= 1) return;
@@ -50,36 +50,6 @@ export default function ModifierGroupForm({
             <p className="text-xs text-gray-500 dark:text-slate-400">Configure customer selection limits and pricing choices</p>
           </div>
         </div>
-        
-        {/* Status Toggle Buttons */}
-        {isEdit && (
-          <div className="flex items-center gap-1 p-1 bg-gray-100 dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700">
-            <button
-              type="button"
-              onClick={() => handleChange('is_active', true)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-                formData.is_active
-                  ? 'bg-green-500 text-white shadow-sm'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-              }`}
-            >
-              <Power className="w-3.5 h-3.5" />
-              Active
-            </button>
-            <button
-              type="button"
-              onClick={() => handleChange('is_active', false)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-                !formData.is_active
-                  ? 'bg-red-600 text-white shadow-sm'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-              }`}
-            >
-              <PowerOff className="w-3.5 h-3.5" />
-              Inactive
-            </button>
-          </div>
-        )}
       </div>
 
       <div className="p-6 md:p-8 space-y-8">
@@ -89,17 +59,15 @@ export default function ModifierGroupForm({
             {/* Group Name */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-800 dark:text-slate-200 flex items-center justify-between">
-                <span>Group Name <span className="text-orange-500">*</span></span>
+                <span>Group Name</span>
               </label>
-              <input
-                type="text"
-                value={formData.name || ''}
-                onChange={(e) => handleChange('name', e.target.value)}
-                placeholder="e.g., Pizza Toppings, Dressing Choice, Spice Level, Portion Size"
-                className={`w-full px-4 py-2.5 rounded-xl border ${
-                  errors.name ? 'border-red-500 focus:ring-red-500/20' : 'border-gray-200 dark:border-slate-700/80 hover:border-gray-300 dark:hover:border-slate-600 focus:border-orange-500 focus:ring-orange-500/20'
-                } bg-white dark:bg-slate-800/50 focus:ring-4 outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 transition-all text-sm shadow-sm`}
-              />
+          <input
+  type="text"
+  value={formData.name}
+  onChange={(e) => handleChange('name', e.target.value)}
+  placeholder="e.g., Pizza Toppings, Dressing Choice, Spice Level, Portion Size"
+  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-700/80 hover:border-gray-300 dark:hover:border-slate-600 focus:border-orange-500 focus:ring-orange-500/20 bg-white dark:bg-slate-800/50 focus:ring-4 outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 transition-all text-sm shadow-sm"
+/>
               {errors.name && (
                 <p className="text-xs text-red-500 mt-1 flex items-center gap-1 font-medium">
                   <AlertCircle className="w-3.5 h-3.5" />
@@ -114,7 +82,7 @@ export default function ModifierGroupForm({
                 Description <span className="text-xs text-gray-400 font-normal">(Optional)</span>
               </label>
               <textarea
-                value={formData.description || ''}
+                value={formData.description}
                 onChange={(e) => handleChange('description', e.target.value)}
                 placeholder="e.g., Select up to 3 extra toppings. Additional charges apply per extra topping."
                 rows="3"
@@ -139,7 +107,7 @@ export default function ModifierGroupForm({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-xs font-medium text-gray-700 dark:text-slate-300">
-                Minimum Selections <span className="text-orange-500">*</span>
+                Minimum Selections
               </label>
               <input
                 type="number"
@@ -157,7 +125,7 @@ export default function ModifierGroupForm({
 
             <div className="space-y-2">
               <label className="text-xs font-medium text-gray-700 dark:text-slate-300">
-                Maximum Selections <span className="text-orange-500">*</span>
+                Maximum Selections
               </label>
               <input
                 type="number"
@@ -173,34 +141,93 @@ export default function ModifierGroupForm({
               )}
             </div>
           </div>
-
-          <div className="pt-2 border-t border-gray-200/50 dark:border-slate-700/50">
-            <label htmlFor="is_required" className="inline-flex items-center gap-3 cursor-pointer group">
-              <div className="relative flex items-center">
-                <input
-                  type="checkbox"
-                  id="is_required"
-                  className="w-4 h-4 text-orange-500 rounded border-gray-300 dark:border-slate-600 focus:ring-orange-500/20 focus:ring-2 cursor-pointer"
-                  checked={formData.is_required || false}
-                  onChange={(e) => handleChange('is_required', e.target.checked)}
-                />
-              </div>
-              <div>
-                <span className="text-sm font-medium text-gray-800 dark:text-slate-200 group-hover:text-orange-500 transition-colors">
-                  Required selection
-                </span>
-                <p className="text-xs text-gray-500 dark:text-slate-400">Customer must choose options before adding to cart</p>
-              </div>
-            </label>
-          </div>
         </div>
+
+{/* Status & Options Toggles */}
+<div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+  {/* Required Selection Toggle */}
+  <div className="relative p-4 rounded-xl border-2 transition-all duration-200 cursor-pointer bg-white dark:bg-slate-800/40 border-gray-200 dark:border-slate-700/80">
+    <label htmlFor="is_required" className="flex items-start gap-4 cursor-pointer">
+      <div className="relative flex items-center justify-center mt-0.5">
+        <input
+          type="checkbox"
+          id="is_required"
+          className="w-5 h-5 text-orange-500 rounded-md border-2 border-gray-300 dark:border-slate-600 focus:ring-2 focus:ring-orange-500/30 focus:ring-offset-2 dark:focus:ring-offset-slate-900 cursor-pointer transition-all checked:border-orange-500"
+          checked={Boolean(formData.is_required)}
+          onChange={(e) => handleChange('is_required', e.target.checked)}
+        />
+        {formData.is_required && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+        )}
+      </div>
+      
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-semibold text-gray-800 dark:text-slate-200 transition-colors">
+            Required Selection
+          </span>
+        </div>
+        <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5 leading-relaxed">
+          Customer must select at least one option before adding to cart
+        </p>
+      </div>
+    </label>
+  </div>
+
+  {/* Active Status Toggle */}
+  <div className="relative p-4 rounded-xl border-2 transition-all duration-200 cursor-pointer bg-white dark:bg-slate-800/40 border-gray-200 dark:border-slate-700/80">
+    <label htmlFor="is_active" className="flex items-start gap-4 cursor-pointer">
+      <div className="relative flex items-center justify-center mt-0.5">
+        <input
+          type="checkbox"
+          id="is_active"
+          className="w-5 h-5 text-orange-500 rounded-md border-2 border-gray-300 dark:border-slate-600 cursor-pointer transition-all checked:border-orange-500 checked:bg-orange-500 hover:border-orange-400"
+          checked={Boolean(formData.is_active)}
+          onChange={(e) => handleChange('is_active', e.target.checked)}
+        />
+        {formData.is_active && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+        )}
+      </div>
+      
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-semibold text-gray-800 dark:text-slate-200 transition-colors">
+            Active Group
+          </span>
+          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium transition-colors ${
+            formData.is_active
+              ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
+              : 'bg-gray-100 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400'
+          }`}>
+           {formData.is_active ? 'Active' : 'Inactive'}
+          </span>
+        </div>
+        <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5 leading-relaxed">
+          {formData.is_active 
+            ? 'Available for selection across all menus' 
+            : 'Hidden from all menus until activated'}
+        </p>
+      </div>
+    </label>
+  </div>
+</div>
+        <hr className="border-gray-200/60 dark:border-slate-800" />
 
         {/* Dynamic Options List */}
         <div className="space-y-4">
           <div className="flex justify-between items-center pb-2 border-b border-gray-100 dark:border-slate-800">
             <div>
               <label className="text-base font-semibold text-gray-900 dark:text-white">
-                Modifier Options <span className="text-orange-500">*</span>
+                Modifier Options
               </label>
               <p className="text-xs text-gray-500 dark:text-slate-400">Add choices available within this group</p>
             </div>
@@ -257,31 +284,30 @@ export default function ModifierGroupForm({
                     onChange={(e) => handleOptionChange(index, 'price', e.target.value)}
                   />
                 </div>
+<div className="flex items-center justify-between sm:justify-end gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-100 dark:border-slate-800">
+  <label htmlFor={`available-${index}`} className="inline-flex items-center gap-2 cursor-pointer">
+    <input
+      type="checkbox"
+      id={`available-${index}`}
+      checked={Boolean(option.is_available)} 
+      onChange={(e) => handleOptionChange(index, 'is_available', e.target.checked)}
+      className="w-4 h-4 text-orange-500 rounded border-gray-300 dark:border-slate-600 focus:ring-orange-500/20 focus:ring-2 cursor-pointer"
+    />
+    <span className="text-xs font-medium text-gray-600 dark:text-slate-300 select-none">
+      Available
+    </span>
+  </label>
 
-                <div className="flex items-center justify-between sm:justify-end gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-100 dark:border-slate-800">
-                  <label htmlFor={`available-${index}`} className="inline-flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      id={`available-${index}`}
-                      checked={option.is_available !== false}
-                      onChange={(e) => handleOptionChange(index, 'is_available', e.target.checked)}
-                      className="w-4 h-4 text-orange-500 rounded border-gray-300 dark:border-slate-600 focus:ring-orange-500/20 focus:ring-2 cursor-pointer"
-                    />
-                    <span className="text-xs font-medium text-gray-600 dark:text-slate-300 select-none">
-                      Available
-                    </span>
-                  </label>
-
-                  <button
-                    type="button"
-                    onClick={() => removeOptionRow(index)}
-                    disabled={formData.options.length <= 1}
-                    className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 disabled:opacity-20 disabled:hover:bg-transparent disabled:hover:text-gray-400 transition-all"
-                    title="Remove option"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
+  <button
+    type="button"
+    onClick={() => removeOptionRow(index)}
+    disabled={formData.options.length <= 1}
+    className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 disabled:opacity-20 disabled:hover:bg-transparent disabled:hover:text-gray-400 transition-all"
+    title="Remove option"
+  >
+    <Trash2 className="w-4 h-4" />
+  </button>
+</div>
               </div>
             ))}
           </div>

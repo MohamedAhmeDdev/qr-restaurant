@@ -9,17 +9,18 @@ export default function CreateMenu() {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
+  const [imagePreview, setImagePreview] = useState(null); 
 
-  const [formData, setFormData] = useState({
-    name: '',
-    category_id: '',
-    price: '',
-    description: '',
-    is_available: true,
-    image: null,
-    image_preview: null,
-    modifier_groups: [],
-  });
+const [formData, setFormData] = useState({
+  name: '',
+  category_id: '',
+  price: '',
+  description: '',
+  is_available:  false,
+  is_active:  false, 
+  image: null,
+  modifier_groups: [],
+});
 
   const validate = () => {
     const newErrors = {};
@@ -27,6 +28,10 @@ export default function CreateMenu() {
     if (!formData.category_id) newErrors.category_id = 'Category is required';
     if (!formData.price || parseFloat(formData.price) <= 0) {
       newErrors.price = 'Price must be greater than 0';
+    }
+    // Optionally validate image
+    if (!formData.image && !imagePreview) {
+      newErrors.image = 'Menu item image is required';
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -42,9 +47,10 @@ export default function CreateMenu() {
       const formDataToSend = new FormData();
       formDataToSend.append('name', formData.name.trim());
       formDataToSend.append('category_id', formData.category_id);
-      formDataToSend.append('price', parseFloat(formData.price) || 0);
-      formDataToSend.append('description', formData.description?.trim() || '');
-      formDataToSend.append('is_available', formData.is_available ? '1' : '0');
+      formDataToSend.append('price', parseFloat(formData.price));
+      formDataToSend.append('description', formData.description?.trim());
+     formDataToSend.append('is_available', formData.is_available ? 1 : 0);
+    formDataToSend.append('is_active', formData.is_active ? 1 : 0);
 
       if (Array.isArray(formData.modifier_groups)) {
         formData.modifier_groups.forEach((groupId) => {
@@ -84,9 +90,6 @@ export default function CreateMenu() {
             <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white">
               Add New Menu Item
             </h1>
-            <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-orange-100 text-orange-700 dark:bg-orange-500/10 dark:text-orange-400">
-              <Sparkles className="w-3 h-3" /> New
-            </span>
           </div>
         </div>
       </div>
@@ -96,6 +99,8 @@ export default function CreateMenu() {
         setFormData={setFormData}
         errors={errors}
         setErrors={setErrors}
+        imagePreview={imagePreview}
+        setImagePreview={setImagePreview}
         onSubmit={handleSubmit}
         onCancel={() => navigate('/menu-items')}
         isSubmitting={isSubmitting}

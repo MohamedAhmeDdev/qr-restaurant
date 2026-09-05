@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { LayoutGrid, Image as ImageIcon, Check, ChevronDown, X, Search, Upload } from 'lucide-react';
+import { LayoutGrid, Image as ImageIcon, Check, ChevronDown, X, Search, Upload, Power, PowerOff } from 'lucide-react';
 import api from '../../services/api';
+import CategoriesService from '../../services/categories';
 
 export default function MenuForm({
   formData,
@@ -31,24 +32,23 @@ export default function MenuForm({
   const [isLoadingModifiers, setIsLoadingModifiers] = useState(false);
   const [modifierError, setModifierError] = useState('');
 
-  // 1. Fetch Categories
-  useEffect(() => {
-    const loadCategories = async () => {
-      setIsLoadingCategories(true);
-      setCategoryError('');
-      try {
-        const response = await api.get('/option/categories');
-        const data = response.data?.data || response.data || [];
-        setCategories(Array.isArray(data) ? data : []);
-      } catch (err) {
-        setCategoryError('Could not load categories');
-      } finally {
-        setIsLoadingCategories(false);
-      }
-    };
 
-    loadCategories();
-  }, []);
+  useEffect(() => {
+  const loadCategories = async () => {
+    setIsLoadingCategories(true);
+    setCategoryError('');
+    try {
+      const data = await CategoriesService.getCategories();
+      setCategories(Array.isArray(data) ? data : []);
+    } catch (err) {
+      setCategoryError(err.response?.data?.message);
+    } finally {
+      setIsLoadingCategories(false);
+    }
+  };
+
+  loadCategories();
+}, []);
 
   // 2. Fetch Modifier Groups
   useEffect(() => {
@@ -163,11 +163,14 @@ export default function MenuForm({
       onSubmit={onSubmit}
       className="bg-white dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-gray-200/80 dark:border-slate-800 shadow-xl shadow-gray-100/50 dark:shadow-none overflow-hidden transition-all"
     >
-      <div className="px-6 py-4 border-b border-gray-100 dark:border-slate-800 bg-gradient-to-r from-gray-50/80 to-transparent dark:from-slate-900/50 flex items-center gap-2.5">
-        <div className="p-2 rounded-lg bg-orange-500/10 text-orange-500 dark:bg-orange-500/20">
-          <LayoutGrid className="w-4 h-4" />
+      <div className="px-6 py-4 border-b border-gray-100 dark:border-slate-800 bg-gradient-to-r from-gray-50/80 to-transparent dark:from-slate-900/50 flex items-center justify-between gap-2.5">
+        <div className="flex items-center gap-2.5">
+          <div className="p-2 rounded-lg bg-orange-500/10 text-orange-500 dark:bg-orange-500/20">
+            <LayoutGrid className="w-4 h-4" />
+          </div>
+          <h2 className="font-semibold text-gray-900 dark:text-white">Menu Item Details</h2>
         </div>
-        <h2 className="font-semibold text-gray-900 dark:text-white">Menu Item Details</h2>
+      
       </div>
 
       <div className="p-6 md:p-8 space-y-6">
@@ -179,16 +182,14 @@ export default function MenuForm({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
-                Item Name <span className="text-orange-500">*</span>
+                Item Name
               </label>
               <input
                 type="text"
                 value={formData.name || ''}
                 onChange={(e) => handleChange('name', e.target.value)}
                 placeholder="e.g. Margherita Pizza"
-                className={`w-full px-4 py-2.5 rounded-xl border ${
-                  errors.name ? 'border-red-500' : 'border-gray-300/80 dark:border-slate-700'
-                } bg-white dark:bg-slate-800/80 focus:ring-4 focus:ring-orange-500/15 focus:border-orange-500 outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 transition-all text-sm shadow-sm`}
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-300/80 dark:border-slate-700 bg-white dark:bg-slate-800/80 focus:ring-4 focus:ring-orange-500/15 focus:border-orange-500 outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 transition-all text-sm shadow-sm"
               />
               {errors.name && (
                 <p className="text-xs text-red-500 mt-1">
@@ -201,16 +202,14 @@ export default function MenuForm({
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-gray-700 dark:text-slate-300 flex items-center justify-between">
                 <span>
-                  Category <span className="text-orange-500">*</span>
+                  Category
                 </span>
               </label>
               <select
                 value={formData.category_id || ''}
                 onChange={(e) => handleChange('category_id', e.target.value)}
                 disabled={isLoadingCategories}
-                className={`w-full px-4 py-2.5 rounded-xl border ${
-                  errors.category_id ? 'border-red-500' : 'border-gray-300/80 dark:border-slate-700'
-                } bg-white dark:bg-slate-800/80 focus:ring-4 focus:ring-orange-500/15 focus:border-orange-500 outline-none text-gray-900 dark:text-white transition-all text-sm shadow-sm disabled:opacity-50`}
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-300/80 dark:border-slate-700 bg-white dark:bg-slate-800/80 focus:ring-4 focus:ring-orange-500/15 focus:border-orange-500 outline-none text-gray-900 dark:text-white transition-all text-sm shadow-sm disabled:opacity-50"
               >
                 <option value="">
                   {isLoadingCategories ? 'Loading categories...' : 'Select a category'}
@@ -235,7 +234,7 @@ export default function MenuForm({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
-              Price <span className="text-orange-500">*</span>
+              Price
             </label>
             <input
               type="number"
@@ -244,9 +243,7 @@ export default function MenuForm({
               value={formData.price || ''}
               onChange={(e) => handleChange('price', e.target.value)}
               placeholder="0.00"
-              className={`w-full px-4 py-2.5 rounded-xl border ${
-                errors.price ? 'border-red-500' : 'border-gray-300/80 dark:border-slate-700'
-              } bg-white dark:bg-slate-800/80 focus:ring-4 focus:ring-orange-500/15 focus:border-orange-500 outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 transition-all text-sm shadow-sm`}
+              className="w-full px-4 py-2.5 rounded-xl border border-gray-300/80 dark:border-slate-700 bg-white dark:bg-slate-800/80 focus:ring-4 focus:ring-orange-500/15 focus:border-orange-500 outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 transition-all text-sm shadow-sm"
             />
             {errors.price && (
               <p className="text-xs text-red-500 mt-1">
@@ -277,9 +274,7 @@ export default function MenuForm({
                 type="button"
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                 disabled={isLoadingModifiers}
-                className={`w-full px-4 py-2.5 rounded-xl border text-left flex items-center justify-between ${
-                  errors.modifier_groups ? 'border-red-500' : 'border-gray-300/80 dark:border-slate-700'
-                } ${isDropdownOpen ? 'ring-4 ring-orange-500/15 border-orange-500' : ''} bg-white dark:bg-slate-800/80 outline-none text-gray-900 dark:text-white transition-all text-sm shadow-sm disabled:opacity-50`}
+                className={`w-full px-4 py-2.5 rounded-xl border text-left flex items-center justify-between border-gray-300/80 dark:border-slate-700 ${isDropdownOpen ? 'ring-4 ring-orange-500/15 border-orange-500' : ''} bg-white dark:bg-slate-800/80 outline-none text-gray-900 dark:text-white transition-all text-sm shadow-sm disabled:opacity-50`}
               >
                 <span className={selectedModifierGroups.length === 0 ? 'text-gray-400 dark:text-slate-500' : 'font-medium'}>
                   {isLoadingModifiers
@@ -399,9 +394,7 @@ export default function MenuForm({
             onChange={(e) => handleChange('description', e.target.value)}
             placeholder="Enter item description"
             rows="3"
-            className={`w-full px-4 py-2.5 rounded-xl border ${
-              errors.description ? 'border-red-500' : 'border-gray-300/80 dark:border-slate-700'
-            } bg-white dark:bg-slate-800/80 focus:ring-4 focus:ring-orange-500/15 focus:border-orange-500 outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 transition-all text-sm shadow-sm resize-y`}
+            className="w-full px-4 py-2.5 rounded-xl border border-gray-300/80 dark:border-slate-700 bg-white dark:bg-slate-800/80 focus:ring-4 focus:ring-orange-500/15 focus:border-orange-500 outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 transition-all text-sm shadow-sm resize-y"
           />
           {errors.description && (
             <p className="text-xs text-red-500 mt-1">
@@ -412,115 +405,182 @@ export default function MenuForm({
 
         <hr className="border-gray-100 dark:border-slate-800" />
 
-        {/* Image Upload Area */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-800 dark:text-slate-200 mb-2">
-            Item Image
-          </label>
+{/* Image Upload Area */}
+<div>
+  <label className="block text-sm font-semibold text-gray-800 dark:text-slate-200 mb-2">
+    Item Image
+  </label>
 
-          {imagePreview ? (
-            <div className="relative group w-full h-64 md:h-72 rounded-2xl overflow-hidden border border-gray-200 dark:border-slate-800 bg-gray-900 shadow-md">
-              <img
-                src={imagePreview}
-                alt="Menu item preview"
-                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-90 transition-opacity flex flex-col justify-end p-5">
-                <p className="text-sm font-medium text-white truncate mb-3">
-                  {formData.image?.name || 'Current image'}
-                </p>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="px-4 py-2 rounded-xl bg-white/20 hover:bg-white/30 backdrop-blur-md text-white text-xs font-semibold transition-all border border-white/20 shadow-sm"
-                  >
-                    Replace Image
-                  </button>
-                  <button
-                    type="button"
-                    onClick={removeImage}
-                    className="px-4 py-2 rounded-xl bg-red-500/80 hover:bg-red-600 backdrop-blur-md text-white text-xs font-semibold transition-all shadow-sm"
-                  >
-                    Remove
-                  </button>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="w-full h-56 md:h-64 flex flex-col items-center justify-center gap-3 p-6 rounded-2xl border-2 border-dashed border-gray-300 dark:border-slate-700 hover:border-orange-500 dark:hover:border-orange-500 bg-gray-50/50 dark:bg-slate-800/30 hover:bg-orange-50/30 dark:hover:bg-slate-800/60 transition-all group"
-            >
-              <div className="p-3.5 rounded-2xl bg-white dark:bg-slate-800 border border-gray-200/80 dark:border-slate-700 text-gray-400 group-hover:text-orange-500 group-hover:scale-110 shadow-sm transition-all">
-                <ImageIcon className="w-5 h-5" />
-              </div>
-              <div className="text-center">
-                <span className="block text-sm font-semibold text-gray-800 dark:text-slate-200">
-                  Click to upload menu item image
-                </span>
-                <span className="block text-xs text-gray-400 dark:text-slate-500 mt-1">
-                  JPG, PNG or WebP — up to 2MB
-                </span>
-              </div>
-            </button>
-          )}
+  {imagePreview ? (
+    <div className="relative group w-full h-64 md:h-72 rounded-2xl overflow-hidden border border-gray-200 dark:border-slate-800 bg-gray-900 shadow-md">
+      <img
+        src={imagePreview}
+        alt="Menu item preview"
+        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-90 transition-opacity flex flex-col justify-end p-5">
+        <p className="text-sm font-medium text-white truncate mb-3">
+          {formData.image?.name || 'Current image'}
+        </p>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="px-4 py-2 rounded-xl bg-white/20 hover:bg-white/30 backdrop-blur-md text-white text-xs font-semibold transition-all border border-white/20 shadow-sm"
+          >
+            Replace Image
+          </button>
+          <button
+            type="button"
+            onClick={removeImage}
+            className="px-4 py-2 rounded-xl bg-red-500/80 hover:bg-red-600 backdrop-blur-md text-white text-xs font-semibold transition-all shadow-sm"
+          >
+            Remove
+          </button>
+        </div>
+      </div>
+    </div>
+  ) : (
+    <button
+      type="button"
+      onClick={() => fileInputRef.current?.click()}
+      className="w-full h-56 md:h-64 flex flex-col items-center justify-center gap-3 p-6 rounded-2xl border-2 border-dashed border-gray-300 dark:border-slate-700 hover:border-orange-500 dark:hover:border-orange-500 bg-gray-50/50 dark:bg-slate-800/30 hover:bg-orange-50/30 dark:hover:bg-slate-800/60 transition-all group"
+    >
+      <div className="p-3.5 rounded-2xl bg-white dark:bg-slate-800 border border-gray-200/80 dark:border-slate-700 text-gray-400 group-hover:text-orange-500 group-hover:scale-110 shadow-sm transition-all">
+        <ImageIcon className="w-5 h-5" />
+      </div>
+      <div className="text-center">
+        <span className="block text-sm font-semibold text-gray-800 dark:text-slate-200">
+          Click to upload menu item image
+        </span>
+        <span className="block text-xs text-gray-400 dark:text-slate-500 mt-1">
+          JPG, PNG or WebP — up to 2MB
+        </span>
+      </div>
+    </button>
+  )}
 
+  <input
+    ref={fileInputRef}
+    type="file"
+    accept="image/*"
+    onChange={handleImageChange}
+    className="hidden"
+  />
+  {errors.image && (
+    <p className="text-xs text-red-500 mt-1.5">
+      {Array.isArray(errors.image) ? errors.image[0] : errors.image}
+    </p>
+  )}
+</div>
+
+<hr className="border-gray-100 dark:border-slate-800" />
+
+{/* Status & Options Toggles - Improved */}
+
+<div className="space-y-4">
+  {/* Section Header */}
+  <div>
+    <label className="block text-sm font-semibold text-gray-800 dark:text-slate-200">
+      Status & Visibility
+    </label>
+    <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+      Control how this menu item appears across your store
+    </p>
+  </div>
+
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+    {/* Active Status Toggle */}
+    <div className="relative p-4 rounded-xl border-2 transition-all duration-200  cursor-pointer bg-white dark:bg-slate-800/40 border-gray-200 dark:border-slate-700/80">
+      <label htmlFor="is_active" className="flex items-start gap-4 cursor-pointer">
+        <div className="relative flex items-center justify-center mt-0.5">
           <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleImageChange}
-            className="hidden"
+            type="checkbox"
+            id="is_active"
+            className="w-5 h-5 text-orange-500 rounded-md border-2 border-gray-300 dark:border-slate-600 cursor-pointer transition-all checked:border-orange-500 checked:bg-orange-500 hover:border-orange-400"
+            checked={formData.is_active !== false}
+            onChange={(e) => handleChange('is_active', e.target.checked)}
           />
-          {errors.image && (
-            <p className="text-xs text-red-500 mt-1.5">
-              {Array.isArray(errors.image) ? errors.image[0] : errors.image}
-            </p>
+          {formData.is_active !== false && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
           )}
         </div>
-
-        <hr className="border-gray-100 dark:border-slate-800" />
-
-        {/* Status */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-800 dark:text-slate-200 mb-2">
-            Status
-          </label>
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
-              Availability <span className="text-orange-500">*</span>
-            </label>
-            <div className="flex items-center gap-6 pt-1">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name="availability"
-                  checked={formData.is_available === true || formData.is_available === 'true' || formData.is_available === 1}
-                  onChange={() => handleChange('is_available', true)}
-                  className="w-4 h-4 text-orange-500 border-gray-300 dark:border-slate-600 focus:ring-orange-500 focus:ring-2"
-                />
-                <span className="text-sm text-gray-700 dark:text-slate-300">Available</span>
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name="availability"
-                  checked={formData.is_available === false || formData.is_available === 'false' || formData.is_available === 0}
-                  onChange={() => handleChange('is_available', false)}
-                  className="w-4 h-4 text-gray-500 border-gray-300 dark:border-slate-600 focus:ring-gray-400 focus:ring-2"
-                />
-                <span className="text-sm text-gray-700 dark:text-slate-300">Unavailable</span>
-              </label>
-            </div>
-            {errors.is_available && (
-              <p className="text-xs text-red-500 mt-1">
-                {Array.isArray(errors.is_available) ? errors.is_available[0] : errors.is_available}
-              </p>
-            )}
+        
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold text-gray-800 dark:text-slate-200 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
+              Active Menu Item
+            </span>
+            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium transition-colors ${
+              formData.is_active !== false
+                ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
+                : 'bg-gray-100 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400'
+            }`}>
+              {formData.is_active !== false ? 'Active' : 'Inactive'}
+            </span>
           </div>
+          <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5 leading-relaxed">
+            {formData.is_active !== false 
+              ? 'Visible to customers and available for ordering' 
+              : 'Hidden from customers and unavailable for ordering'}
+          </p>
         </div>
+      </label>
+    </div>
+
+    {/* Availability Toggle - Optional extra status */}
+    <div className="relative p-4 rounded-xl border-2 transition-all duration-200  cursor-pointer bg-white dark:bg-slate-800/40 border-gray-200 dark:border-slate-700/80">
+      <label htmlFor="is_available" className="flex items-start gap-4 cursor-pointer">
+        <div className="relative flex items-center justify-center mt-0.5">
+          <input
+            type="checkbox"
+            id="is_available"
+            className="w-5 h-5 text-orange-500 rounded-md border-2 border-gray-300 dark:border-slate-600 cursor-pointer transition-all checked:border-orange-500 checked:bg-orange-500 hover:border-orange-400"
+            checked={formData.is_available !== false}
+            onChange={(e) => handleChange('is_available', e.target.checked)}
+          />
+          {formData.is_available !== false && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+          )}
+        </div>
+        
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold text-gray-800 dark:text-slate-200 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
+              In Stock
+            </span>
+            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium transition-colors ${
+              formData.is_available !== false
+                ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
+                : 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300'
+            }`}>
+              {formData.is_available !== false ? 'Available' : 'Out of Stock'}
+            </span>
+          </div>
+          <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5 leading-relaxed">
+            {formData.is_available !== false 
+              ? 'Item is in stock and ready for purchase' 
+              : 'Item is currently out of stock'}
+          </p>
+        </div>
+      </label>
+    </div>
+  </div>
+
+  {errors.is_active && (
+    <p className="text-xs text-red-500 mt-1">
+      {Array.isArray(errors.is_active) ? errors.is_active[0] : errors.is_active}
+    </p>
+  )}
+</div>
       </div>
 
       {/* Action Footer */}

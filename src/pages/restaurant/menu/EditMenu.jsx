@@ -20,7 +20,8 @@ export default function EditMenu() {
     category_id: '',
     price: '',
     description: '',
-    is_available: true,
+    is_available:  false,
+     is_active:  false,
     image: null,
     modifier_groups: [],
   });
@@ -35,21 +36,24 @@ export default function EditMenu() {
         : [];
 
       setFormData({
-        name: data.name || '',
-        category_id: data.category_id || '',
+        name: data.name,
+        category_id: data.category_id,
         price: data.price ? String(data.price) : '',
-        description: data.description || '',
-        is_available: data.is_available ?? true,
+        description: data.description,
+        is_available: data.is_available,
         image: null,
         modifier_groups: groupIds,
+       is_active: Boolean(Number(data.is_active)),
       });
 
-      // Use the utility function for safe URL construction
+      // Set preview using the utility function
       if (data.image) {
         setImagePreview(getImageUrl(data.image));
+      } else {
+        setImagePreview(null);
       }
     } catch (err) {
-     toast.error(err.response?.data?.message);
+      toast.error(err.response?.data?.message);
     }
   }, [id]);
 
@@ -82,6 +86,7 @@ export default function EditMenu() {
       formDataToSend.append('price', parseFloat(formData.price) || 0);
       formDataToSend.append('description', formData.description?.trim() || '');
       formDataToSend.append('is_available', formData.is_available ? '1' : '0');
+      formDataToSend.append('is_active', formData.is_active ? '1' : '0');
 
       if (Array.isArray(formData.modifier_groups)) {
         formData.modifier_groups.forEach((groupId) => {
@@ -97,10 +102,10 @@ export default function EditMenu() {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
-      toast.success(response?.data?.message || 'Updated successfully');
+      toast.success(response?.data?.message);
       navigate('/menu-items');
     } catch (err) {
-      toast.error(err.response?.data?.message || 'An error occurred during save');
+      toast.error(err.response?.data?.message);
     } finally {
       setIsSubmitting(false);
     }
