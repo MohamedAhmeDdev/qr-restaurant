@@ -41,7 +41,8 @@ api.interceptors.response.use(
       localStorage.removeItem('active_restaurant_slug');
       delete api.defaults.headers.common['Authorization'];
 
-      window.location.href = '/login?expired=true';
+      // Redirect cleanly without query params
+      window.location.href = '/login';
     }
     return Promise.reject(error);
   }

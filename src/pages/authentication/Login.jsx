@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Eye, EyeOff, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../contexts/AuthContext';
 import TwoFactorAuthentication from './TwoFactorAuthentication';
@@ -8,7 +8,6 @@ import { getDefaultRouteForRole } from '../../utils/getDefaultRouteForRole';
 
 function Login() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const { login, setAuthSession } = useAuth();
 
   // Form & UI States
@@ -18,9 +17,6 @@ function Login() {
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [step, setStep] = useState('login'); // 'login' | '2fa'
-
-  // Extract session expired query param
-  const isExpired = searchParams.get('expired') === 'true';
 
   const validateForm = () => {
     const newErrors = {};
@@ -99,13 +95,6 @@ function Login() {
                     Sign in to manage your menu and orders.
                   </p>
                 </div>
-
-                {/* Session Expired Banner */}
-                {isExpired && !errors.general && (
-                  <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-medium flex items-center gap-2">
-                    <span>Your session has expired. Please log in again to continue.</span>
-                  </div>
-                )}
 
                 {errors.general && (
                   <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-medium flex items-center gap-2">
