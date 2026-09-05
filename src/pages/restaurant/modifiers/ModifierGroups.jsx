@@ -300,7 +300,7 @@ export default function ModifierGroups() {
           </div>
 
           <div className="flex justify-center">
-
+ {!loading && !error &&  group.length > 0 && (
             <Pagination
               currentPage={currentPage}
               totalPages={pagination.lastPage}
@@ -308,6 +308,7 @@ export default function ModifierGroups() {
               onPageChange={handlePageChange}
               maxVisible={5}
             />
+ )}
           </div>
         </>
       )}

@@ -283,7 +283,7 @@ export default function StaffPage() {
           }
         />
 
-        {!loading && !error && (
+        {!loading && !error && staffList.length > 0 && (
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}

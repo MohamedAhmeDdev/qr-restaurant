@@ -17,7 +17,8 @@ import {
   Tag,
   Plus,
   Building2,
-  Loader2
+  Loader2,
+  ImageIcon
 } from 'lucide-react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useRestaurant } from '../../../contexts/RestaurantContext';
@@ -32,7 +33,6 @@ const navigation = [
   { name: 'Modifiers', href: '/modifier-groups', icon: Layers },
   { name: 'Menus', href: '/menu-items', icon: UtensilsCrossed },
   { name: 'Live Orders', href: '/orders', icon: ShoppingCart },
-  { name: 'Analytics', href: '/analytics', icon: BarChart3 },
   { name: 'Settings', href: '/admin/settings', icon: Settings },
 ];
 
@@ -69,7 +69,6 @@ export default function AdminSidebar({ mobileOpen, setMobileOpen, collapsed, set
 
 
       .then((res) => {
-        console.log(res.data?.data);
         if (!cancelled) setRestaurantDetails(res.data?.data ?? res.data);
       })
       .catch((err) => {
@@ -221,7 +220,7 @@ export default function AdminSidebar({ mobileOpen, setMobileOpen, collapsed, set
             {/* Logo / Avatar */}
             <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-orange-50 dark:bg-orange-950 text-orange-600 dark:text-orange-400 shrink-0 overflow-hidden">
               {isLoadingDetails ? (
-                <div className="w-full h-full bg-orange-200/60 dark:bg-orange-900/60 animate-pulse rounded-xl" />
+                <ImageIcon className="w-5 h-5  text-orange-600 dark:text-orange-400" />
               ) : restaurantDetails?.logo ? (
                 <img
                   src={getImageUrl(restaurantDetails.logo)}
@@ -232,7 +231,7 @@ export default function AdminSidebar({ mobileOpen, setMobileOpen, collapsed, set
                   }}
                 />
               ) : (
-                <UtensilsCrossed className="w-5 h-5" />
+                 <ImageIcon className="w-5 h-5  text-orange-600 dark:text-orange-400" />
               )}
             </div>
 
@@ -282,60 +281,77 @@ export default function AdminSidebar({ mobileOpen, setMobileOpen, collapsed, set
             </button>
           </div>
 
-          {/* DROPDOWN MENU */}
-          {isRestaurantDropdownOpen && !collapsed && (
-            <div className="absolute top-full left-2 right-2 mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
-              {isLoading ? (
-                <div className="p-1 space-y-1">
-                  {[...Array(3)].map((_, i) => (
-                    <div key={i} className="flex items-center gap-2 px-3 py-2 animate-pulse">
-                      <div className="w-4 h-4 rounded bg-slate-200 dark:bg-slate-700 shrink-0" />
-                      <div
-                        className="h-3.5 rounded bg-slate-200 dark:bg-slate-700"
-                        style={{ width: `${60 + (i % 3) * 15}%` }}
-                      />
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <>
-                  <div className="p-1 max-h-56 overflow-y-auto space-y-0.5">
-                    {restaurants.length === 0 ? (
-                      <div className="px-3 py-4 text-xs text-center text-slate-500 dark:text-slate-400">
-                        No active restaurants
-                      </div>
-                    ) : (
-                      restaurants.map((res) => (
-                        <button
-                          key={res.id}
-                          onClick={() => handleSwitchRestaurant(res)}
-                          className={`w-full flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-lg transition-colors ${activeRestaurant?.id === res.id
-                              ? 'bg-orange-50 dark:bg-orange-950/50 text-orange-600 dark:text-orange-400'
-                              : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50'
-                            }`}
-                        >
-                          <Building2 className="w-4 h-4 shrink-0 opacity-70" />
-                          <span className="truncate flex-1 text-left">
-                            {res.name}
-                          </span>
-                        </button>
-                      ))
-                    )}
-                  </div>
-
-                  <div className="p-1 border-t border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50">
-                    <button
-                      onClick={handleAddRestaurant}
-                      className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-950/50 rounded-lg transition-colors"
-                    >
-                      <Plus className="w-4 h-4" />
-                      <span>Add Restaurant</span>
-                    </button>
-                  </div>
-                </>
-              )}
+      {/* DROPDOWN MENU */}
+{isRestaurantDropdownOpen && !collapsed && (
+  <div className="absolute top-full left-2 right-2 mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
+    {isLoading ? (
+      <div className="p-1 space-y-1">
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="flex items-center gap-2 px-3 py-2 animate-pulse">
+            <div className="w-4 h-4 rounded bg-slate-200 dark:bg-slate-700 shrink-0" />
+            <div
+              className="h-3.5 rounded bg-slate-200 dark:bg-slate-700"
+              style={{ width: `${60 + (i % 3) * 15}%` }}
+            />
+          </div>
+        ))}
+      </div>
+    ) : (
+      <>
+        <div className="p-1 max-h-56 overflow-y-auto space-y-0.5">
+          {restaurants.length === 0 ? (
+            <div className="px-3 py-4 text-xs text-center text-slate-500 dark:text-slate-400">
+              No active restaurants
             </div>
+          ) : (
+            restaurants.map((res) => (
+              <button
+                key={res.id}
+                onClick={() => handleSwitchRestaurant(res)}
+                className={`w-full flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-lg transition-colors ${
+                  activeRestaurant?.id === res.id
+                    ? 'bg-orange-50 dark:bg-orange-950/50 text-orange-600 dark:text-orange-400'
+                    : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50'
+                }`}
+              >
+                <Building2 className="w-4 h-4 shrink-0 opacity-70" />
+                <span className="truncate flex-1 text-left">
+                  {res.name}
+                </span>
+              </button>
+            ))
           )}
+        </div>
+
+        {/* Action Buttons - Side by Side */}
+        <div className="p-1 border-t border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50">
+          <div className="grid grid-cols-2 gap-1">
+            {/* View All Restaurants Button */}
+            <button
+              onClick={() => {
+                setIsRestaurantDropdownOpen(false);
+                navigate('/restaurant');
+              }}
+              className="flex items-center justify-center gap-1.5 px-2 py-2 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/50 rounded-lg transition-colors"
+            >
+              <Layers className="w-3.5 h-3.5" />
+              <span>View All</span>
+            </button>
+            
+            {/* Add Restaurant Button */}
+            <button
+              onClick={handleAddRestaurant}
+              className="flex items-center justify-center gap-1.5 px-2 py-2 text-xs font-semibold text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-950/50 rounded-lg transition-colors"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Add New</span>
+            </button>
+          </div>
+        </div>
+      </>
+    )}
+  </div>
+)}
         </div>
 
         {/* NAVIGATION LINKS */}

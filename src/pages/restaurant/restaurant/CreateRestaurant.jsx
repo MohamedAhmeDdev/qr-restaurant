@@ -77,7 +77,7 @@ const validate = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100/50 to-gray-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 p-6 md:p-10 transition-colors">
-      <div className="max-w-2xl mx-auto mb-8 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto mb-8 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <button
             onClick={handleCancel}
@@ -97,7 +97,7 @@ const validate = () => {
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto">
+      <div className="mx-auto">
         <RestaurantForm
           formData={formData}
           setFormData={setFormData}
