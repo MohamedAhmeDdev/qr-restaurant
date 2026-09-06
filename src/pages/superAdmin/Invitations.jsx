@@ -7,8 +7,9 @@ import {
   RotateCw,
   Send,
   Users,
-  User, // Added for invited by icon
-  Calendar
+  User,
+  Calendar,
+  Trash2
 } from 'lucide-react';
 import RestaurantInviteModal from '../../components/modal/RestaurantInviteModal';
 import StatsCard from '../../components/cards/StatsCard';
@@ -17,6 +18,7 @@ import Table from '../../components/Table';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
 import { formatDate } from '../../utils/formatDate';
+import ConfirmationModal from '../../components/common/ConfirmationModal';
 
 export default function Invitations() {
   const [invitations, setInvitations] = useState([]);
@@ -29,8 +31,12 @@ export default function Invitations() {
   const [inviteResult, setInviteResult] = useState(null);
   const [isSending, setIsSending] = useState(false);
   
-  // New state for resend functionality
-  const [resendTarget, setResendTarget] = useState(null); // Stores the invitation being resent
+  // Resend state
+  const [resendTarget, setResendTarget] = useState(null);
+
+  // Delete modal states
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Fetch invitations on mount
   const fetchInvitations = useCallback(async () => {
@@ -51,31 +57,28 @@ export default function Invitations() {
     fetchInvitations();
   }, [fetchInvitations]);
 
-  // Send New Invitation Handler
+  // Send / Resend New Invitation Handler
   const handleSendInvite = async (email) => {
     try {
       setIsSending(true);
       setInviteResult(null);
       
       let response;
-      
-      // Check if we're resending or sending new
       if (resendTarget) {
-        // Resend existing invitation
         response = await api.post('/invitations/resend', { 
           id: resendTarget.id, 
           email: email 
         });
       } else {
-        // Send new invitation
         response = await api.post('/invitations/send', { email });
       }
       
       toast.success(response.data.message);
       
-      // Close modal and fetch updated data
       setIsInviteModalOpen(false);
-      setResendTarget(null); // Clear resend target
+      setResendTarget(null);
+
+      // Refresh background data to ensure state synchronization
       fetchInvitations();
     } catch (err) {
       toast.error(err.response?.data?.message);
@@ -91,23 +94,22 @@ export default function Invitations() {
     setIsInviteModalOpen(true);
   };
 
-  // Resend Existing Invitation Handler (alternative with confirmation)
-  const handleResendWithConfirm = async (invitation) => {
-    const targetEmail = invitation.email;
-    if (!window.confirm(`Resend invitation to ${targetEmail}?`)) return;
+  // Delete Invitation Handler with Optimistic UI update
+  const handleDeleteInvitation = async () => {
+    if (!deleteTarget) return;
 
     try {
-      setResendingId(invitation.id);
-      const response = await api.post('/invitations/resend', { 
-        id: invitation.id, 
-        email: targetEmail 
-      });
+      setIsDeleting(true);
+      const response = await api.delete(`/invitations/${deleteTarget.id}`);
       toast.success(response.data.message);
-      fetchInvitations();
+
+      // Update state in-memory to prevent full re-fetching / page reloading
+      setInvitations((prev) => prev.filter((item) => item.id !== deleteTarget.id));
+      setDeleteTarget(null);
     } catch (err) {
       toast.error(err.response?.data?.message);
     } finally {
-      setResendingId(null);
+      setIsDeleting(false);
     }
   };
 
@@ -151,100 +153,106 @@ export default function Invitations() {
   const columns = [
     { label: 'Recipient', align: 'left' },
     { label: 'Organization', align: 'left' },
-    { label: 'Invited By', align: 'left' }, // New column
+    { label: 'Invited By', align: 'left' },
     { label: 'Status', align: 'left' },
     { label: 'Actions', align: 'right' }
   ];
 
-const renderRow = (item, idx) => {
-  const isResending = resendingId === item.id;
-  const isAccepted = Boolean(item.accepted_at);
+  const renderRow = (item, idx) => {
+    const isResending = resendingId === item.id;
+    const isAccepted = Boolean(item.accepted_at);
 
-  const invitedByName = item.invited_by?.name;
-  const invitedByEmail = item.invited_by?.email;
+    const invitedByName = item.invited_by?.name;
+    const invitedByEmail = item.invited_by?.email;
 
-  return (
-    <tr 
-      key={item.id} 
-      className={`hover:bg-gray-50 dark:hover:bg-slate-800/60 transition-colors duration-200 ${
-        idx !== filteredInvitations.length - 1 ? 'border-b border-gray-100 dark:border-slate-800' : ''
-      }`}
-    >
-      <td className="px-6 py-4">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center text-white font-bold text-xs shrink-0 shadow-sm">
-            {getInitials(item.name, item.email)}
-          </div>
-          <div>
-            <p className="font-medium text-gray-900 dark:text-slate-100 transition-colors duration-200">
-              {item.name || 'Invited User'}
-            </p>
-            <p className="text-xs text-gray-500 dark:text-slate-400 flex items-center gap-1 transition-colors duration-200">
-              <Mail className="w-3 h-3" /> {item.email}
-            </p>
-          </div>
-        </div>
-      </td>
-
-      <td className="px-6 py-4 text-xs font-medium text-gray-600 dark:text-slate-300 transition-colors duration-200">
-        <div className="flex items-center gap-1.5">
-          <Building2 className="w-3.5 h-3.5 text-gray-400 dark:text-slate-500 transition-colors duration-200" />
-          {item.organization?.name || item.organization || 'N/A'}
-        </div>
-      </td>
-
-      <td className="px-6 py-4 text-xs font-medium text-gray-600 dark:text-slate-300 transition-colors duration-200">
-        <div className="flex items-center gap-1.5">
-          <User className="w-3.5 h-3.5 text-gray-400 dark:text-slate-500 transition-colors duration-200" />
-          <div>
-            <p className="font-medium text-gray-900 dark:text-slate-100">
-              {invitedByName}
-            </p>
-            {invitedByEmail && (
-              <p className="text-xs text-gray-500 dark:text-slate-400 flex items-center gap-1">
-                <Mail className="w-3 h-3" /> {invitedByEmail}
+    return (
+      <tr 
+        key={item.id} 
+        className={`hover:bg-gray-50 dark:hover:bg-slate-800/60 transition-colors duration-200 ${
+          idx !== filteredInvitations.length - 1 ? 'border-b border-gray-100 dark:border-slate-800' : ''
+        }`}
+      >
+        <td className="px-6 py-4">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center text-white font-bold text-xs shrink-0 shadow-sm">
+              {getInitials(item.name, item.email)}
+            </div>
+            <div>
+              <p className="font-medium text-gray-900 dark:text-slate-100 transition-colors duration-200">
+                {item.name || 'Invited User'}
               </p>
-            )}
+              <p className="text-xs text-gray-500 dark:text-slate-400 flex items-center gap-1 transition-colors duration-200">
+                <Mail className="w-3 h-3" /> {item.email}
+              </p>
+            </div>
           </div>
-        </div>
-      </td>
+        </td>
 
-      {/* Dynamic Status Display */}
-      <td className="px-6 py-4">
-        {isAccepted ? (
-          <div className="flex items-center gap-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
-            <Calendar className="w-3.5 h-3.5" />
-            <span>{formatDate(item.accepted_at)}</span>
+        <td className="px-6 py-4 text-xs font-medium text-gray-600 dark:text-slate-300 transition-colors duration-200">
+          <div className="flex items-center gap-1.5">
+            <Building2 className="w-3.5 h-3.5 text-gray-400 dark:text-slate-500 transition-colors duration-200" />
+            {item.organization?.name || item.organization || 'N/A'}
           </div>
-        ) : (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
-            Pending
-          </span>
-        )}
-      </td>
+        </td>
 
-      {/* Actions: Hide button if accepted */}
-      <td className="px-6 py-4 text-right">
-        <div className="flex items-center justify-end gap-2">
-          {!isAccepted && (
-            <button
-              onClick={() => handleResendInvitation(item)}
-              disabled={isResending}
-              title="Resend Invitation"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/50 rounded-lg transition-colors duration-200 disabled:opacity-50"
-            >
-              <RotateCw className={`w-3.5 h-3.5 ${isResending ? 'animate-spin' : ''}`} />
-              <span>Resend Invitation</span>
-            </button>
+        <td className="px-6 py-4 text-xs font-medium text-gray-600 dark:text-slate-300 transition-colors duration-200">
+          <div className="flex items-center gap-1.5">
+            <User className="w-3.5 h-3.5 text-gray-400 dark:text-slate-500 transition-colors duration-200" />
+            <div>
+              <p className="font-medium text-gray-900 dark:text-slate-100">
+                {invitedByName}
+              </p>
+              {invitedByEmail && (
+                <p className="text-xs text-gray-500 dark:text-slate-400 flex items-center gap-1">
+                  <Mail className="w-3 h-3" /> {invitedByEmail}
+                </p>
+              )}
+            </div>
+          </div>
+        </td>
+
+        {/* Dynamic Status Display */}
+        <td className="px-6 py-4">
+          {isAccepted ? (
+            <div className="flex items-center gap-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+              <Calendar className="w-3.5 h-3.5" />
+              <span>{formatDate(item.accepted_at)}</span>
+            </div>
+          ) : (
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
+              Pending
+            </span>
           )}
-        </div>
-      </td>
-    </tr>
-  );
-};
+        </td>
 
-  // Get modal title and description based on context
-  const getModalConfig = () => {
+        {/* Actions */}
+        <td className="px-6 py-4 text-right">
+          <div className="flex items-center justify-end gap-1.5">
+            {!isAccepted && (
+              <button
+                onClick={() => handleResendInvitation(item)}
+                disabled={isResending}
+                title="Resend Invitation"
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/50 rounded-lg transition-colors duration-200 disabled:opacity-50"
+              >
+                <RotateCw className={`w-3.5 h-3.5 ${isResending ? 'animate-spin' : ''}`} />
+                <span>Resend</span>
+              </button>
+            )}
+            <button
+              onClick={() => setDeleteTarget(item)}
+              title="Delete Invitation"
+              className="p-1.5 text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg transition-colors duration-200"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
+        </td>
+      </tr>
+    );
+  };
+
+  const modalConfig = useMemo(() => {
     if (resendTarget) {
       return {
         title: 'Resend Invitation',
@@ -257,9 +265,7 @@ const renderRow = (item, idx) => {
       description: 'Send an onboarding registration link to a new manager.',
       buttonText: 'Send Invitation'
     };
-  };
-
-  const modalConfig = getModalConfig();
+  }, [resendTarget]);
 
   return (
     <div className="p-2 sm:p-4 space-y-6 bg-gray-50 dark:bg-slate-950 min-h-screen text-gray-900 dark:text-slate-100 transition-colors duration-200">
@@ -280,7 +286,7 @@ const renderRow = (item, idx) => {
 
         <button
           onClick={() => {
-            setResendTarget(null); // Clear any resend target
+            setResendTarget(null);
             setInviteResult(null);
             setIsInviteModalOpen(true);
           }}
@@ -344,16 +350,36 @@ const renderRow = (item, idx) => {
         isOpen={isInviteModalOpen}
         onClose={() => {
           setIsInviteModalOpen(false);
-          setResendTarget(null); // Clear resend target when closing
+          setResendTarget(null);
         }}
         onSendInvite={handleSendInvite}
         inviteData={inviteResult}
         isSending={isSending}
-        // Pass context to modal for customization
         isResend={!!resendTarget}
         resendEmail={resendTarget?.email}
         modalConfig={modalConfig}
       />
+
+
+      <ConfirmationModal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDeleteInvitation}
+        isLoading={isDeleting}
+        title="Delete Invitation"
+      
+        message={ 
+         <>
+            Are you sure you want to delete the{' '}
+            <span className="font-bold text-slate-900 dark:text-slate-200">
+              ${deleteTarget?.email}
+            </span>{' '}
+            invitation? This action cannot be undone.
+          </>
+          }
+        confirmText="Delete Invitation"
+        cancelText="Cancel"
+      />
     </div>
-  );
+  ); 
 }
