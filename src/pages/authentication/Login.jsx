@@ -53,7 +53,7 @@ function Login() {
         const defaultPath = getDefaultRouteForRole(result.user?.role);
         navigate(defaultPath, { replace: true });
       } else {
-        setErrors({ general: result?.error || 'Invalid email or password.' });
+        setErrors({ general: result?.error});
       }
     } catch (error) {
       setErrors({ general: 'An unexpected error occurred.' });
