@@ -24,6 +24,7 @@ import ForgotPassword from './pages/authentication/ForgotPassword';
 import ResetPassword from './pages/authentication/ResetPassword';
 import Register from './pages/authentication/Register';
 import { RestaurantProvider } from './contexts/RestaurantContext';
+import RestoreOrganizations from './pages/authentication/RestoreOrganizations';
 
 const router = createBrowserRouter([
   // 1. PUBLIC STAFF AUTHENTICATION ROUTES (No login required)
@@ -31,6 +32,7 @@ const router = createBrowserRouter([
   { path: '/forgot-password', element: <ForgotPassword /> },
   { path: '/reset-password', element: <ResetPassword /> },
   { path: '/register', element: <Register /> },
+  { path: '/organizations/restore', element: <RestoreOrganizations /> },
 
   // 2. PROTECTED ADMIN & STAFF MODULES (Auth Guards handle these internally)
   SuperAdminRoutes,
