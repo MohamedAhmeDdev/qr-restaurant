@@ -188,6 +188,7 @@ export default function StaffPage() {
           <StatusBadge status={staff.status} />
         </td>
         <td className="px-6 py-4 text-right">
+         {staff.role?.name !== 'manager' && (
           <div className="flex items-center justify-end gap-1">
             <Link
               to={`/staff/edit/${staff.id}`}
@@ -204,6 +205,7 @@ export default function StaffPage() {
               <Trash2 className="w-4 h-4" />
             </button>
           </div>
+            )}
         </td>
       </tr>
     );

@@ -15,9 +15,14 @@ export default function StaffForm({
 }) {
   const [roles, setRoles] = useState([]);
 
-  useEffect(() => {
+useEffect(() => {
     RoleService.getRoles()
-      .then(fetchedRoles => setRoles(fetchedRoles))
+      .then(fetchedRoles => {
+        const filteredRoles = fetchedRoles.filter(
+          role => role.name.toLowerCase() !== 'manager'
+        );
+        setRoles(filteredRoles);
+      })
       .catch(err => console.error('Error loading roles into form:', err));
   }, []);
 
