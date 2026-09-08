@@ -1,46 +1,42 @@
 import React, { useState } from 'react';
-import { User, Lock, Globe, ChevronRight } from 'lucide-react';
+import { User, Lock, Globe } from 'lucide-react';
 import ProfileTab from '../Tabs/ProfileTab';
 import SecurityTab from '../Tabs/SecurityTab';
 import PreferencesTab from '../Tabs/PreferencesTab';
 import SettingsSidebar from './SettingsSidebar';
+import { useAuth } from '../../../contexts/AuthContext';
 
 const TABS = [
-  { id: 'profile', label: 'Profile', icon: User, blurb: 'Photo & contact info' },
-  { id: 'security', label: 'Security & Auth', icon: Lock, blurb: 'Password & 2FA' },
-  { id: 'preferences', label: 'Preferences', icon: Globe, blurb: 'Appearance' },
+  { id: 'profile', label: 'Public profile', icon: User, category: 'Account Settings' },
+  { id: 'security', label: 'Password and authentication', icon: Lock, category: 'Account Settings' },
+  { id: 'preferences', label: 'Appearance', icon: Globe, category: 'Account Settings' },
 ];
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('profile');
-  const activeMeta = TABS.find((t) => t.id === activeTab);
+  const { user } = useAuth();
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 transition-colors duration-200">
-      <div className="p-2 sm:p-4 max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen bg-white dark:bg-slate-950 text-gray-900 dark:text-slate-100 transition-colors duration-200">
+      <div className="max-w-6xl mx-auto px-4 py-8">
         
-        {/* HEADER */}
-        <div className="flex items-center justify-between border-b border-gray-200 dark:border-slate-800 pb-5 transition-colors duration-200">
-          <div>
-            <p className="text-[11px] font-semibold tracking-wider uppercase text-orange-500 mb-1">
-              Settings
-            </p>
-            <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white transition-colors duration-200">
-              Account Settings
-            </h1>
-            <p className="text-sm text-gray-500 dark:text-slate-400 mt-1 transition-colors duration-200">
-              Manage your account credentials, security options, and theme preferences.
-            </p>
+        {/* TOP USER HEADER */}
+        <div className="flex items-center gap-3 pb-6 mb-6 border-b border-gray-200 dark:border-slate-800">
+          <div className="w-10 h-10 rounded-full bg-orange-500 text-white font-bold flex items-center justify-center text-lg shadow-sm">
+            {user?.name?.[0]?.toUpperCase() || 'U'}
           </div>
-          <div className="hidden sm:flex items-center gap-1.5 text-xs text-gray-400 dark:text-slate-500 transition-colors duration-200">
-            <span>Settings</span>
-            <ChevronRight className="w-3 h-3" />
-            <span className="text-gray-600 dark:text-slate-300 font-medium transition-colors duration-200">{activeMeta?.label}</span>
+          <div>
+            <h1 className="text-lg font-semibold leading-tight text-gray-900 dark:text-white">
+              {user?.name || 'User Account'}
+            </h1>
+            <p className="text-xs text-gray-500 dark:text-slate-400">
+              Your personal account
+            </p>
           </div>
         </div>
 
-        {/* HORIZONTAL TABS (Mobile & Tablet < lg) */}
-        <div className="flex lg:hidden border-b border-gray-200 dark:border-slate-800 space-x-2 overflow-x-auto pb-1 scrollbar-none transition-colors duration-200">
+        {/* MOBILE TABS */}
+        <div className="flex lg:hidden border-b border-gray-200 dark:border-slate-800 space-x-2 overflow-x-auto pb-2 mb-6 scrollbar-none">
           {TABS.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -48,27 +44,27 @@ export default function SettingsPage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors duration-200 whitespace-nowrap rounded-t-lg ${
+                className={`flex items-center gap-2 px-3 py-1.5 text-sm font-medium transition-colors whitespace-nowrap rounded-md ${
                   isActive
-                    ? 'border-orange-500 text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-950'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-800'
+                    ? 'bg-orange-500/10 text-orange-600 dark:text-orange-400'
+                    : 'text-gray-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800'
                 }`}
               >
-                <Icon className={`w-4 h-4 transition-colors duration-200 ${isActive ? 'text-orange-500' : 'text-gray-400 dark:text-slate-500'}`} />
+                <Icon className="w-4 h-4" />
                 <span>{tab.label}</span>
               </button>
             );
           })}
         </div>
 
-        {/* MAIN LAYOUT */}
+        {/* MAIN LAYOUT GRID */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* VERTICAL SIDEBAR (Desktop >= lg) */}
+          {/* SIDEBAR */}
           <div className="hidden lg:block">
             <SettingsSidebar tabs={TABS} activeTab={activeTab} setActiveTab={setActiveTab} />
           </div>
 
-          {/* TAB CONTENT PANEL */}
+          {/* MAIN CONTENT AREA */}
           <main className="lg:col-span-3">
             {activeTab === 'profile' && <ProfileTab />}
             {activeTab === 'security' && <SecurityTab />}

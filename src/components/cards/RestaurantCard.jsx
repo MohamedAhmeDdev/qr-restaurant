@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import {
     MoreVertical, Edit, Trash2, RotateCcw,
     ArrowRight, Power, CheckCircle, XCircle, Loader2, Building2,
-    Globe, Calendar, Activity, ChefHat, ImageIcon
+    Globe, Calendar, Activity, ChefHat
 } from 'lucide-react';
 import StatusBadge from '../StatusBadge';
 import { formatDate } from '../../utils/formatDate';
@@ -33,15 +33,15 @@ export default function RestaurantCard({
         <div
             key={restaurant.id}
             className={`
-                      group relative rounded-2xl border p-4 transition-all duration-300 flex flex-col gap-3 outline-none
-                      ${restaurant.isTrashed
+                group/card relative rounded-2xl border p-4 transition-all duration-300 flex flex-col gap-3 outline-none
+                ${restaurant.isTrashed
                     ? 'border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30 opacity-75'
                     : isActiveWorkspace
                         ? 'border-orange-400 dark:border-orange-500/60 bg-gradient-to-br from-orange-50/50 to-white dark:from-orange-950/20 dark:to-slate-900 ring-2 ring-orange-500/20 shadow-xl shadow-orange-500/10'
-                        : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-orange-300 dark:hover:border-orange-700 hover:shadow-xl hover:shadow-slate-200/50 dark:hover:shadow-none'
+                        : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-orange-400 dark:hover:border-orange-500/60 hover:shadow-xl hover:shadow-slate-200/50 dark:hover:shadow-none'
                 }
-                      ${isSwitchingThis || isBusy ? 'opacity-60 pointer-events-none' : ''}
-                    `}
+                ${isSwitchingThis || isBusy ? 'opacity-60 pointer-events-none' : ''}
+            `}
         >
             {/* Card Header */}
             <div className="flex items-center justify-between gap-2">
@@ -203,7 +203,7 @@ export default function RestaurantCard({
                                 ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed shadow-none'
                                 : isActiveWorkspace
                                 ? 'bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg shadow-orange-500/25 hover:shadow-xl hover:shadow-orange-500/30 active:scale-[0.98]'
-                                : 'bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-white text-white dark:text-slate-900 shadow-md hover:shadow-lg active:scale-[0.98]'
+                                : 'bg-slate-900 group-hover/card:bg-orange-500 dark:bg-slate-100 dark:group-hover/card:bg-orange-500 text-white dark:text-slate-900 dark:group-hover/card:text-white shadow-md group-hover/card:shadow-lg group-hover/card:shadow-orange-500/25 active:scale-[0.98]'
                         }`}
                         title={!isRestaurantActive ? 'Cannot switch to a deactivated restaurant' : ''}
                     >

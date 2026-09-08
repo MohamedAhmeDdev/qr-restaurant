@@ -16,7 +16,7 @@ const PermissionsPage = lazy(() => import('../../superAdmin/permission/Permissio
 const CreatePermission = lazy(() => import('../../superAdmin/permission/CreatePermission'));
 const EditPermission = lazy(() => import('../../superAdmin/permission/EditPermission'));
 const AssignPermissions = lazy(() => import('../../superAdmin/roles/AssignPermissions'));
-const SuperAdminSettings = lazy(() => import('../../settings/settings/SuperAdminSettings'));
+const SuperAdminSettings = lazy(() => import('../../settings/Layout/SettingsPage'));
 
 export const SuperAdminRoutes = {
   path: '/',
