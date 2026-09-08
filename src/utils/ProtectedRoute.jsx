@@ -9,7 +9,7 @@ export const ProtectedRoute = ({ allowedRoles }) => {
   const location = useLocation();
 
   if (loading) {
-    return <LoadingScreen label="Verifying access" />;
+    return <LoadingScreen label="Loading" />;
   }
 
   if (!isAuthenticated || !user) {

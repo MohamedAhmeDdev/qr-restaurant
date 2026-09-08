@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../services/api';
 import { getDefaultRouteForRole } from '../../utils/getDefaultRouteForRole';
+import LoadingScreen from '../../components/LoadingScreen';
 
 function Register() {
   const [searchParams] = useSearchParams();
@@ -155,10 +156,7 @@ function Register() {
 
   if (isVerifyingToken) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white space-y-3">
-        <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
-        <p className="text-xs text-slate-400">Verifying invitation link...</p>
-      </div>
+    <LoadingScreen label='Verifying invitation link...' />
     );
   }
 
