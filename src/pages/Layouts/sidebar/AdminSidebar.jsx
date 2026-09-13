@@ -33,6 +33,7 @@ const navigation = [
   { name: 'Modifiers', href: '/modifier-groups', icon: Layers },
   { name: 'Menus', href: '/menu-items', icon: UtensilsCrossed },
   { name: 'Live Orders', href: '/orders', icon: ShoppingCart },
+  { name: 'Sales', href: '/sales', icon: BarChart3 },
   { name: 'Settings', href: '/admin/settings', icon: Settings },
 ];
 
