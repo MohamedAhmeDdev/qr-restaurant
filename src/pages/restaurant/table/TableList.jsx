@@ -26,7 +26,8 @@ export default function TableList() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
-  const [paginationMeta, setPaginationMeta] = useState({ total: 0, lastPage: 1 });
+  const [lastPage, setLastPage] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
 
   // Per-item Action Loading State
   const [actionLoadingId, setActionLoadingId] = useState(null);
@@ -43,23 +44,28 @@ export default function TableList() {
   const fetchTables = useCallback(async () => {
     setLoading(true);
     setError(null);
+
+    const params = {
+      page: currentPage,
+      per_page: 15,
+    };
+
+    if (searchQuery.trim() !== '') {
+      params.search = searchQuery.trim();
+    }
+
+    if (statusFilter !== 'all') {
+      params.status = statusFilter;
+    }
+
     try {
-      const params = {
-        page: currentPage,
-        per_page: 15,
-      };
-
-      if (searchQuery) params.search = searchQuery;
-      if (statusFilter !== 'all') params.status = statusFilter;
-
       const response = await api.get('/tables', { params });
-
       const paginatedData = response.data.data;
-      setTables(paginatedData.data || []);
-      setPaginationMeta({
-        total: paginatedData.total || 0,
-        lastPage: paginatedData.last_page || 1
-      });
+
+      setTables(paginatedData.data);
+      setCurrentPage(paginatedData.current_page || 1);
+      setLastPage(paginatedData.last_page || 1);
+      setTotalItems(paginatedData.total || 0);
 
     } catch (err) {
       setError(err.response?.data?.message);
@@ -80,6 +86,12 @@ export default function TableList() {
   const handleFilterChange = (status) => {
     setStatusFilter(status);
     setCurrentPage(1);
+  };
+
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= lastPage) {
+      setCurrentPage(newPage);
+    }
   };
 
   // Direct client-side download without extra API request
@@ -196,7 +208,7 @@ export default function TableList() {
       <div className="grid grid-cols-2 md:grid-cols-2 gap-4">
         <StatsCard
           label="Total"
-          value={loading ? '...' : paginationMeta.total}
+          value={loading ? '...' : totalItems}
           valueColor="text-orange-600 dark:text-orange-400"
         />
         <StatsCard
@@ -337,14 +349,14 @@ export default function TableList() {
                         <Link to={`/table/edit/${table.id}`} onClick={(e) => e.stopPropagation()}>
                           <button
                           className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg text-gray-500 hover:text-blue-600 transition-colors inline-block"
-              title="Edit"
+                          title="Edit"
                           >
                             <Edit className="w-4 h-4" />
                           </button>
                         </Link>
                         <button
                           onClick={(e) => openDeleteModal(e, table)}
-              className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-gray-500 hover:text-red-600 transition-colors cursor-pointer"
+                          className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-gray-500 hover:text-red-600 transition-colors cursor-pointer"
                           title="Remove"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -432,9 +444,9 @@ export default function TableList() {
         <div className="flex justify-center">
           <Pagination
             currentPage={currentPage}
-            totalPages={paginationMeta.lastPage}
-            totalRecords={paginationMeta.total}
-            onPageChange={setCurrentPage}
+            totalPages={lastPage}
+            totalRecords={totalItems}
+            onPageChange={handlePageChange}
             maxVisible={5}
           />
         </div>

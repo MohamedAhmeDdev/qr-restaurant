@@ -17,14 +17,12 @@ import { useFormatPrice } from '../../../contexts/useFormatPrice';
 export default function ModifierGroups() {
   const [groups, setGroups] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
-  const [pagination, setPagination] = useState({
-    currentPage: 1,
-    lastPage: 1,
-    total: 0,
-    from: 0,
-    to: 0,
-  });
+  const [lastPage, setLastPage] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  
   const formatPrice = useFormatPrice();
 
   const [loading, setLoading] = useState(true);
@@ -35,46 +33,41 @@ export default function ModifierGroups() {
   const [groupToDelete, setGroupToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Fetch Modifier Groups from Backend API
-  const fetchModifierGroups = useCallback(async (page = 1) => {
+  // Fetch Modifier Groups from Backend API (Unified Pagination Pattern)
+  const fetchModifierGroups = useCallback(async () => {
     setLoading(true);
     setError(null);
+
+    const params = {
+      page: currentPage,
+      per_page: 15,
+    };
+
+    if (searchQuery.trim() !== '') {
+      params.search = searchQuery.trim();
+    }
+
     try {
-      const response = await api.get('/modifier-groups', {
-        params: {
-          search: searchQuery || undefined,
-          page: page,
-          per_page: 15,
-        },
-      });
+      const response = await api.get('/modifier-groups', { params });
+      const paginatedData = response.data.data;
 
-      const responseData = response.data?.data || {};
-
-      if (Array.isArray(responseData)) {
-        setGroups(responseData);
-        setPagination({
-          currentPage: 1,
-          lastPage: 1,
-          total: responseData.length,
-          from: 1,
-          to: responseData.length
-        });
+      if (Array.isArray(paginatedData)) {
+        setGroups(paginatedData);
+        setCurrentPage(1);
+        setLastPage(1);
+        setTotalItems(paginatedData.length);
       } else {
-        setGroups(responseData.data || []);
-        setPagination({
-          currentPage: responseData.current_page || 1,
-          lastPage: responseData.last_page || 1,
-          total: responseData.total || 0,
-          from: responseData.from || 0,
-          to: responseData.to || 0,
-        });
+        setGroups(paginatedData.data);
+        setCurrentPage(paginatedData.current_page || 1);
+        setLastPage(paginatedData.last_page || 1);
+        setTotalItems(paginatedData.total || 0);
       }
     } catch (err) {
       setError(err.response?.data?.message);
     } finally {
       setLoading(false);
     }
-  }, [searchQuery]);
+  }, [currentPage, searchQuery]);
 
   const handleSearchChange = (query) => {
     setSearchQuery(query);
@@ -83,16 +76,15 @@ export default function ModifierGroups() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      fetchModifierGroups(currentPage);
+      fetchModifierGroups();
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [fetchModifierGroups, currentPage]);
+  }, [fetchModifierGroups]);
 
   const handlePageChange = (newPage) => {
-    if (newPage >= 1 && newPage <= pagination.lastPage && newPage !== currentPage) {
+    if (newPage >= 1 && newPage <= lastPage) {
       setCurrentPage(newPage);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
@@ -111,7 +103,7 @@ export default function ModifierGroups() {
       toast.success(response?.data?.message);
       setIsDeleteModalOpen(false);
       setGroupToDelete(null);
-      fetchModifierGroups(currentPage);
+      fetchModifierGroups();
     } catch (err) {
       toast.error(err.response?.data?.message);
     } finally {
@@ -281,7 +273,7 @@ export default function ModifierGroups() {
                     <Link
                       to={`/modifier-groups/edit/${group.id}`}
                      className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg text-gray-500 hover:text-blue-600 transition-colors inline-block"
-              title="Edit"
+                     title="Edit"
                     >
                       <Edit className="w-4 h-4" />
                     </Link>
@@ -289,7 +281,7 @@ export default function ModifierGroups() {
                       type="button"
                       onClick={() => handleOpenDeleteModal(group)}
                      className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-gray-500 hover:text-red-600 transition-colors cursor-pointer"
-              title="Remove"
+                     title="Remove"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -300,15 +292,15 @@ export default function ModifierGroups() {
           </div>
 
           <div className="flex justify-center">
- {!loading && !error &&  group.length > 0 && (
-            <Pagination
-              currentPage={currentPage}
-              totalPages={pagination.lastPage}
-              totalRecords={pagination.total}
-              onPageChange={handlePageChange}
-              maxVisible={5}
-            />
- )}
+            {!loading && !error && groups.length > 0 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={lastPage}
+                totalRecords={totalItems}
+                onPageChange={handlePageChange}
+                maxVisible={5}
+              />
+            )}
           </div>
         </>
       )}

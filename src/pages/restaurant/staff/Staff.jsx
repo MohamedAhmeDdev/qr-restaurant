@@ -29,9 +29,8 @@ export default function StaffPage() {
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(15);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalRecords, setTotalRecords] = useState(0);
+  const [lastPage, setLastPage] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
 
   // Statistics State
   const [stats, setStats] = useState({ total: 0, active: 0 });
@@ -58,37 +57,38 @@ export default function StaffPage() {
   const fetchStaff = useCallback(async () => {
     setLoading(true);
     setError(null);
+
+    const params = {
+      page: currentPage,
+      per_page: 15,
+    };
+
+    if (searchQuery.trim() !== '') {
+      params.search = searchQuery.trim();
+    }
+
+    if (roleFilter !== 'all') {
+      params.role_id = roleFilter;
+    }
+
     try {
-      const response = await api.get('/staff', {
-        params: {
-          page: currentPage,
-          per_page: itemsPerPage,
-          search: searchQuery,
-          role_id: roleFilter !== 'all' ? roleFilter : undefined,
-        },
-      });
+      const res = await api.get('/staff', { params });
+      const paginatedData = res.data;
 
-      const { data, pagination, stats: backendStats } = response.data;
-
-      setStaffList(data || []);
-
-      if (pagination) {
-        setTotalPages(pagination.last_page || 1);
-        setTotalRecords(pagination.total || 0);
-      }
-
-      if (backendStats) {
+      setStaffList(paginatedData.data);
+      setCurrentPage(paginatedData.current_page || 1);
+      setLastPage(paginatedData.last_page || 1);
+      setTotalItems(paginatedData.total || 0);
         setStats({
-          total: backendStats.total ?? 0,
-          active: backendStats.active ?? 0,
+          total: res.data.stats.total ?? 0,
+          active: res.data.stats.active ?? 0,
         });
-      }
     } catch (err) {
       setError(err.response?.data?.message);
     } finally {
       setLoading(false);
     }
-  }, [currentPage, itemsPerPage, searchQuery, roleFilter]);
+  }, [currentPage, searchQuery, roleFilter]);
 
   useEffect(() => {
     fetchStaff();
@@ -107,6 +107,12 @@ export default function StaffPage() {
       setRoleFilter(selected ? selected.id : 'all');
     }
     setCurrentPage(1);
+  };
+
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= lastPage) {
+      setCurrentPage(newPage);
+    }
   };
 
   // Open delete confirmation modal
@@ -235,7 +241,7 @@ export default function StaffPage() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <StatsCard
           label="Total Staff"
-          value={loading ? '...' : stats.total || totalRecords}
+          value={loading ? '...' : stats.total}
           valueColor="text-blue-600 dark:text-blue-400"
           icon={<Users className="w-4 h-4 text-gray-400" />}
         />
@@ -247,7 +253,7 @@ export default function StaffPage() {
         />
         <StatsCard
           label="Inactive Staff"
-          value={loading ? '...' : (stats.total || totalRecords) - stats.active}
+          value={loading ? '...' : (stats.total) - stats.active}
           valueColor="text-red-600 dark:text-red-400"
           icon={<AlertCircle className="w-4 h-4 text-red-400" />}
         />
@@ -288,9 +294,10 @@ export default function StaffPage() {
         {!loading && !error && staffList.length > 0 && (
           <Pagination
             currentPage={currentPage}
-            totalPages={totalPages}
-            totalRecords={totalRecords}
-            onPageChange={(page) => setCurrentPage(Math.max(1, Math.min(page, totalPages)))}
+            totalPages={lastPage}
+            totalRecords={totalItems}
+            onPageChange={handlePageChange}
+            maxVisible={5}
           />
         )}
       </div>

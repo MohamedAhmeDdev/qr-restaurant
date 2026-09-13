@@ -8,8 +8,8 @@ import toast from 'react-hot-toast';
 import { RestaurantService } from '../../../../services/restaurant';
 import StaffFormModal from '../../../../components/forms/StaffFormModal';
 import RoleService from '../../../../services/Roles';
-import ConfirmationModal from '../../../../components/common/ConfirmationModal';
 import EmptyState from '../../../../components/common/EmptyState';
+import Pagination from '../../../../components/common/Pagination';
 import { formatDate } from '../../../../utils/formatDate';
 import StatusBadge from '../../../../components/StatusBadge';
 
@@ -27,12 +27,13 @@ export default function MembersTab() {
     const [statusFilter, setStatusFilter] = useState('active');
     const [selectedRestaurantFilter, setSelectedRestaurantFilter] = useState('all');
 
+    // Pagination State
+    const [currentPage, setCurrentPage] = useState(1);
+    const [lastPage, setLastPage] = useState(1);
+    const [totalItems, setTotalItems] = useState(0);
+
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingMember, setEditingMember] = useState(null);
-
-    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    const [memberToDelete, setMemberToDelete] = useState(null);
-    const [isDeleting, setIsDeleting] = useState(false);
 
     const fetchRestaurants = useCallback(async () => {
         try {
@@ -56,7 +57,11 @@ export default function MembersTab() {
         try {
             setIsLoading(true);
             setError(null);
-            const params = new URLSearchParams();
+          const params = {
+      page: currentPage,
+      per_page: 15,
+    };
+
 
             if (searchQuery.trim()) params.append('search', searchQuery.trim());
             if (selectedRestaurantFilter !== 'all') {
@@ -71,13 +76,18 @@ export default function MembersTab() {
             }
 
             const response = await api.get(`/organization/staff?${params.toString()}`);
+            
+
             setMembers(response.data?.data);
+            setLastPage(response.data?.last_page || 1);
+            setTotalItems(response.data?.total || 0);
+            
         } catch (err) {
             setError(err.response?.data?.message);
         } finally {
             setIsLoading(false);
         }
-    }, [searchQuery, selectedRestaurantFilter, statusFilter]);
+    }, [searchQuery, selectedRestaurantFilter, statusFilter, currentPage]);
 
     useEffect(() => {
         fetchRestaurants();
@@ -87,6 +97,17 @@ export default function MembersTab() {
     useEffect(() => {
         fetchMembers();
     }, [fetchMembers]);
+
+    const handlePageChange = (newPage) => {
+        if (newPage >= 1 && newPage <= lastPage) {
+            setCurrentPage(newPage);
+        }
+    };
+
+    // Reset to page 1 when filters change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchQuery, selectedRestaurantFilter, statusFilter]);
 
     const validate = (formData) => {
         const newErrors = {};
@@ -125,6 +146,7 @@ export default function MembersTab() {
                 setSearchQuery('');
                 setStatusFilter('active');
                 setSelectedRestaurantFilter('all');
+                setCurrentPage(1);
             }
 
             setIsModalOpen(false);
@@ -151,8 +173,7 @@ export default function MembersTab() {
             setEditingMember(response.data?.data);
             setIsModalOpen(true);
         } catch (err) {
-            console.error('Failed to fetch staff details:', err);
-            toast.error('Failed to load staff details for editing.');
+            toast.error(err.response?.data?.message);
         }
     };
 
@@ -446,6 +467,17 @@ export default function MembersTab() {
                         </tbody>
                     </table>
                 </div>
+
+                {/* Pagination Component */}
+                {!isLoading && !error && members.length > 0 && (
+                    <Pagination
+                        currentPage={currentPage}
+                        totalPages={lastPage}
+                        totalRecords={totalItems}
+                        onPageChange={handlePageChange}
+                        maxVisible={5}
+                    />
+                )}
             </div>
 
             <StaffFormModal
