@@ -33,7 +33,7 @@ export default function DeleteOrgTab() {
   };
 
   return (
-    <div className="max-w-3xl space-y-6"> {/* Standardized spacing */}
+    <div className="max-w-7xl space-y-6"> {/* Standardized spacing */}
       {/* Header Section */}
       <div className="border-b border-gray-200 pb-5 dark:border-gray-800">
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white">

@@ -29,6 +29,7 @@ export default function CategoryPage() {
 
   // Table Column Definitions
   const columns = [
+     { label: 'ID', align: 'left' },
     // { 
     //   label: (
     //     <div className="flex items-center gap-1">
@@ -144,6 +145,9 @@ export default function CategoryPage() {
       key={cat.id}
       className="border-b border-gray-100 dark:border-slate-800/60 hover:bg-gray-50/50 dark:hover:bg-slate-800/50 transition-colors"
     >
+        <td className="px-6 py-4 font-mono text-xs font-semibold text-gray-500 dark:text-slate-400">
+          #{cat.id}
+        </td>
       {/* <td className="py-4 px-4 sm:px-6 font-mono text-xs font-semibold text-gray-500 dark:text-slate-400">
         <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300">
           {cat.sort_order}

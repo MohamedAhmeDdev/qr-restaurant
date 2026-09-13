@@ -43,6 +43,7 @@ const formatPrice = useFormatPrice();
 
   // Table Column Definitions
   const columns = [
+     { label: 'ID', align: 'left' },
     // {
     //   label: (
     //     <div className="flex items-center gap-1">
@@ -192,6 +193,10 @@ const formatPrice = useFormatPrice();
         key={item.id}
         className="transition-colors border-b border-slate-100 dark:border-slate-800 hover:bg-gray-50/50 dark:hover:bg-slate-800/50"
       >
+          <td className="px-6 py-4 font-mono text-xs font-semibold text-gray-500 dark:text-slate-400">
+          #{item.id}
+        </td>
+        
         {/* <td className="py-4 px-4 sm:px-6 font-mono text-xs font-semibold text-gray-500 dark:text-slate-400">
           <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300">
             {item.sort_order}

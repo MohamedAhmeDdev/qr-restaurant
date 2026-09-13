@@ -238,6 +238,7 @@ export default function TableList() {
             >
               <div className="w-40 h-40 rounded-xl bg-slate-200 dark:bg-slate-800 shrink-0" />
               <div className="flex-1 space-y-3 py-1">
+                  <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-1/3" />
                 <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-1/3" />
                 <div className="h-6 bg-slate-200 dark:bg-slate-800 rounded w-2/3" />
                 <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-1/2" />
@@ -329,6 +330,13 @@ export default function TableList() {
                     {/* Header: Title & Actions */}
                     <div className="flex items-start justify-between gap-3 mb-3">
                       <div className="min-w-0">
+
+                         <div className="flex items-center gap-1.5">
+                          <span className="text-sm text-slate-400">ID:</span>
+                          <h3 className="font-bold text-md text-slate-900 dark:text-slate-100 truncate pr-2">
+                            {table.id}
+                          </h3>
+                        </div>
                         <div className="flex items-center gap-1.5">
                           <span className="text-sm text-slate-400">Name:</span>
                           <h3 className="font-bold text-md text-slate-900 dark:text-slate-100 truncate pr-2">

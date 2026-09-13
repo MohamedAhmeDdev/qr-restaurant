@@ -16,7 +16,7 @@ export default function Table({
   className = ""
 }) {
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto whitespace-nowrap">
       <table className={`w-full text-left text-sm border-collapse ${className}`}>
         <thead>
           <tr className="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-800 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 transition-colors duration-200">

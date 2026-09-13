@@ -149,6 +149,8 @@ export default function ModifierGroups() {
             <div key={idx} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-3 animate-pulse">
               <div className="flex justify-between">
                 <div className="h-5 bg-slate-200 dark:bg-slate-800 rounded w-1/2" />
+
+                <div className="h-5 bg-slate-200 dark:bg-slate-800 rounded w-1/2" />
                 <div className="h-5 bg-slate-200 dark:bg-slate-800 rounded w-14" />
               </div>
               <div className="h-3.5 bg-slate-100 dark:bg-slate-800/50 rounded w-3/4" />
@@ -189,7 +191,13 @@ export default function ModifierGroups() {
                   className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 flex flex-col overflow-hidden"
                 >
                   {/* Card Header */}
-                  <div className="p-4 space-y-2 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+                  <div className="p-4 space-y-1.5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+                  <div className="flex items-center gap-1.5">
+                        <span className="text-sm text-slate-400">ID:</span>
+                        <h2 className="font-bold text-base text-slate-900 dark:text-white truncate pr-2">
+                          {group.id}
+                        </h2>
+                      </div>
                     <div className="flex justify-between items-start gap-2 ">
                       <div className="flex items-center gap-1.5">
                         <span className="text-sm text-slate-400">Name:</span>

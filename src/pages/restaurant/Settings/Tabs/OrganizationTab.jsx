@@ -95,7 +95,7 @@ export default function OrganizationTab() {
 
 
   return (
-    <div className="max-w-3xl space-y-6"> {/* Standardized spacing */}
+    <div className="max-w-7xl space-y-6"> {/* Standardized spacing */}
       {/* Header Section */}
       <div className="flex items-start justify-between border-b border-gray-200 dark:border-slate-800 pb-5">
         <div>

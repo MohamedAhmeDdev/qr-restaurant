@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   UserPlus, Trash2, CheckCircle, 
-  Users, AlertCircle, Mail, Search, Shield, Clock,
+  Users, AlertCircle, Mail, Search,
   Edit, Calendar
 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -79,10 +79,10 @@ export default function StaffPage() {
       setCurrentPage(paginatedData.current_page || 1);
       setLastPage(paginatedData.last_page || 1);
       setTotalItems(paginatedData.total || 0);
-        setStats({
-          total: res.data.stats.total ?? 0,
-          active: res.data.stats.active ?? 0,
-        });
+      setStats({
+        total: res.data.stats?.total ?? 0,
+        active: res.data.stats?.active ?? 0,
+      });
     } catch (err) {
       setError(err.response?.data?.message);
     } finally {
@@ -150,6 +150,7 @@ export default function StaffPage() {
       : roles.find((r) => r.id === roleFilter)?.name || 'All Roles';
 
   const columns = [
+    { label: 'ID', align: 'left' },
     { label: 'Employee', align: 'left' },
     { label: 'Roles', align: 'left' },
     { label: 'Shift Type', align: 'left' },
@@ -164,6 +165,9 @@ export default function StaffPage() {
         key={staff.id}
         className="hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors group border-b border-gray-100 dark:border-slate-800/60 last:border-none"
       >
+        <td className="px-6 py-4 font-mono text-xs font-semibold text-gray-500 dark:text-slate-400">
+          #{staff.id}
+        </td>
         <td className="px-6 py-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 text-white flex items-center justify-center font-bold text-sm shadow-sm shrink-0">
@@ -179,14 +183,14 @@ export default function StaffPage() {
             </div>
           </div>
         </td>
-        <td className="px-6 py-4 text-gray-700 dark:text-slate-300">
+        <td className="px-6 py-4 text-gray-700 dark:text-slate-300 font-medium">
           {staff.role?.name}
         </td>
         <td className="px-6 py-4 text-gray-700 dark:text-slate-300">
           {formatShiftType(staff.shift_type)}
         </td>
         <td className="px-6 py-4 text-gray-700 dark:text-slate-300">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1  text-gray-700 dark:text-slate-300 text-xs font-medium">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-gray-700 dark:text-slate-300 text-xs font-medium">
             <Calendar className="w-3 h-3" /> {formatDate(staff.started_at)}
           </span>
         </td>
@@ -194,24 +198,24 @@ export default function StaffPage() {
           <StatusBadge status={staff.status} />
         </td>
         <td className="px-6 py-4 text-right">
-         {staff.role?.name !== 'manager' && (
-          <div className="flex items-center justify-end gap-1">
-            <Link
-              to={`/staff/edit/${staff.id}`}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg text-gray-500 hover:text-blue-600 transition-colors inline-block"
-              title="Edit"
-            >
-              <Edit className="w-4 h-4" />
-            </Link>
-            <button
-              onClick={() => handleOpenDeleteModal(staff)}
-              className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-gray-500 hover:text-red-600 transition-colors cursor-pointer"
-              title="Remove"
-            >
+          {staff.role?.name !== 'manager' && (
+            <div className="flex items-center justify-end gap-1">
+              <Link
+                to={`/staff/edit/${staff.id}`}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg text-gray-500 hover:text-blue-600 transition-colors inline-block"
+                title="Edit"
+              >
+                <Edit className="w-4 h-4" />
+              </Link>
+              <button
+                onClick={() => handleOpenDeleteModal(staff)}
+                className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-gray-500 hover:text-red-600 transition-colors cursor-pointer"
+                title="Remove"
+              >
               <Trash2 className="w-4 h-4" />
-            </button>
+              </button>
           </div>
-            )}
+          )}
         </td>
       </tr>
     );
@@ -253,7 +257,7 @@ export default function StaffPage() {
         />
         <StatsCard
           label="Inactive Staff"
-          value={loading ? '...' : (stats.total) - stats.active}
+          value={loading ? '...' : stats.total - stats.active}
           valueColor="text-red-600 dark:text-red-400"
           icon={<AlertCircle className="w-4 h-4 text-red-400" />}
         />
