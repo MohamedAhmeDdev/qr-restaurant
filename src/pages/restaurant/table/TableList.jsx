@@ -372,20 +372,20 @@ export default function TableList() {
                       </div>
                     </div>
 
-                    {/* Badges Row with Labels */}
-                    <div className="flex flex-wrap items-center gap-4 mb-4">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-xs  text-slate-400">Table:</span>
-                        <StatusBadge status={table.is_active ? 'active' : 'inactive'} size="sm" />
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-sm  text-slate-400">Status:</span>
-                        <StatusBadge status={table.status} size="sm" />
-                      </div>
-                    </div>
 
                     {/* Metadata Grid */}
                     <div className="grid grid-cols-2 gap-y-3 gap-x-4 mb-4">
+                      <div className="flex items-center gap-2">
+                        <div className="p-1.5 rounded-md bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
+                          <Activity className="w-3.5 h-3.5" />
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-[10px] text-slate-400 uppercase font-medium">Table</span>
+                          <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">
+                             <StatusBadge status={table.is_active ? 'active' : 'inactive'} />
+                          </span>
+                        </div>
+                      </div>
                       <div className="flex items-center gap-2">
                         <div className="p-1.5 rounded-md bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
                           <Users className="w-3.5 h-3.5" />

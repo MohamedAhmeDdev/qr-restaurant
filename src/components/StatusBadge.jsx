@@ -159,9 +159,8 @@ export default function StatusBadge({
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full font-medium border capitalize transition-colors duration-150 ${theme.bg} ${theme.text} ${theme.border} ${SIZE_CLASSES[size]} ${className}`}
+      className={`inline-flex items-center gap-1.5 rounded-full border capitalize transition-colors duration-150 ${theme.bg} ${theme.text} ${theme.border} ${SIZE_CLASSES[size]} ${className}`}
     >
-      {showIcon && Icon && <Icon className={ICON_SIZES[size]} />}
       <span>{finalLabel}</span>
     </span>
   );

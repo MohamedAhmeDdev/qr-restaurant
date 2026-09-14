@@ -57,28 +57,32 @@ export default function MembersTab() {
         try {
             setIsLoading(true);
             setError(null);
-   const params = {
-      page: currentPage,
-      per_page: 15,
-    };
 
-            if (searchQuery.trim()) params.append('search', searchQuery.trim());
+            const params = {
+                page: currentPage,
+                per_page: 15,
+            };
+
+            if (searchQuery.trim()) {
+                params.search = searchQuery.trim();
+            }
+
             if (selectedRestaurantFilter !== 'all') {
-                params.append('restaurant_id', selectedRestaurantFilter);
+                params.restaurant_id = selectedRestaurantFilter;
             }
 
-            // Backend soft-delete parameters
+            // 3. Backend soft-delete parameters
             if (statusFilter === 'trash') {
-                params.append('trashed', '1');
+                params.trashed = 1;
             } else if (statusFilter === 'all') {
-                params.append('with_trashed', '1');
+                params.with_trashed = 1;
             }
 
-            const response = await api.get(`/organization/staff?${params.toString()}`, { params });
+            const response = await api.get('/organization/staff', { params });
             
             setMembers(response.data?.data);
-            setLastPage(response.data?.last_page || 1);
-            setTotalItems(response.data?.total || 0);
+            setLastPage(response.data?.pagination?.last_page || 1);
+            setTotalItems(response.data?.pagination?.total || 0);
             
         } catch (err) {
             setError(err.response?.data?.message);
@@ -258,13 +262,7 @@ export default function MembersTab() {
                 </td>
 
                 <td className="px-6 py-3.5">
-                    {isTrashed ? (
-                        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-rose-600 dark:text-rose-400">
-                           Trashed
-                        </span>
-                    ) : (
-                        <StatusBadge status={member.status} />
-                    )}
+                  <StatusBadge status={member.status} />
                 </td>
 
                 <td className="px-6 py-3.5 text-right">
