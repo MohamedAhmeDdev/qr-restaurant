@@ -246,20 +246,14 @@ export default function StaffPage() {
         <StatsCard
           label="Total Staff"
           value={loading ? '...' : stats.total}
-          valueColor="text-blue-600 dark:text-blue-400"
-          icon={<Users className="w-4 h-4 text-gray-400" />}
         />
         <StatsCard
           label="Active Staff"
           value={loading ? '...' : stats.active}
-          valueColor="text-emerald-600 dark:text-emerald-400"
-          icon={<CheckCircle className="w-4 h-4 text-emerald-400" />}
         />
         <StatsCard
           label="Inactive Staff"
           value={loading ? '...' : stats.total - stats.active}
-          valueColor="text-red-600 dark:text-red-400"
-          icon={<AlertCircle className="w-4 h-4 text-red-400" />}
         />
       </div>
 

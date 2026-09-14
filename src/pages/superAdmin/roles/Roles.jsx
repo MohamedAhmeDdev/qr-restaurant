@@ -123,12 +123,10 @@ export default function RolesPage() {
         <StatsCard 
           label="System Default" 
           value={loading ? '...' : roles.filter(r => isSystemRole(r)).length}
-          valueColor="text-blue-600 dark:text-blue-400"
         />
         <StatsCard 
           label="Custom Roles" 
           value={loading ? '...' : roles.filter(r => !isSystemRole(r)).length}
-          valueColor="text-purple-600 dark:text-purple-400"
         />
       </div>
 

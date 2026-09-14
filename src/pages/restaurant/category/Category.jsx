@@ -229,20 +229,14 @@ export default function CategoryPage() {
         <StatsCard
           label="Total Categories"
           value={loading ? '...' : stats.total}
-          valueColor="text-blue-600 dark:text-blue-400"
-          icon={<Folder className="w-4 h-4 text-blue-500 dark:text-blue-400" />}
         />
         <StatsCard
           label="Active Categories"
           value={loading ? '...' : stats.active}
-          valueColor="text-emerald-600 dark:text-emerald-400"
-          icon={<Folder className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />}
         />
         <StatsCard
           label="Inactive Categories"
           value={loading ? '...' : stats.inactive}
-          valueColor="text-amber-600 dark:text-amber-400"
-          icon={<AlertCircle className="w-4 h-4 text-amber-500 dark:text-amber-400" />}
         />
       </div>
 

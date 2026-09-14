@@ -301,19 +301,14 @@ export default function Invitations() {
         <StatsCard 
           label="Total Invitations" 
           value={loading ? '...' : metrics.total} 
-          icon={<Users className="w-4 h-4 text-gray-400" />}
         />
         <StatsCard 
           label="Pending Invitations" 
           value={loading ? '...' : metrics.pending} 
-          valueColor="text-amber-600 dark:text-amber-400"
-          icon={<Send className="w-4 h-4 text-amber-400" />}
         />
         <StatsCard 
           label="Accepted Invitations" 
           value={loading ? '...' : metrics.accepted} 
-          valueColor="text-emerald-600 dark:text-emerald-400"
-          icon={<CheckCircle className="w-4 h-4 text-emerald-400" />}
         />
       </div>
 

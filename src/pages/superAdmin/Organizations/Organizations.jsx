@@ -72,7 +72,6 @@ export default function Organizations() {
         <StatsCard
           label="Active Tenants"
           value={loading ? '...' : tenants.filter((t) => t.is_active).length}
-          valueColor="text-emerald-600 dark:text-emerald-400"
         />
         <StatsCard
           label="Total Restaurants"
