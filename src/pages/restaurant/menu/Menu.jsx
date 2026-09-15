@@ -4,9 +4,10 @@ import {
   Image as ImageIcon,
   UtensilsCrossed,
   Edit,
-  ArrowUpDown,
   Power,
-  Eye
+  Eye,
+  RefreshCw,
+  Search
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -20,13 +21,22 @@ import { getImageUrl } from '../../../utils/getImageUrl';
 import Table from '../../../components/Table';
 import CategoriesService from '../../../services/categories';
 import { useFormatPrice } from '../../../contexts/useFormatPrice';
+import StatsCard from '../../../components/cards/StatsCard';
 
 export default function MenuTable() {
   const [categories, setCategories] = useState([]);
   const [items, setItems] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-const formatPrice = useFormatPrice();
+  const formatPrice = useFormatPrice();
+
+    const [stats, setStats] = useState({
+      total: 0,
+      active: 0,
+      inactive: 0,
+      trash: 0
+    });
+  
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
@@ -41,17 +51,17 @@ const formatPrice = useFormatPrice();
   const [itemToDelete, setItemToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // Force Delete Modal State
+  const [isForceDeleteModalOpen, setIsForceDeleteModalOpen] = useState(false);
+  const [itemToForceDelete, setItemToForceDelete] = useState(null);
+  const [isForceDeleting, setIsForceDeleting] = useState(false);
+
+  // Filters & Search
+  const [statusFilter, setStatusFilter] = useState('all');
+
   // Table Column Definitions
   const columns = [
-     { label: 'ID', align: 'left' },
-    // {
-    //   label: (
-    //     <div className="flex items-center gap-1">
-    //       <ArrowUpDown className="w-3 h-3" />
-    //       <span>Order</span>
-    //     </div>
-    //   )
-    // },
+    { label: 'ID', align: 'left' },
     { label: 'Item Details' },
     { label: 'Description' },
     { label: 'Category' },
@@ -62,12 +72,12 @@ const formatPrice = useFormatPrice();
   ];
 
   useEffect(() => {
-  CategoriesService.getCategories()
-    .then((data) => setCategories(data || []))
-    .catch((err) => {;
-    setError(err.response?.data?.message); 
-    });
-}, []);
+    CategoriesService.getCategories()
+      .then((data) => setCategories(data || []))
+      .catch((err) => {
+        setError(err.response?.data?.message);
+      });
+  }, []);
 
   const fetchMenuItems = useCallback(async () => {
     setLoading(true);
@@ -78,41 +88,57 @@ const formatPrice = useFormatPrice();
       per_page: 15,
     };
 
+    if (statusFilter === 'trash') {
+      params.only_trashed = 1;
+    } else if (statusFilter !== 'all') {
+      params.status = statusFilter;
+    }
+
     if (selectedCategory !== 'all') {
       params.category_id = selectedCategory;
     }
 
-    if (searchQuery.trim() !== '') {
+    if (searchQuery && searchQuery.trim() !== '') {
       params.search = searchQuery.trim();
     }
 
     try {
-      const res = await api.get('/menu-items', { params });
-      const paginatedData = res.data.data;
+      const response = await api.get('/menu-items', { params });
+      const responseData = response.data;
 
-      setItems(paginatedData.data || []);
-      setCurrentPage(paginatedData.current_page || 1);
-      setLastPage(paginatedData.last_page || 1);
-      setTotalItems(paginatedData.total || 0);
+      setItems(responseData.data);
+      setStats(response.data.stats);
+
+      const pagination = responseData.pagination;
+      setCurrentPage(pagination.current_page || 1);
+      setLastPage(pagination.last_page || 1);
+      setTotalItems(pagination.total || 0);
     } catch (err) {
       setError(err.response?.data?.message);
     } finally {
       setLoading(false);
     }
-  }, [currentPage, selectedCategory, searchQuery]);
+  }, [currentPage, selectedCategory, searchQuery, statusFilter]);
 
   useEffect(() => {
     fetchMenuItems();
   }, [fetchMenuItems]);
 
-  const handleFilterChange = (filterLabel) => {
+  const handleStatusFilterChange = (selectedStatus) => {
+    const statusMap = {
+      'All Statuses': 'all',
+      'All': 'all',
+      'Active': 'active',
+      'Inactive': 'inactive',
+      'Trash': 'trash',
+    };
+    setStatusFilter(statusMap[selectedStatus] || selectedStatus || 'all');
     setCurrentPage(1);
-    if (filterLabel === 'All Items') {
-      setSelectedCategory('all');
-    } else {
-      const category = categories.find((cat) => cat.name === filterLabel);
-      setSelectedCategory(category ? category.id.toString() : 'all');
-    }
+  };
+
+  const handleCategoryFilterChange = (categoryId) => {
+    setSelectedCategory(categoryId || 'all');
+    setCurrentPage(1);
   };
 
   const handleSearchChange = (query) => {
@@ -126,13 +152,7 @@ const formatPrice = useFormatPrice();
     }
   };
 
-  const filterLabels = ['All Items', ...categories.map((cat) => cat.name)];
-
-  const getActiveFilterLabel = () => {
-    if (selectedCategory === 'all') return 'All Items';
-    const category = categories.find((cat) => cat.id === Number(selectedCategory));
-    return category ? category.name : 'All Items';
-  };
+  const isFiltered = Boolean(searchQuery || statusFilter !== 'all' || selectedCategory !== 'all');
 
   // Toggle Item Availability Optimistically
   const handleToggleAvailability = async (id, currentStatus) => {
@@ -185,7 +205,41 @@ const formatPrice = useFormatPrice();
     }
   };
 
+  // Restore Handler
+  const handleRestore = async (item) => {
+    try {
+      const response = await api.patch(`/menu-items/${item.id}/restore`);
+      toast.success(response.data?.message);
+      fetchMenuItems();
+    } catch (err) {
+      toast.error(err.response?.data?.message);
+    }
+  };
+
+  // Force Delete Handlers
+  const handleOpenForceDeleteModal = (item) => {
+    setItemToForceDelete(item);
+    setIsForceDeleteModalOpen(true);
+  };
+
+  const handleConfirmForceDelete = async () => {
+    if (!itemToForceDelete) return;
+    setIsForceDeleting(true);
+    try {
+      const response = await api.delete(`/menu-items/${itemToForceDelete.id}/force`);
+      toast.success(response.data?.message);
+      setIsForceDeleteModalOpen(false);
+      setItemToForceDelete(null);
+      fetchMenuItems();
+    } catch (err) {
+      toast.error(err.response?.data?.message);
+    } finally {
+      setIsForceDeleting(false);
+    }
+  };
+
   const renderRow = (item) => {
+    const isTrashed = Boolean(item.deleted_at);
     const category = item.category || categories.find((c) => c.id === item.category_id);
 
     return (
@@ -197,12 +251,6 @@ const formatPrice = useFormatPrice();
           #{item.id}
         </td>
         
-        {/* <td className="py-4 px-4 sm:px-6 font-mono text-xs font-semibold text-gray-500 dark:text-slate-400">
-          <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300">
-            {item.sort_order}
-          </span>
-        </td> */}
-
         <td className="py-3.5 px-6">
           <div className="flex items-center gap-3">
             {item.image ? (
@@ -255,51 +303,73 @@ const formatPrice = useFormatPrice();
 
         <td className="py-3.5 px-2 text-right">
           <div className="flex items-center justify-end gap-1">
-            <button
-              type="button"
-              onClick={() => handleToggleAvailability(item.id, item.is_available)}
-              className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${item.is_available
-                  ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 dark:bg-amber-950/40 dark:text-amber-400 dark:hover:bg-amber-900/40 border border-amber-200 dark:border-amber-800/50'
-                  : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-400 dark:hover:bg-emerald-900/40 border border-emerald-200 dark:border-emerald-800/50'
-                }`}
-            >
-              {item.is_available ? 'Mark as Sold Out' : 'Mark Available'}
-            </button>
+            {isTrashed ? (
+              <>            <button
+                type="button"
+                onClick={() => handleRestore(item)}
+                className="p-2 rounded-lg text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-950/30 transition-colors"
+                title="Restore"
+              >
+                <RefreshCw className="w-4 h-4" />
+              </button>
+                {/* <button
+                type="button"
+                onClick={() => handleOpenForceDeleteModal(item)}
+                className="p-2 rounded-lg text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors cursor-pointer"
+                title="Permanently Delete"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button> */}
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => handleToggleAvailability(item.id, item.is_available)}
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${item.is_available
+                    ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 dark:bg-amber-950/40 dark:text-amber-400 dark:hover:bg-amber-900/40 border border-amber-200 dark:border-amber-800/50'
+                    : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-400 dark:hover:bg-emerald-900/40 border border-emerald-200 dark:border-emerald-800/50'
+                    }`}
+                >
+                  {item.is_available ? 'Mark as Sold Out' : 'Mark Available'}
+                </button>
 
-            <button
-              type="button"
-              onClick={() => toggleStatus(item)}
-              className={`p-2 rounded-lg transition-colors ${item.is_active
-                  ? 'text-red-500 hover:bg-red-100/50 dark:text-red-400 dark:hover:bg-red-950/30'
-                  : 'text-emerald-600 hover:bg-emerald-100/50 dark:text-emerald-400 dark:hover:bg-emerald-950/30'
-                }`}
-              title={item.is_active ? 'Deactivate' : 'Activate'}
-            >
-              <Power className="w-4 h-4" />
-            </button>
-              <Link
-              to={`/menu-items-details/${item.id}`}
-              className="p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg text-gray-500 hover:text-green-600 transition-colors inline-block"
-              title="View"
-            >
-              <Eye className="w-4 h-4" />
-            </Link>
-            <Link
-              to={`/menu-items/edit/${item.id}`}
-              className="p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg text-gray-500 hover:text-blue-600 transition-colors inline-block"
-              title="Edit"
-            >
-              <Edit className="w-4 h-4" />
-            </Link>
+                <button
+                  type="button"
+                  onClick={() => toggleStatus(item)}
+                  className={`p-2 rounded-lg transition-colors ${item.is_active
+                    ? 'text-red-500 hover:bg-red-100/50 dark:text-red-400 dark:hover:bg-red-950/30'
+                    : 'text-emerald-600 hover:bg-emerald-100/50 dark:text-emerald-400 dark:hover:bg-emerald-950/30'
+                    }`}
+                  title={item.is_active ? 'Deactivate' : 'Activate'}
+                >
+                  <Power className="w-4 h-4" />
+                </button>
+                <Link
+                  to={`/menu-items-details/${item.id}`}
+                  className="p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg text-gray-500 hover:text-green-600 transition-colors inline-block"
+                  title="View"
+                >
+                  <Eye className="w-4 h-4" />
+                </Link>
+                <Link
+                  to={`/menu-items/edit/${item.id}`}
+                  className="p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg text-gray-500 hover:text-blue-600 transition-colors inline-block"
+                  title="Edit"
+                >
+                  <Edit className="w-4 h-4" />
+                </Link>
 
-            <button
-              type="button"
-              onClick={() => handleOpenDeleteModal(item)}
-            className="p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-gray-500 hover:text-red-600 transition-colors cursor-pointer"
-              title="Remove"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
+                <button
+                  type="button"
+                  onClick={() => handleOpenDeleteModal(item)}
+                  className="p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-gray-500 hover:text-red-600 transition-colors cursor-pointer"
+                  title="Remove"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </>
+            )}
           </div>
         </td>
       </tr>
@@ -327,13 +397,46 @@ const formatPrice = useFormatPrice();
         </Link>
       </div>
 
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+        <StatsCard label="Total Items" value={loading && stats.total === 0 ? '...' : stats.total} />
+        <StatsCard label="Active Items" value={loading && stats.active === 0 ? '...' : stats.active} />
+        <StatsCard label="Inactive Items" value={loading && stats.inactive === 0 ? '...' : stats.inactive} />
+        <StatsCard label="Trash" value={loading && stats.trash === 0 ? '...' : stats.trash} />
+      </div>
+
       <Toolbar
         searchQuery={searchQuery}
         onSearchChange={handleSearchChange}
         searchPlaceholder="Search menu items..."
-        filters={filterLabels}
-        activeFilter={getActiveFilterLabel()}
-        onFilterChange={handleFilterChange}
+        showSearch={true}
+        dropdowns={[
+          {
+            id: 'status-filter',
+            placeholder: 'Status...',
+            value: statusFilter,
+            onChange: handleStatusFilterChange,
+            options: [
+              { label: 'All Statuses', value: 'all' },
+              { label: 'Active', value: 'active' },
+              { label: 'Inactive', value: 'inactive' },
+              { label: 'Trash', value: 'trash' },
+            ],
+          },
+          {
+            id: 'category-filter',
+            placeholder: 'Category...',
+            value: selectedCategory,
+            onChange: handleCategoryFilterChange,
+            options: [
+              { label: 'All Categories', value: 'all' },
+              ...categories.map((cat) => ({
+                label: cat.name,
+                value: cat.id.toString(),
+              })),
+            ],
+          },
+        ]}
       />
 
       <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-800 overflow-hidden shadow-sm">
@@ -344,12 +447,12 @@ const formatPrice = useFormatPrice();
           loading={loading}
           error={error}
           onRetry={fetchMenuItems}
-          emptyIcon={UtensilsCrossed}
-          emptyTitle={searchQuery || selectedCategory !== 'all' ? "No menu items found" : "No items added yet"}
+          emptyIcon={isFiltered ? Search : UtensilsCrossed}
+          emptyTitle={isFiltered ? 'No menu items found' : 'No items added yet'}
           emptyDescription={
-            searchQuery || selectedCategory !== 'all'
-              ? "No menu items matched your current filter or search criteria."
-              : "Get started by adding your first menu item to the inventory."
+            isFiltered
+              ? 'No menu items matched your current filter or search criteria.'
+              : 'Get started by adding your first menu item to the inventory.'
           }
         />
 
@@ -385,6 +488,30 @@ const formatPrice = useFormatPrice();
         }
         isLoading={isDeleting}
         confirmText="Delete"
+      />
+
+      <ConfirmationModal
+        isOpen={isForceDeleteModalOpen}
+        onClose={() => {
+          if (!isForceDeleting) {
+            setIsForceDeleteModalOpen(false);
+            setItemToForceDelete(null);
+          }
+        }}
+        onConfirm={handleConfirmForceDelete}
+        title="Permanently Delete Menu Item"
+        message={
+          <>
+            Are you sure you want to <span className="font-bold text-red-600">permanently delete</span> the{' '}
+            <span className="font-bold text-slate-900 dark:text-slate-200">
+              "{itemToForceDelete?.name}"
+            </span>
+            ? This action cannot be undone and will permanently destroy it from the database.
+          </>
+        }
+        isLoading={isForceDeleting}
+        confirmText="Permanently Delete"
+        confirmClassName="bg-rose-600 hover:bg-rose-700 text-white"
       />
     </div>
   );

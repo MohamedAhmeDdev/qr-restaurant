@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Search, Users, Trash2,
-  AlertCircle, QrCode, PlusCircle, RefreshCw, Download,
+  AlertCircle, QrCode, RefreshCw, Download,
   Edit, Hash, Calendar, Activity
 } from 'lucide-react';
 import StatsCard from '../../../components/cards/StatsCard';
@@ -22,6 +22,13 @@ export default function TableList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+     const [stats, setStats] = useState({
+        total: 0,
+        active: 0,
+        inactive: 0,
+        trash: 0
+      });
+
   // Filters & Pagination State
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -29,8 +36,6 @@ export default function TableList() {
   const [lastPage, setLastPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
 
-  // Per-item Action Loading State
-  const [actionLoadingId, setActionLoadingId] = useState(null);
 
   // Confirmation Modal State
   const [deleteModalState, setDeleteModalState] = useState({
@@ -39,6 +44,12 @@ export default function TableList() {
     tableName: '',
     isDeleting: false
   });
+
+  // Force Delete Modal State
+  const [isForceDeleteModalOpen, setIsForceDeleteModalOpen] = useState(false);
+  const [tableToForceDelete, setTableToForceDelete] = useState(null);
+  const [isForceDeleting, setIsForceDeleting] = useState(false);
+
 
   // Fetch Tables Data from API
   const fetchTables = useCallback(async () => {
@@ -50,22 +61,28 @@ export default function TableList() {
       per_page: 15,
     };
 
+    if (statusFilter === 'trash') {
+      params.only_trashed = 1;
+    } else if (statusFilter !== 'all') {
+      params.status = statusFilter;
+    }
+
     if (searchQuery.trim() !== '') {
       params.search = searchQuery.trim();
     }
 
-    if (statusFilter !== 'all') {
-      params.status = statusFilter;
-    }
-
     try {
       const response = await api.get('/tables', { params });
-      const paginatedData = response.data.data;
+     const responseData = response.data;
 
-      setTables(paginatedData.data);
-      setCurrentPage(paginatedData.current_page || 1);
-      setLastPage(paginatedData.last_page || 1);
-      setTotalItems(paginatedData.total || 0);
+      setTables(responseData.data);
+      setStats(responseData.data.stats); 
+
+      const pagination = responseData.pagination;
+
+      setCurrentPage(pagination.current_page || 1);
+      setLastPage(pagination.last_page || 1);
+      setTotalItems(pagination.total || 0);
 
     } catch (err) {
       setError(err.response?.data?.message);
@@ -83,8 +100,8 @@ export default function TableList() {
     setCurrentPage(1);
   };
 
-  const handleFilterChange = (status) => {
-    setStatusFilter(status);
+  const handleStatusFilterChange = (selectedStatus) => {
+    setStatusFilter(selectedStatus || 'all');
     setCurrentPage(1);
   };
 
@@ -119,7 +136,6 @@ export default function TableList() {
   // Regenerate QR with Toast feedback
   const handleRegenerateQr = async (e, tableId) => {
     e.stopPropagation();
-    setActionLoadingId(tableId);
 
     try {
       const response = await api.post(`/tables/${tableId}/regenerate-qr`);
@@ -131,8 +147,6 @@ export default function TableList() {
       toast.success(response.data.message);
     } catch (err) {
       toast.error(err.response?.data?.message);
-    } finally {
-      setActionLoadingId(null);
     }
   };
 
@@ -164,7 +178,6 @@ export default function TableList() {
     if (!tableId) return;
 
     setDeleteModalState(prev => ({ ...prev, isDeleting: true }));
-    setActionLoadingId(tableId);
 
     try {
       const response = await api.delete(`/tables/${tableId}`);
@@ -174,12 +187,44 @@ export default function TableList() {
     } catch (err) {
       toast.error(err.response?.data?.message);
       setDeleteModalState(prev => ({ ...prev, isDeleting: false }));
-    } finally {
-      setActionLoadingId(null);
     }
   };
 
-  const statusFilters = ['all', 'available', 'occupied', 'reserved', 'cleaning'];
+  // Restore Handler
+  const handleRestore = async (e, table) => {
+    e.stopPropagation();
+    try {
+      const response = await api.patch(`/tables/${table.id}/restore`);
+      toast.success(response.data?.message);
+      await fetchTables();
+    } catch (err) {
+      toast.error(err.response?.data?.message);
+    }
+  };
+
+  // Force Delete Handlers
+  const openForceDeleteModal = (e, table) => {
+    e.stopPropagation();
+    setTableToForceDelete(table);
+    setIsForceDeleteModalOpen(true);
+  };
+
+  const handleConfirmForceDelete = async () => {
+    if (!tableToForceDelete) return;
+    setIsForceDeleting(true);
+    try {
+      const response = await api.delete(`/tables/${tableToForceDelete.id}/force`);
+      toast.success(response.data?.message);
+      setIsForceDeleteModalOpen(false);
+      setTableToForceDelete(null);
+      await fetchTables();
+    } catch (err) {
+      toast.error(err.response?.data?.message);
+    } finally {
+      setIsForceDeleting(false);
+    }
+  };
+  const isFiltered = Boolean(searchQuery || statusFilter !== 'all');
 
   return (
     <div className="p-1 sm:p-4 space-y-6 bg-gray-50 dark:bg-slate-950 min-h-screen text-gray-900 dark:text-slate-100 transition-colors duration-200">
@@ -204,28 +249,35 @@ export default function TableList() {
         </button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-2 gap-4">
-        <StatsCard
-          label="Total"
-          value={loading ? '...' : totalItems}
-          valueColor="text-orange-600 dark:text-orange-400"
-        />
-        <StatsCard
-          label="Active"
-          value={loading ? '...' : tables.filter(t => t.is_active).length}
-          valueColor="text-blue-600 dark:text-blue-400"
-        />
+        {/* Stats Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <StatsCard label="Total Tables" value={loading && stats.total === 0 ? '...' : stats.total} />
+        <StatsCard label="Active Tables" value={loading && stats.active === 0 ? '...' : stats.active} />
+        <StatsCard label="Inactive Tables" value={loading && stats.inactive === 0 ? '...' : stats.inactive}/>
+        <StatsCard label="Trash" value={loading && stats.trash === 0 ? '...' : stats.trash}/>
       </div>
 
-      {/* Search & Filter Toolbar */}
+
+     
+      {/* Search & Filter Toolbar*/}
       <Toolbar
-        filters={statusFilters}
-        activeFilter={statusFilter}
-        onFilterChange={handleFilterChange}
         searchQuery={searchQuery}
         onSearchChange={handleSearchChange}
         searchPlaceholder="Search by name or slug..."
+        dropdowns={[
+          {
+            id: 'status-filter',
+            placeholder: 'Status...',
+            value: statusFilter,
+            onChange: handleStatusFilterChange,
+            options: [
+              { label: 'All Statuses', value: 'all' },
+              { label: 'Active', value: 'active' },
+              { label: 'Inactive', value: 'inactive' },
+              { label: 'Trash', value: 'trash' },
+            ],
+          },
+        ]}
       />
 
       {/* 1. LOADING SKELETON STATE */}
@@ -249,7 +301,7 @@ export default function TableList() {
         </div>
       ) : error ? (
         /* 2. ERROR STATE */
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-12">
+        <div className="p-12">
           <EmptyState
             icon={AlertCircle}
             title={error}
@@ -257,38 +309,14 @@ export default function TableList() {
         </div>
       ) : tables.length === 0 ? (
         /* 3. EMPTY STATE */
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-12">
+        <div className="p-12">
           <EmptyState
-            icon={searchQuery || statusFilter !== 'all' ? Search : QrCode}
-            title={
-              searchQuery || statusFilter !== 'all'
-                ? 'No matching tables found'
-                : 'No floor plan tables configured'
-            }
+            icon={isFiltered ? Search : QrCode}
+            title={isFiltered ? 'No matching tables found' : 'No floor plan tables configured'}
             description={
-              searchQuery || statusFilter !== 'all'
+              isFiltered
                 ? 'No table records match your current search criteria or status filter.'
                 : 'Start designing your layout by registering dining and seating tables.'
-            }
-            action={
-              searchQuery || statusFilter !== 'all' ? (
-                <button
-                  onClick={() => {
-                    setSearchQuery('');
-                    setStatusFilter('all');
-                  }}
-                  className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors duration-200"
-                >
-                  Clear search filters
-                </button>
-              ) : (
-                <button
-                  onClick={() => navigate('/table/create')}
-                  className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-white bg-orange-500 hover:bg-orange-600 rounded-lg transition-colors duration-200"
-                >
-                  <PlusCircle className="w-3.5 h-3.5" /> Create First Table
-                </button>
-              )
             }
           />
         </div>
@@ -296,14 +324,12 @@ export default function TableList() {
         /* 4. LIST/GRID DISPLAY STATE - IMPROVED CARD UI */
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 gap-5">
           {tables.map((table) => {
-            const isActionBusy = actionLoadingId === table.id;
+            const isTrashed = Boolean(table.deleted_at);
 
             return (
               <div
                 key={table.id}
-                className={`group relative bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800  hover:border-orange-500/30 dark:hover:border-orange-500/30 transition-all duration-300 overflow-hidden ${isActionBusy ? 'opacity-60 pointer-events-none' : ''
-                  }`}
-              >
+                className="group relative bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-orange-500/30 dark:hover:border-orange-500/30 transition-all duration-300 overflow-hidden" >
                 <div className="flex flex-col sm:flex-row h-full">
 
                   {/* QR CODE SECTION - Left Side */}
@@ -354,21 +380,42 @@ export default function TableList() {
 
                       {/* Quick Actions */}
                       <div className="flex items-center gap-1 shrink-0">
-                        <Link to={`/table/edit/${table.id}`} onClick={(e) => e.stopPropagation()}>
-                          <button
-                          className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg text-gray-500 hover:text-blue-600 transition-colors inline-block"
-                          title="Edit"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </button>
-                        </Link>
-                        <button
-                          onClick={(e) => openDeleteModal(e, table)}
-                          className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-gray-500 hover:text-red-600 transition-colors cursor-pointer"
-                          title="Remove"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        {isTrashed ? (
+                          <>
+                            <button
+                              onClick={(e) => handleRestore(e, table)}
+                              className="p-2 rounded-lg text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-950/30 transition-colors"
+                              title="Restore"
+                            >
+                              <RefreshCw className="w-4 h-4" />
+                            </button>
+                            {/* <button
+                              onClick={(e) => openForceDeleteModal(e, table)}
+                              className="p-2 rounded-lg text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors cursor-pointer"
+                              title="Permanently Delete"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button> */}
+                          </>
+                        ) : (
+                          <>
+                            <Link to={`/table/edit/${table.id}`} onClick={(e) => e.stopPropagation()}>
+                              <button
+                                className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg text-gray-500 hover:text-blue-600 transition-colors inline-block"
+                                title="Edit"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </button>
+                            </Link>
+                            <button
+                              onClick={(e) => openDeleteModal(e, table)}
+                              className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-gray-500 hover:text-red-600 transition-colors cursor-pointer"
+                              title="Remove"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </>
+                        )}
                       </div>
                     </div>
 
@@ -423,10 +470,9 @@ export default function TableList() {
                     <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2 mt-auto">
                       <button
                         onClick={(e) => handleRegenerateQr(e, table.id)}
-                        disabled={isActionBusy}
                         className="flex-1 py-2 px-3 text-xs font-medium bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
                       >
-                        <RefreshCw className={`w-3.5 h-3.5 ${isActionBusy ? 'animate-spin' : ''}`} />
+                        <RefreshCw  className="w-3.5 h-3.5" />
                         Regenerate QR
                       </button>
 
@@ -470,6 +516,32 @@ export default function TableList() {
         isLoading={deleteModalState.isDeleting}
         confirmText="Delete Table"
         cancelText="Cancel"
+      />
+
+      {/* Force Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={isForceDeleteModalOpen}
+        onClose={() => {
+          if (!isForceDeleting) {
+            setIsForceDeleteModalOpen(false);
+            setTableToForceDelete(null);
+          }
+        }}
+        onConfirm={handleConfirmForceDelete}
+        title="Permanently Delete Table"
+        message={
+          <>
+            Are you sure you want to <span className="font-bold text-red-600">permanently delete</span>{' '}
+            <span className="font-bold text-slate-900 dark:text-slate-200">"{tableToForceDelete?.name}"</span>?
+            <br />
+            <span className="text-sm text-slate-500 mt-2 block">
+              This action cannot be undone and will permanently destroy it from the database.
+            </span>
+          </>
+        }
+        isLoading={isForceDeleting}
+        confirmText="Permanently Delete"
+        confirmClassName="bg-rose-600 hover:bg-rose-700 text-white"
       />
     </div>
   );

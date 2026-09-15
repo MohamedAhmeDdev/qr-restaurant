@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Trash2, AlertCircle, Folder, Hash, Search, 
-  Power, PlusCircle, Edit, Tag, ArrowUpDown 
+  Power, PlusCircle, Edit, Tag, ArrowUpDown, RefreshCw 
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -12,11 +12,18 @@ import StatsCard from '../../../components/cards/StatsCard';
 import Table from '../../../components/Table';
 import ConfirmationModal from '../../../components/common/ConfirmationModal';
 import api from '../../../services/api';
+import Pagination from '../../../components/common/Pagination';
 
 export default function CategoryPage() {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [stats, setStats] = useState({
+    total: 0,
+    active: 0,
+    inactive: 0,
+    trash: 0
+  });
 
   // Filters & Search
   const [searchQuery, setSearchQuery] = useState('');
@@ -26,6 +33,17 @@ export default function CategoryPage() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [lastPage, setLastPage] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+
+
+  // Force Delete Modal State
+  const [isForceDeleteModalOpen, setIsForceDeleteModalOpen] = useState(false);
+  const [categoryToForceDelete, setCategoryToForceDelete] = useState(null);
+  const [isForceDeleting, setIsForceDeleting] = useState(false);
 
   // Table Column Definitions
   const columns = [
@@ -46,28 +64,46 @@ export default function CategoryPage() {
   ];
 
   // Fetch Categories from Backend
+  // Fetch Categories from Backend
   const fetchCategories = useCallback(async () => {
     setLoading(true);
     setError(null);
+
+    // ✅ FIX: Build params object ONCE, including pagination
+    const params = {
+      page: currentPage,
+      per_page: 15,
+    };
+
+    if (searchQuery) params.search = searchQuery;
+    if (statusFilter === 'active') params.only_active = 1;
+    if (statusFilter === 'trash') params.only_trashed = 1;
+
     try {
-      const params = {};
-      if (searchQuery) params.search = searchQuery;
-      if (statusFilter === 'active') params.only_active = 1;
-
       const response = await api.get('/categories', { params });
-      const items = response.data?.data?.data || response.data?.data || [];
+      
 
+      const paginatedData = response.data?.data;
+      const items = paginatedData.data
+
+      // Keep your frontend inactive filter
       const finalItems = statusFilter === 'inactive'
-        ? items.filter(c => !c.is_active)
+        ? items.filter(c => !c.is_active && !c.deleted_at)
         : items;
 
       setCategories(finalItems);
+      setStats(response.data?.stats);
+
+      setCurrentPage(paginatedData.current_page || 1);
+      setLastPage(paginatedData.last_page || 1);
+      setTotalItems(paginatedData.total || 0);
+
     } catch (err) {
       setError(err.response?.data?.message);
     } finally {
       setLoading(false);
     }
-  }, [searchQuery, statusFilter]);
+  }, [currentPage, searchQuery, statusFilter]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -76,12 +112,6 @@ export default function CategoryPage() {
     return () => clearTimeout(timer);
   }, [fetchCategories]);
 
-  // Derived Stats
-  const stats = {
-    total: categories.length,
-    active: categories.filter(c => c.is_active).length,
-    inactive: categories.filter(c => !c.is_active).length,
-  };
 
   // Quick Toggle Active/Inactive
   const toggleStatus = async (category) => {
@@ -114,7 +144,7 @@ export default function CategoryPage() {
       toast.success(response.data?.message);
       setIsDeleteModalOpen(false);
       setCategoryToDelete(null);
-      setCategories(prev => prev.filter(c => c.id !== categoryToDelete.id));
+      fetchCategories();
     } catch (err) {
       toast.error(err.response?.data?.message);
     } finally {
@@ -122,29 +152,80 @@ export default function CategoryPage() {
     }
   };
 
+   const handleSearchChange = (query) => {
+    setSearchQuery(query);
+    setCurrentPage(1); // ✅ Reset to page 1
+  };
+
+
   const handleStatusFilterChange = (selectedStatus) => {
     const statusMap = {
       'All Statuses': 'all',
       'Active': 'active',
       'Inactive': 'inactive',
+      'All': 'all',
+      'Trash': 'trash',
     };
-    setStatusFilter(statusMap[selectedStatus] || 'all');
+    setStatusFilter(statusMap[selectedStatus] || selectedStatus || 'all');
+      setCurrentPage(1);
+  };
+
+   const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= lastPage) {
+      setCurrentPage(newPage);
+    }
   };
 
   const currentActiveFilterLabel = {
-    'all': 'All Statuses',
+    'all': 'All',
     'active': 'Active',
     'inactive': 'Inactive',
-  }[statusFilter] || 'All Statuses';
+    'trash': 'Trash',
+  }[statusFilter] || 'All';
 
   const isFiltered = Boolean(searchQuery || statusFilter !== 'all');
 
+  // Restore Handler
+  const handleRestore = async (category) => {
+    try {
+      const response = await api.patch(`/categories/${category.id}/restore`);
+      toast.success(response.data?.message);
+      fetchCategories();
+    } catch (err) {
+      toast.error(err.response?.data?.message);
+    }
+  };
+
+  // Force Delete Handlers
+  const handleOpenForceDeleteModal = (category) => {
+    setCategoryToForceDelete(category);
+    setIsForceDeleteModalOpen(true);
+  };
+
+  const handleConfirmForceDelete = async () => {
+    if (!categoryToForceDelete) return;
+    setIsForceDeleting(true);
+    try {
+      const response = await api.delete(`/categories/${categoryToForceDelete.id}/force`);
+      toast.success(response.data?.message);
+      setIsForceDeleteModalOpen(false);
+      setCategoryToForceDelete(null);
+      fetchCategories();
+    } catch (err) {
+      toast.error(err.response?.data?.message);
+    } finally {
+      setIsForceDeleting(false);
+    }
+  };
+
   // Row Renderer for Generic Table Component
-  const renderRow = (cat) => (
-    <tr
-      key={cat.id}
-      className="border-b border-gray-100 dark:border-slate-800/60 hover:bg-gray-50/50 dark:hover:bg-slate-800/50 transition-colors"
-    >
+  const renderRow = (cat) => {
+    const isTrashed = Boolean(cat.deleted_at);
+    return (
+      <tr
+        key={cat.id}
+        className="border-b border-gray-100 dark:border-slate-800/60 hover:bg-gray-50/50 dark:hover:bg-slate-800/50 transition-colors"
+      >
         <td className="px-6 py-4 font-mono text-xs font-semibold text-gray-500 dark:text-slate-400">
           #{cat.id}
         </td>
@@ -162,45 +243,66 @@ export default function CategoryPage() {
           {cat.slug}
         </span>
       </td>
-<td className="py-4 px-4 hidden md:table-cell text-xs text-gray-600 dark:text-slate-400 max-w-xs truncate">
-  {cat.description?.trim() || "—"}
-</td>
+      <td className="py-4 px-4 hidden md:table-cell text-xs text-gray-600 dark:text-slate-400 max-w-xs truncate">
+        {cat.description?.trim() || "—"}
+      </td>
       <td className="py-4 px-4">
         <StatusBadge status={cat.is_active ? 'active' : 'inactive'} />
       </td>
       <td className="py-4 px-4 sm:px-6 text-right">
-        <div className="inline-flex items-center gap-1 bg-gray-50 dark:bg-slate-800/80 p-1 rounded-xl border border-gray-100 dark:border-slate-700/50">
-          <button
-            onClick={() => toggleStatus(cat)}
-            className={`p-2 rounded-lg transition-colors ${
-              cat.is_active
-                ? 'text-red-500 hover:bg-red-100/50 dark:text-red-400 dark:hover:bg-red-950/30'
-                : 'text-emerald-600 hover:bg-emerald-100/50 dark:text-emerald-400 dark:hover:bg-emerald-950/30'
-            }`}
-            title={cat.is_active ? 'Deactivate' : 'Activate'}
-          >
-            <Power className="w-4 h-4" />
-          </button>
+          <div className="flex items-center justify-end gap-1">
+            {isTrashed ? (
+              <>
+                <button
+                  onClick={() => handleRestore(cat)}
+                  className="p-2 rounded-lg text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-950/30 transition-colors"
+                  title="Restore"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                </button>
+                {/* <button
+              onClick={() => handleOpenForceDeleteModal(cat)}
+              className="p-2 rounded-lg text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors cursor-pointer"
+              title="Permanently Delete"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button> */}
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => toggleStatus(cat)}
+                  className={`p-2 rounded-lg transition-colors ${cat.is_active
+                      ? 'text-red-500 hover:bg-red-100/50 dark:text-red-400 dark:hover:bg-red-950/30'
+                      : 'text-emerald-600 hover:bg-emerald-100/50 dark:text-emerald-400 dark:hover:bg-emerald-950/30'
+                    }`}
+                  title={cat.is_active ? 'Deactivate' : 'Activate'}
+                >
+                  <Power className="w-4 h-4" />
+                </button>
 
-          <Link
-            to={`/category/edit/${cat.id}`}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg text-gray-500 hover:text-blue-600 transition-colors inline-block"
-              title="Edit"
-          >
-            <Edit className="w-4 h-4" />
-          </Link>
+                <Link
+                  to={`/category/edit/${cat.id}`}
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg text-gray-500 hover:text-blue-600 transition-colors inline-block"
+                  title="Edit"
+                >
+                  <Edit className="w-4 h-4" />
+                </Link>
 
-          <button
-            onClick={() => handleOpenDeleteModal(cat)}
-            className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-gray-500 hover:text-red-600 transition-colors cursor-pointer"
-              title="Remove"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
-        </div>
+                <button
+                  onClick={() => handleOpenDeleteModal(cat)}
+                  className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-gray-500 hover:text-red-600 transition-colors cursor-pointer"
+                  title="Remove"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </>
+            )}
+          </div>
       </td>
     </tr>
-  );
+    );
+  };
 
   return (
     <div className="p-1 sm:p-4 space-y-6 bg-gray-50 dark:bg-slate-950 min-h-screen text-gray-900 dark:text-slate-100 transition-colors duration-200">
@@ -224,35 +326,42 @@ export default function CategoryPage() {
         </Link>
       </div>
 
+
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <StatsCard
-          label="Total Categories"
-          value={loading ? '...' : stats.total}
-        />
-        <StatsCard
-          label="Active Categories"
-          value={loading ? '...' : stats.active}
-        />
-        <StatsCard
-          label="Inactive Categories"
-          value={loading ? '...' : stats.inactive}
-        />
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+        <StatsCard label="Total Categories" value={loading && stats.total === 0 ? '...' : stats.total} />
+        <StatsCard label="Active Categories" value={loading && stats.active === 0 ? '...' : stats.active} />
+        <StatsCard label="Inactive Categories" value={loading && stats.inactive === 0 ? '...' : stats.inactive} />
+        <StatsCard label="Trash" value={loading && stats.trash === 0 ? '...' : stats.trash} />
       </div>
 
       {/* Toolbar */}
+          {/* Toolbar */}
       <Toolbar
         searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
+        onSearchChange={handleSearchChange} 
         searchPlaceholder="Search categories..."
-        filters={['All Statuses', 'Active', 'Inactive']}
+        dropdowns={[
+          {
+            id: 'status-filter',
+            placeholder: 'Status...',
+            value: statusFilter,
+            onChange: handleStatusFilterChange,
+            options: [
+              { label: 'All Statuses', value: 'all' },
+              { label: 'Active', value: 'active' },
+              { label: 'Inactive', value: 'inactive' },
+              { label: 'Trash', value: 'trash' },
+            ],
+          },
+        ]}
         activeFilter={currentActiveFilterLabel}
         onFilterChange={handleStatusFilterChange}
       />
 
       {/* Generic Table Component handling Loading, Error, Empty, and List States */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
-        <Table
+      <Table
           columns={columns}
           data={categories}
           renderRow={renderRow}
@@ -266,29 +375,18 @@ export default function CategoryPage() {
               ? 'No category records match your current search query or status filter.'
               : 'Start organizing your restaurant menu by setting up your first food or beverage category.'
           }
-          emptyAction={
-            isFiltered ? (
-              <button
-                type="button"
-                onClick={() => {
-                  setSearchQuery('');
-                  setStatusFilter('all');
-                }}
-                className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors duration-200"
-              >
-                Clear search filters
-              </button>
-            ) : (
-              <Link
-                to="/category/create"
-                className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-white bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 rounded-lg transition-colors duration-200"
-              >
-                <PlusCircle className="w-3.5 h-3.5" /> Create First Category
-              </Link>
-            )
-          }
         />
       </div>
+
+       {!loading && !error && categories.length > 0 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={lastPage}
+            totalRecords={totalItems}
+            onPageChange={handlePageChange}
+            maxVisible={5}
+          />
+        )}
 
       {/* Reusable Delete Confirmation Modal */}
       <ConfirmationModal
@@ -312,6 +410,31 @@ export default function CategoryPage() {
         }
         isLoading={isDeleting}
         confirmText="Delete"
+      />
+
+      {/* Force Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={isForceDeleteModalOpen}
+        onClose={() => {
+          if (!isForceDeleting) {
+            setIsForceDeleteModalOpen(false);
+            setCategoryToForceDelete(null);
+          }
+        }}
+        onConfirm={handleConfirmForceDelete}
+        title="Permanently Delete Category"
+        message={
+          <>
+            Are you sure you want to <span className="font-bold text-red-600">permanently delete</span> the{' '}
+            <span className="font-bold text-slate-900 dark:text-slate-200">
+              {categoryToForceDelete?.name}
+            </span>{' '}
+            category? This action cannot be undone and will permanently destroy all associated menu items.
+          </>
+        }
+        isLoading={isForceDeleting}
+        confirmText="Permanently Delete"
+        confirmClassName="bg-rose-600 hover:bg-rose-700 text-white"
       />
     </div>
   );

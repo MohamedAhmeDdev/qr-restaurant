@@ -34,7 +34,7 @@ export default function Table({
           ) : error ? (
             /* 2. ERROR STATE INSIDE TBODY */
             <tr>
-              <td colSpan={columns.length} className="px-6 py-12">
+              <td colSpan={columns.length} className="px-4 py-6">
                 <EmptyState
                   icon={AlertCircle}
                   title={error}
@@ -44,7 +44,7 @@ export default function Table({
           ) : data.length === 0 ? (
             /* 3. EMPTY STATE INSIDE TBODY */
             <tr>
-              <td colSpan={columns.length} className="px-6 py-12">
+              <td colSpan={columns.length} className="px-4 py-6">
                 <EmptyState
                   icon={emptyIcon}
                   title={emptyTitle}

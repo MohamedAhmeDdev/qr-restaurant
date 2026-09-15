@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { 
   UserPlus, Trash2, CheckCircle, 
   Users, AlertCircle, Mail, Search,
-  Edit, Calendar
+  Edit, Calendar, RefreshCw
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -22,6 +22,7 @@ export default function StaffPage() {
   // State
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
   const [roles, setRoles] = useState([]);
   const [staffList, setStaffList] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -33,12 +34,22 @@ export default function StaffPage() {
   const [totalItems, setTotalItems] = useState(0);
 
   // Statistics State
-  const [stats, setStats] = useState({ total: 0, active: 0 });
+    const [stats, setStats] = useState({
+       total: 0,
+       active: 0,
+       inactive: 0,
+       trash: 0
+     });
 
   // Modal Delete State
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [staffToDelete, setStaffToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Force Delete Modal State
+  const [isForceDeleteModalOpen, setIsForceDeleteModalOpen] = useState(false);
+  const [staffToForceDelete, setStaffToForceDelete] = useState(null);
+  const [isForceDeleting, setIsForceDeleting] = useState(false);
 
   // Fetch dynamic roles
   useEffect(() => {
@@ -63,32 +74,36 @@ export default function StaffPage() {
       per_page: 15,
     };
 
+    if (statusFilter === 'trash') {
+      params.only_trashed = 1;
+    } else if (statusFilter !== 'all') {
+      params.status = statusFilter;
+    }
+
     if (searchQuery.trim() !== '') {
       params.search = searchQuery.trim();
     }
-
     if (roleFilter !== 'all') {
       params.role_id = roleFilter;
     }
 
     try {
-      const res = await api.get('/staff', { params });
-      const paginatedData = res.data;
+      const response = await api.get('/staff', { params });
+        const responseData = response.data;
 
-      setStaffList(paginatedData.data);
-      setCurrentPage(paginatedData.current_page || 1);
-      setLastPage(paginatedData.last_page || 1);
-      setTotalItems(paginatedData.total || 0);
-      setStats({
-        total: res.data.stats?.total ?? 0,
-        active: res.data.stats?.active ?? 0,
-      });
+     setStaffList(responseData.data);
+      
+      const pagination = responseData.pagination;
+       setCurrentPage(pagination.current_page || 1);
+      setLastPage(pagination.last_page || 1);
+      setTotalItems(pagination.total || 0);
+      setStats(response.data.stats);
     } catch (err) {
       setError(err.response?.data?.message);
     } finally {
       setLoading(false);
     }
-  }, [currentPage, searchQuery, roleFilter]);
+  }, [currentPage, searchQuery, roleFilter, statusFilter]);
 
   useEffect(() => {
     fetchStaff();
@@ -99,15 +114,17 @@ export default function StaffPage() {
     setCurrentPage(1);
   };
 
-  const handleRoleFilterChange = (selectedRoleName) => {
-    if (selectedRoleName === 'All Roles') {
-      setRoleFilter('all');
-    } else {
-      const selected = roles.find((r) => r.name === selectedRoleName);
-      setRoleFilter(selected ? selected.id : 'all');
-    }
+  const handleRoleFilterChange = (selectedRoleId) => {
+    setRoleFilter(selectedRoleId || 'all');
     setCurrentPage(1);
   };
+
+  const handleStatusFilterChange = (selectedStatus) => {
+    setStatusFilter(selectedStatus || 'all');
+    setCurrentPage(1);
+  };
+
+  const isFiltered = Boolean(searchQuery || statusFilter !== 'all' || roleFilter !== 'all');
 
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= lastPage) {
@@ -139,15 +156,43 @@ export default function StaffPage() {
     }
   };
 
+  // Restore Handler
+  const handleRestore = async (staff) => {
+    try {
+      const response = await api.patch(`/staff/${staff.id}/restore`);
+      toast.success(response.data?.message);
+      await fetchStaff();
+    } catch (err) {
+      toast.error(err.response?.data?.message);
+    }
+  };
+
+  // Force Delete Handlers
+  const handleOpenForceDeleteModal = (staff) => {
+    setStaffToForceDelete(staff);
+    setIsForceDeleteModalOpen(true);
+  };
+
+  const handleConfirmForceDelete = async () => {
+    if (!staffToForceDelete) return;
+    setIsForceDeleting(true);
+    try {
+      const response = await api.delete(`/staff/${staffToForceDelete.id}/force`);
+      toast.success(response.data?.message);
+      setIsForceDeleteModalOpen(false);
+      setStaffToForceDelete(null);
+      await fetchStaff();
+    } catch (err) {
+      toast.error(err.response?.data?.message);
+    } finally {
+      setIsForceDeleting(false);
+    }
+  };
+
   const formatShiftType = (shift) => {
     if (!shift) return 'N/A';
     return shift.replace('_', ' ').replace(/\b\w/g, (char) => char.toUpperCase());
   };
-
-  const currentActiveFilterLabel =
-    roleFilter === 'all'
-      ? 'All Roles'
-      : roles.find((r) => r.id === roleFilter)?.name || 'All Roles';
 
   const columns = [
     { label: 'ID', align: 'left' },
@@ -160,6 +205,7 @@ export default function StaffPage() {
   ];
 
   const renderRow = (staff) => {
+    const isTrashed = Boolean(staff.deleted_at);
     return (
       <tr
         key={staff.id}
@@ -170,9 +216,6 @@ export default function StaffPage() {
         </td>
         <td className="px-6 py-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 text-white flex items-center justify-center font-bold text-sm shadow-sm shrink-0">
-              {staff.name ? staff.name.split(' ').map((n) => n[0]).join('') : 'U'}
-            </div>
             <div className="min-w-0">
               <p className="font-semibold text-gray-900 dark:text-white truncate">{staff.name}</p>
               <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-slate-400 mt-0.5">
@@ -198,24 +241,46 @@ export default function StaffPage() {
           <StatusBadge status={staff.status} />
         </td>
         <td className="px-6 py-4 text-right">
-          {staff.role?.name !== 'manager' && (
-            <div className="flex items-center justify-end gap-1">
-              <Link
-                to={`/staff/edit/${staff.id}`}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg text-gray-500 hover:text-blue-600 transition-colors inline-block"
-                title="Edit"
+          <div className="flex items-center justify-end gap-1">
+            {isTrashed ? (
+              <>
+                <button
+                  onClick={() => handleRestore(staff)}
+                  className="p-2 rounded-lg text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-950/30 transition-colors"
+                  title="Restore"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                </button>
+                {/* <button
+                onClick={() => handleOpenForceDeleteModal(staff)}
+                className="p-2 rounded-lg text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors cursor-pointer"
+                title="Permanently Delete"
               >
-                <Edit className="w-4 h-4" />
-              </Link>
-              <button
-                onClick={() => handleOpenDeleteModal(staff)}
-                className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-gray-500 hover:text-red-600 transition-colors cursor-pointer"
-                title="Remove"
-              >
-              <Trash2 className="w-4 h-4" />
-              </button>
+                <Trash2 className="w-4 h-4" />
+              </button> */}
+              </>
+            ) : (
+              staff.role?.name !== 'manager' && (
+                <>
+                  <Link
+                    to={`/staff/edit/${staff.id}`}
+                    className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg text-gray-500 hover:text-blue-600 transition-colors inline-block"
+                    title="Edit"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </Link>
+                  <button
+                    onClick={() => handleOpenDeleteModal(staff)}
+                    className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-gray-500 hover:text-red-600 transition-colors cursor-pointer"
+                    title="Remove"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </>
+
+              )
+            )}
           </div>
-          )}
         </td>
       </tr>
     );
@@ -241,20 +306,12 @@ export default function StaffPage() {
         </Link>
       </div>
 
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <StatsCard
-          label="Total Staff"
-          value={loading ? '...' : stats.total}
-        />
-        <StatsCard
-          label="Active Staff"
-          value={loading ? '...' : stats.active}
-        />
-        <StatsCard
-          label="Inactive Staff"
-          value={loading ? '...' : stats.total - stats.active}
-        />
+          {/* Statistics Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+        <StatsCard label="Total Staff" value={loading && stats.total === 0 ? '...' : stats.total} />
+        <StatsCard label="Active Staff" value={loading && stats.active === 0 ? '...' : stats.active} />
+        <StatsCard label="Inactive Staff" value={loading && stats.inactive === 0 ? '...' : stats.inactive} />
+        <StatsCard label="Trash" value={loading && stats.trash === 0 ? '...' : stats.trash} />
       </div>
 
       {/* Toolbar */}
@@ -262,9 +319,30 @@ export default function StaffPage() {
         searchQuery={searchQuery}
         onSearchChange={handleSearchChange}
         searchPlaceholder="Search by name or email..."
-        filters={['All Roles', ...roles.map((r) => r.name)]}
-        activeFilter={currentActiveFilterLabel}
-        onFilterChange={handleRoleFilterChange}
+        dropdowns={[
+          {
+            id: 'role-filter',
+            placeholder: 'Role...',
+            value: roleFilter,
+            onChange: handleRoleFilterChange,
+            options: [
+              { label: 'All Roles', value: 'all' },
+              ...roles.map((r) => ({ label: r.name, value: r.id })),
+            ],
+          },
+          {
+            id: 'status-filter',
+            placeholder: 'Status...',
+            value: statusFilter,
+            onChange: handleStatusFilterChange,
+            options: [
+              { label: 'All Statuses', value: 'all' },
+              { label: 'Active', value: 'active' },
+              { label: 'Inactive', value: 'inactive' },
+              { label: 'Trash', value: 'trash' },
+            ],
+          },
+        ]}
       />
 
       {/* Staff Table & Reusable Pagination */}
@@ -276,15 +354,11 @@ export default function StaffPage() {
           loading={loading}
           error={error}
           onRetry={fetchStaff}
-          emptyIcon={searchQuery || roleFilter !== 'all' ? Search : Users}
-          emptyTitle={
-            searchQuery || roleFilter !== 'all'
-              ? 'No matching staff members'
-              : 'No staff members registered'
-          }
+          emptyIcon={isFiltered ? Search : Users}
+          emptyTitle={isFiltered ? 'No matching staff members' : 'No staff members registered'}
           emptyDescription={
-            searchQuery || roleFilter !== 'all'
-              ? 'No employees found matching standard search query or selected role.'
+            isFiltered
+              ? 'No employees found matching standard search query or selected filter.'
               : 'Get started by onboarding team members to your workspace.'
           }
         />
@@ -317,11 +391,36 @@ export default function StaffPage() {
             <span className="font-bold text-slate-900 dark:text-slate-200">
               {staffToDelete?.name}
             </span>{' '}
-            staff member? This action cannot be undone.
+            staff member? This action can be restored later.
           </>
         }
         isLoading={isDeleting}
         confirmText="Remove"
+      />
+
+      {/* Force Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={isForceDeleteModalOpen}
+        onClose={() => {
+          if (!isForceDeleting) {
+            setIsForceDeleteModalOpen(false);
+            setStaffToForceDelete(null);
+          }
+        }}
+        onConfirm={handleConfirmForceDelete}
+        title="Permanently Delete Staff Member"
+        message={
+          <>
+            Are you sure you want to <span className="font-bold text-red-600">permanently delete</span> the{' '}
+            <span className="font-bold text-slate-900 dark:text-slate-200">
+              {staffToForceDelete?.name}
+            </span>{' '}
+            staff member? This action cannot be undone and will permanently destroy their record.
+          </>
+        }
+        isLoading={isForceDeleting}
+        confirmText="Permanently Delete"
+        confirmClassName="bg-rose-600 hover:bg-rose-700 text-white"
       />
     </div>
   );
