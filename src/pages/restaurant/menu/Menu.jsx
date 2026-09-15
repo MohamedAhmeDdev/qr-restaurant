@@ -106,8 +106,8 @@ export default function MenuTable() {
       const response = await api.get('/menu-items', { params });
       const responseData = response.data;
 
-      setItems(responseData.data);
-      setStats(response.data.stats);
+      setItems(responseData.data.data);
+      setStats(response.status);
 
       const pagination = responseData.pagination;
       setCurrentPage(pagination.current_page || 1);

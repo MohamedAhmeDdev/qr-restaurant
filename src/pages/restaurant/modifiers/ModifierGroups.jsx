@@ -73,10 +73,10 @@ export default function ModifierGroups() {
       const response = await api.get('/modifier-groups', { params });
       const responseData = response.data;
 
-      setGroups(responseData.data);
-      setStats(responseData.data.stats);
+      setGroups(responseData.data.data);
+      setStats(responseData.stats);
 
-      const pagination = responseData.pagination;
+      const pagination = responseData.data;
       setCurrentPage(pagination.current_page || 1);
       setLastPage(pagination.last_page || 1);
       setTotalItems(pagination.total || 0);

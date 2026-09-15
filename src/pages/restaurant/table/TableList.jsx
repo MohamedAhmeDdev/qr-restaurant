@@ -75,10 +75,10 @@ export default function TableList() {
       const response = await api.get('/tables', { params });
      const responseData = response.data;
 
-      setTables(responseData.data);
-      setStats(responseData.data.stats); 
+      setTables(responseData.data.data);
+      setStats(responseData.stats); 
 
-      const pagination = responseData.pagination;
+      const pagination = responseData.data
 
       setCurrentPage(pagination.current_page || 1);
       setLastPage(pagination.last_page || 1);
