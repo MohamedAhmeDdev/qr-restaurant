@@ -4,7 +4,7 @@ import {
   PlusCircle, Search,
   Edit, RefreshCw
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import Toolbar from '../../../components/Toolbar';
 import Pagination from '../../../components/common/Pagination';
 import ConfirmationModal from '../../../components/common/ConfirmationModal';
@@ -16,8 +16,14 @@ import { useFormatPrice } from '../../../contexts/useFormatPrice';
 import StatsCard from '../../../components/cards/StatsCard';
 
 export default function ModifierGroups() {
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // URL-driven state
+  const currentPage = Number(searchParams.get('page')) || 1;
+  const searchQuery = searchParams.get('search') || '';
+  const statusFilter = searchParams.get('status') || 'all';
+
   const [groups, setGroups] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
 
      const [stats, setStats] = useState({
         total: 0,
@@ -27,7 +33,6 @@ export default function ModifierGroups() {
       });
   
   // Pagination State
-  const [currentPage, setCurrentPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   
@@ -46,8 +51,14 @@ export default function ModifierGroups() {
   const [groupToForceDelete, setGroupToForceDelete] = useState(null);
   const [isForceDeleting, setIsForceDeleting] = useState(false);
 
-  // Filters & Search
-  const [statusFilter, setStatusFilter] = useState('all');
+  // URL update helper
+  const updateUrlParams = useCallback((newPage, newSearch, newStatus) => {
+    const params = new URLSearchParams();
+    if (newPage > 1) params.set('page', String(newPage));
+    if (newSearch) params.set('search', newSearch);
+    if (newStatus && newStatus !== 'all') params.set('status', newStatus);
+    setSearchParams(params, { replace: true });
+  }, [setSearchParams]);
 
   // Fetch Modifier Groups from Backend API
   const fetchModifierGroups = useCallback(async () => {
@@ -77,9 +88,8 @@ export default function ModifierGroups() {
       setStats(responseData.stats);
 
       const pagination = responseData.data;
-      setCurrentPage(pagination.current_page || 1);
-      setLastPage(pagination.last_page || 1);
-      setTotalItems(pagination.total || 0);
+      setLastPage(pagination?.last_page || 1);
+      setTotalItems(pagination?.total || 0);
 
     } catch (err) {
       setError(err.response?.data?.message);
@@ -93,13 +103,12 @@ export default function ModifierGroups() {
   }, [fetchModifierGroups]);
 
   const handleSearchChange = (query) => {
-    setSearchQuery(query);
-    setCurrentPage(1);
+    updateUrlParams(1, query, statusFilter);
   };
 
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= lastPage) {
-      setCurrentPage(newPage);
+      updateUrlParams(newPage, searchQuery, statusFilter);
     }
   };
 
@@ -111,8 +120,8 @@ export default function ModifierGroups() {
       'Inactive': 'inactive',
       'Trash': 'trash',
     };
-    setStatusFilter(statusMap[selectedStatus] || selectedStatus || 'all');
-    setCurrentPage(1);
+    const mappedStatus = statusMap[selectedStatus] || selectedStatus || 'all';
+    updateUrlParams(1, searchQuery, mappedStatus);
   };
 
   const currentActiveFilterLabel = {

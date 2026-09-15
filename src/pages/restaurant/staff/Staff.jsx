@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
-import { 
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import {
   UserPlus, Trash2, CheckCircle, 
   Users, AlertCircle, Mail, Search,
   Edit, Calendar, RefreshCw
@@ -19,17 +19,22 @@ import RoleService from '../../../services/Roles';
 import { formatDate } from '../../../utils/formatDate';
 
 export default function StaffPage() {
-  // State
-  const [searchQuery, setSearchQuery] = useState('');
-  const [roleFilter, setRoleFilter] = useState('all');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // URL-driven state
+  const currentPage = Number(searchParams.get('page')) || 1;
+  const searchQuery = searchParams.get('search') || '';
+  const statusFilter = searchParams.get('status') || 'all';
+  const roleFilter = searchParams.get('role') || 'all';
+
+  // Local UI State
   const [roles, setRoles] = useState([]);
   const [staffList, setStaffList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   // Pagination State
-  const [currentPage, setCurrentPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
 
@@ -50,6 +55,16 @@ export default function StaffPage() {
   const [isForceDeleteModalOpen, setIsForceDeleteModalOpen] = useState(false);
   const [staffToForceDelete, setStaffToForceDelete] = useState(null);
   const [isForceDeleting, setIsForceDeleting] = useState(false);
+
+  // URL update helper
+  const updateUrlParams = useCallback((newPage, newSearch, newStatus, newRole) => {
+    const params = new URLSearchParams();
+    if (newPage > 1) params.set('page', String(newPage));
+    if (newSearch) params.set('search', newSearch);
+    if (newStatus && newStatus !== 'all') params.set('status', newStatus);
+    if (newRole && newRole !== 'all') params.set('role', newRole);
+    setSearchParams(params, { replace: true });
+  }, [setSearchParams]);
 
   // Fetch dynamic roles
   useEffect(() => {
@@ -94,10 +109,9 @@ export default function StaffPage() {
      setStaffList(responseData.data);
       
       const pagination = responseData.pagination;
-       setCurrentPage(pagination.current_page || 1);
-      setLastPage(pagination.last_page || 1);
-      setTotalItems(pagination.total || 0);
-      setStats(response.data.stats);
+      setLastPage(pagination?.last_page || 1);
+      setTotalItems(pagination?.total || 0);
+      setStats(responseData.stats);
     } catch (err) {
       setError(err.response?.data?.message);
     } finally {
@@ -110,25 +124,22 @@ export default function StaffPage() {
   }, [fetchStaff]);
 
   const handleSearchChange = (query) => {
-    setSearchQuery(query);
-    setCurrentPage(1);
+    updateUrlParams(1, query, statusFilter, roleFilter);
   };
 
   const handleRoleFilterChange = (selectedRoleId) => {
-    setRoleFilter(selectedRoleId || 'all');
-    setCurrentPage(1);
+    updateUrlParams(1, searchQuery, statusFilter, selectedRoleId || 'all');
   };
 
   const handleStatusFilterChange = (selectedStatus) => {
-    setStatusFilter(selectedStatus || 'all');
-    setCurrentPage(1);
+    updateUrlParams(1, searchQuery, selectedStatus || 'all', roleFilter);
   };
 
   const isFiltered = Boolean(searchQuery || statusFilter !== 'all' || roleFilter !== 'all');
 
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= lastPage) {
-      setCurrentPage(newPage);
+      updateUrlParams(newPage, searchQuery, statusFilter, roleFilter);
     }
   };
 

@@ -9,7 +9,7 @@ import {
   RefreshCw,
   Search
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
 import Toolbar from '../../../components/Toolbar';
@@ -24,11 +24,17 @@ import { useFormatPrice } from '../../../contexts/useFormatPrice';
 import StatsCard from '../../../components/cards/StatsCard';
 
 export default function MenuTable() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const formatPrice = useFormatPrice();
+
+  // URL-driven state
+  const currentPage = Number(searchParams.get('page')) || 1;
+  const searchQuery = searchParams.get('search') || '';
+  const statusFilter = searchParams.get('status') || 'all';
+  const selectedCategory = searchParams.get('category') || 'all';
+
   const [categories, setCategories] = useState([]);
   const [items, setItems] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const formatPrice = useFormatPrice();
 
     const [stats, setStats] = useState({
       total: 0,
@@ -38,7 +44,6 @@ export default function MenuTable() {
     });
   
   // Pagination State
-  const [currentPage, setCurrentPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
 
@@ -56,8 +61,15 @@ export default function MenuTable() {
   const [itemToForceDelete, setItemToForceDelete] = useState(null);
   const [isForceDeleting, setIsForceDeleting] = useState(false);
 
-  // Filters & Search
-  const [statusFilter, setStatusFilter] = useState('all');
+  // URL update helper
+  const updateUrlParams = useCallback((newPage, newSearch, newStatus, newCategory) => {
+    const params = new URLSearchParams();
+    if (newPage > 1) params.set('page', String(newPage));
+    if (newSearch) params.set('search', newSearch);
+    if (newStatus && newStatus !== 'all') params.set('status', newStatus);
+    if (newCategory && newCategory !== 'all') params.set('category', newCategory);
+    setSearchParams(params, { replace: true });
+  }, [setSearchParams]);
 
   // Table Column Definitions
   const columns = [
@@ -110,9 +122,8 @@ export default function MenuTable() {
       setStats(response.status);
 
       const pagination = responseData.pagination;
-      setCurrentPage(pagination.current_page || 1);
-      setLastPage(pagination.last_page || 1);
-      setTotalItems(pagination.total || 0);
+      setLastPage(pagination?.last_page || 1);
+      setTotalItems(pagination?.total || 0);
     } catch (err) {
       setError(err.response?.data?.message);
     } finally {
@@ -132,23 +143,21 @@ export default function MenuTable() {
       'Inactive': 'inactive',
       'Trash': 'trash',
     };
-    setStatusFilter(statusMap[selectedStatus] || selectedStatus || 'all');
-    setCurrentPage(1);
+    const mappedStatus = statusMap[selectedStatus] || selectedStatus || 'all';
+    updateUrlParams(1, searchQuery, mappedStatus, selectedCategory);
   };
 
   const handleCategoryFilterChange = (categoryId) => {
-    setSelectedCategory(categoryId || 'all');
-    setCurrentPage(1);
+    updateUrlParams(1, searchQuery, statusFilter, categoryId || 'all');
   };
 
   const handleSearchChange = (query) => {
-    setCurrentPage(1);
-    setSearchQuery(query);
+    updateUrlParams(1, query, statusFilter, selectedCategory);
   };
 
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= lastPage) {
-      setCurrentPage(newPage);
+      updateUrlParams(newPage, searchQuery, statusFilter, selectedCategory);
     }
   };
 
@@ -304,7 +313,8 @@ export default function MenuTable() {
         <td className="py-3.5 px-2 text-right">
           <div className="flex items-center justify-end gap-1">
             {isTrashed ? (
-              <>            <button
+              <>
+            <button
                 type="button"
                 onClick={() => handleRestore(item)}
                 className="p-2 rounded-lg text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-950/30 transition-colors"

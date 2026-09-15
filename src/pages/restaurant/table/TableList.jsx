@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Search, Users, Trash2,
   AlertCircle, QrCode, RefreshCw, Download,
@@ -16,6 +16,12 @@ import toast from 'react-hot-toast';
 
 export default function TableList() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // URL-driven state
+  const currentPage = Number(searchParams.get('page')) || 1;
+  const searchQuery = searchParams.get('search') || '';
+  const statusFilter = searchParams.get('status') || 'all';
 
   // Primary Data & UI States
   const [tables, setTables] = useState([]);
@@ -29,13 +35,9 @@ export default function TableList() {
         trash: 0
       });
 
-  // Filters & Pagination State
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [currentPage, setCurrentPage] = useState(1);
+  // Pagination State
   const [lastPage, setLastPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-
 
   // Confirmation Modal State
   const [deleteModalState, setDeleteModalState] = useState({
@@ -50,6 +52,14 @@ export default function TableList() {
   const [tableToForceDelete, setTableToForceDelete] = useState(null);
   const [isForceDeleting, setIsForceDeleting] = useState(false);
 
+  // URL update helper
+  const updateUrlParams = useCallback((newPage, newSearch, newStatus) => {
+    const params = new URLSearchParams();
+    if (newPage > 1) params.set('page', String(newPage));
+    if (newSearch) params.set('search', newSearch);
+    if (newStatus && newStatus !== 'all') params.set('status', newStatus);
+    setSearchParams(params, { replace: true });
+  }, [setSearchParams]);
 
   // Fetch Tables Data from API
   const fetchTables = useCallback(async () => {
@@ -80,9 +90,8 @@ export default function TableList() {
 
       const pagination = responseData.data
 
-      setCurrentPage(pagination.current_page || 1);
-      setLastPage(pagination.last_page || 1);
-      setTotalItems(pagination.total || 0);
+      setLastPage(pagination?.last_page || 1);
+      setTotalItems(pagination?.total || 0);
 
     } catch (err) {
       setError(err.response?.data?.message);
@@ -96,18 +105,16 @@ export default function TableList() {
   }, [fetchTables]);
 
   const handleSearchChange = (query) => {
-    setSearchQuery(query);
-    setCurrentPage(1);
+    updateUrlParams(1, query, statusFilter);
   };
 
   const handleStatusFilterChange = (selectedStatus) => {
-    setStatusFilter(selectedStatus || 'all');
-    setCurrentPage(1);
+    updateUrlParams(1, searchQuery, selectedStatus || 'all');
   };
 
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= lastPage) {
-      setCurrentPage(newPage);
+      updateUrlParams(newPage, searchQuery, statusFilter);
     }
   };
 

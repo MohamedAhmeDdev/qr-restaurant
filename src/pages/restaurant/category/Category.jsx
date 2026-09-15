@@ -3,7 +3,7 @@ import {
   Trash2, AlertCircle, Folder, Hash, Search, 
   Power, PlusCircle, Edit, Tag, ArrowUpDown, RefreshCw 
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
 import Toolbar from '../../../components/Toolbar';
@@ -15,6 +15,13 @@ import api from '../../../services/api';
 import Pagination from '../../../components/common/Pagination';
 
 export default function CategoryPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // URL-driven state
+  const currentPage = Number(searchParams.get('page')) || 1;
+  const searchQuery = searchParams.get('search') || '';
+  const statusFilter = searchParams.get('status') || 'all';
+
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -25,9 +32,6 @@ export default function CategoryPage() {
     trash: 0
   });
 
-  // Filters & Search
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
 
   // Modal Delete State
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -35,41 +39,37 @@ export default function CategoryPage() {
   const [isDeleting, setIsDeleting] = useState(false);
 
   // Pagination State
-  const [currentPage, setCurrentPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-
-
   // Force Delete Modal State
   const [isForceDeleteModalOpen, setIsForceDeleteModalOpen] = useState(false);
   const [categoryToForceDelete, setCategoryToForceDelete] = useState(null);
   const [isForceDeleting, setIsForceDeleting] = useState(false);
 
+  // URL update helper
+  const updateUrlParams = useCallback((newPage, newSearch, newStatus) => {
+    const params = new URLSearchParams();
+    if (newPage > 1) params.set('page', String(newPage));
+    if (newSearch) params.set('search', newSearch);
+    if (newStatus && newStatus !== 'all') params.set('status', newStatus);
+    setSearchParams(params, { replace: true });
+  }, [setSearchParams]);
+
   // Table Column Definitions
   const columns = [
-     { label: 'ID', align: 'left' },
-    // { 
-    //   label: (
-    //     <div className="flex items-center gap-1">
-    //       <ArrowUpDown className="w-3 h-3" />
-    //       <span>Order</span>
-    //     </div>
-    //   ) 
-    // },
+    { label: 'ID', align: 'left' },
     { label: 'Category Name' },
     { label: 'Slug' },
     { label: 'Description', className: 'hidden md:table-cell' },
-        { label: 'Status' },
+    { label: 'Status' },
     { label: 'Actions', align: 'right' },
   ];
 
-  // Fetch Categories from Backend
   // Fetch Categories from Backend
   const fetchCategories = useCallback(async () => {
     setLoading(true);
     setError(null);
 
-    // ✅ FIX: Build params object ONCE, including pagination
     const params = {
       page: currentPage,
       per_page: 15,
@@ -84,7 +84,7 @@ export default function CategoryPage() {
       
 
       const paginatedData = response.data?.data;
-      const items = paginatedData.data
+      const items = paginatedData.data;
 
       // Keep your frontend inactive filter
       const finalItems = statusFilter === 'inactive'
@@ -94,9 +94,8 @@ export default function CategoryPage() {
       setCategories(finalItems);
       setStats(response.data?.stats);
 
-      setCurrentPage(paginatedData.current_page || 1);
-      setLastPage(paginatedData.last_page || 1);
-      setTotalItems(paginatedData.total || 0);
+      setLastPage(paginatedData?.last_page || 1);
+      setTotalItems(paginatedData?.total || 0);
 
     } catch (err) {
       setError(err.response?.data?.message);
@@ -153,8 +152,7 @@ export default function CategoryPage() {
   };
 
    const handleSearchChange = (query) => {
-    setSearchQuery(query);
-    setCurrentPage(1); // ✅ Reset to page 1
+    updateUrlParams(1, query, statusFilter);
   };
 
 
@@ -166,13 +164,13 @@ export default function CategoryPage() {
       'All': 'all',
       'Trash': 'trash',
     };
-    setStatusFilter(statusMap[selectedStatus] || selectedStatus || 'all');
-      setCurrentPage(1);
+    const mappedStatus = statusMap[selectedStatus] || selectedStatus || 'all';
+    updateUrlParams(1, searchQuery, mappedStatus);
   };
 
-   const handlePageChange = (newPage) => {
+  const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= lastPage) {
-      setCurrentPage(newPage);
+      updateUrlParams(newPage, searchQuery, statusFilter);
     }
   };
 
@@ -229,11 +227,6 @@ export default function CategoryPage() {
         <td className="px-6 py-4 font-mono text-xs font-semibold text-gray-500 dark:text-slate-400">
           #{cat.id}
         </td>
-      {/* <td className="py-4 px-4 sm:px-6 font-mono text-xs font-semibold text-gray-500 dark:text-slate-400">
-        <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300">
-          {cat.sort_order}
-        </span>
-      </td> */}
       <td className="py-4 px-4 font-bold text-gray-900 dark:text-white">
         {cat.name}
       </td>
@@ -335,7 +328,6 @@ export default function CategoryPage() {
         <StatsCard label="Trash" value={loading && stats.trash === 0 ? '...' : stats.trash} />
       </div>
 
-      {/* Toolbar */}
           {/* Toolbar */}
       <Toolbar
         searchQuery={searchQuery}
