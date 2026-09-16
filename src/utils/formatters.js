@@ -8,10 +8,7 @@
  * @returns {string} Formatted price string.
  */
 export const formatPrice = (price, options = {}) => {
-  const {
-    currency = 'USD',
-    freeText = 'Free',
-  } = options;
+  const { currency, freeText = 'Free' } = options;
 
   const numericPrice = parseFloat(price);
 
@@ -19,9 +16,9 @@ export const formatPrice = (price, options = {}) => {
     return freeText;
   }
 
+  // If currency is provided, format with currency symbol; otherwise, return formatted number
   return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: currency,
+    ...(currency ? { style: 'currency', currency } : { style: 'decimal' }),
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(numericPrice);
