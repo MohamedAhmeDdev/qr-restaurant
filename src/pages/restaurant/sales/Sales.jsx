@@ -1,98 +1,24 @@
-import React, { useState, useMemo, forwardRef } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect, useMemo, useCallback, forwardRef } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import { 
-  Download, ArrowUpRight, 
-  ArrowDownRight, Sparkles, ChefHat, Search, AlertTriangle, 
+import {
+  Download, ChefHat, Search, AlertCircle,
   Calendar as CalendarIcon, RotateCcw, ChevronLeft, ChevronRight,
-  ArrowRight
+  Utensils
 } from 'lucide-react';
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-import { 
-  format, 
-  subDays, 
-  isWithinInterval, 
-  startOfDay, 
-  endOfDay, 
-  parseISO,
-  startOfMonth,
-  endOfMonth,
-  startOfYear,
-  endOfYear,
-  eachDayOfInterval,
-  getYear,
-  getMonth
+import {
+  format, subDays, startOfMonth, endOfMonth, startOfYear, 
+  endOfYear, getYear, getMonth
 } from 'date-fns';
+import { useSearchParams } from 'react-router-dom';
 import StatsCard from '../../../components/cards/StatsCard';
+import Toolbar from '../../../components/Toolbar';
+import Table from '../../../components/Table';
+import Pagination from '../../../components/common/Pagination';
+import api from '../../../services/api';
+import CategoriesService from '../../../services/categories';
+import { useFormatPrice } from '../../../contexts/useFormatPrice';
 
-// ==========================================
-// 1. DATA MODEL
-// ==========================================
-
-const MENU_CATALOG = [
-  { id: 'm1', name: 'Truffle Wagyu Burger', category: 'Mains', price: 18.50 },
-  { id: 'm2', name: 'Classic Margherita Pizza', category: 'Mains', price: 14.00 },
-  { id: 'm3', name: 'Grilled Salmon Bowl', category: 'Mains', price: 22.00 },
-  { id: 'm4', name: 'Vegan Cauliflower Steak', category: 'Mains', price: 16.00 },
-  { id: 'b1', name: 'Iced Caramel Macchiato', category: 'Beverages', price: 5.50 },
-  { id: 'b2', name: 'Matcha Green Tea Latte', category: 'Beverages', price: 6.00 },
-  { id: 's1', name: 'Truffle Parmesan Fries', category: 'Sides', price: 7.50 },
-  { id: 'd1', name: 'Artisan Espresso Tiramisu', category: 'Desserts', price: 8.50 },
-  { id: 'd2', name: 'Seasonal Fruit Tart', category: 'Desserts', price: 7.00 },
-  { id: 'sp1', name: 'Spicy Lobster Bisque', category: 'Soup', price: 15.00 },
-];
-
-const CURRENT_DATE = new Date();
-
-const TRANSACTION_LOGS = [
-  { id: 'tx-101', date: format(CURRENT_DATE, 'yyyy-MM-dd'), itemId: 'm1', quantity: 18, total: 333.00 },
-  { id: 'tx-102', date: format(CURRENT_DATE, 'yyyy-MM-dd'), itemId: 'b1', quantity: 42, total: 231.00 },
-  { id: 'tx-103', date: format(CURRENT_DATE, 'yyyy-MM-dd'), itemId: 's1', quantity: 20, total: 150.00 },
-  { id: 'tx-104', date: format(CURRENT_DATE, 'yyyy-MM-dd'), itemId: 'm2', quantity: 14, total: 196.00 },
-  { id: 'tx-099', date: format(subDays(CURRENT_DATE, 1), 'yyyy-MM-dd'), itemId: 'm1', quantity: 24, total: 444.00 },
-  { id: 'tx-100', date: format(subDays(CURRENT_DATE, 1), 'yyyy-MM-dd'), itemId: 'm3', quantity: 12, total: 264.00 },
-  { id: 'tx-105', date: format(subDays(CURRENT_DATE, 1), 'yyyy-MM-dd'), itemId: 'b1', quantity: 38, total: 209.00 },
-  { id: 'tx-106', date: format(subDays(CURRENT_DATE, 1), 'yyyy-MM-dd'), itemId: 'b2', quantity: 15, total: 90.00 },
-  { id: 'tx-095', date: format(subDays(CURRENT_DATE, 2), 'yyyy-MM-dd'), itemId: 'm1', quantity: 30, total: 555.00 },
-  { id: 'tx-096', date: format(subDays(CURRENT_DATE, 2), 'yyyy-MM-dd'), itemId: 'm2', quantity: 22, total: 308.00 },
-  { id: 'tx-097', date: format(subDays(CURRENT_DATE, 2), 'yyyy-MM-dd'), itemId: 's1', quantity: 35, total: 262.50 },
-  { id: 'tx-090', date: format(subDays(CURRENT_DATE, 3), 'yyyy-MM-dd'), itemId: 'm1', quantity: 28, total: 518.00 },
-  { id: 'tx-091', date: format(subDays(CURRENT_DATE, 3), 'yyyy-MM-dd'), itemId: 'm3', quantity: 19, total: 418.00 },
-  { id: 'tx-092', date: format(subDays(CURRENT_DATE, 3), 'yyyy-MM-dd'), itemId: 'b1', quantity: 50, total: 275.00 },
-  { id: 'tx-085', date: format(subDays(CURRENT_DATE, 4), 'yyyy-MM-dd'), itemId: 'm2', quantity: 31, total: 434.00 },
-  { id: 'tx-086', date: format(subDays(CURRENT_DATE, 4), 'yyyy-MM-dd'), itemId: 's1', quantity: 28, total: 210.00 },
-  { id: 'tx-080', date: format(subDays(CURRENT_DATE, 5), 'yyyy-MM-dd'), itemId: 'm1', quantity: 35, total: 647.50 },
-  { id: 'tx-081', date: format(subDays(CURRENT_DATE, 5), 'yyyy-MM-dd'), itemId: 'b1', quantity: 60, total: 330.00 },
-  { id: 'tx-082', date: format(subDays(CURRENT_DATE, 5), 'yyyy-MM-dd'), itemId: 'd1', quantity: 8, total: 68.00 },
-  { id: 'tx-075', date: format(subDays(CURRENT_DATE, 6), 'yyyy-MM-dd'), itemId: 'm1', quantity: 22, total: 407.00 },
-  { id: 'tx-076', date: format(subDays(CURRENT_DATE, 6), 'yyyy-MM-dd'), itemId: 'm4', quantity: 4, total: 64.00 },
-  { id: 'tx-050', date: format(subDays(CURRENT_DATE, 12), 'yyyy-MM-dd'), itemId: 'm1', quantity: 40, total: 740.00 },
-  { id: 'tx-051', date: format(subDays(CURRENT_DATE, 18), 'yyyy-MM-dd'), itemId: 'm2', quantity: 50, total: 700.00 },
-  { id: 'tx-052', date: format(subDays(CURRENT_DATE, 25), 'yyyy-MM-dd'), itemId: 'b1', quantity: 80, total: 440.00 },
-];
-
-// ==========================================
-// 2. AUXILIARY COMPONENTS
-// ==========================================
-
-const CustomChartTooltip = ({ active, payload, label }) => {
-  if (active && payload && payload.length) {
-    const data = payload[0].payload;
-    return (
-      <div className="bg-slate-900/95 backdrop-blur-md text-white text-xs font-semibold px-3 py-2.5 rounded-xl shadow-2xl border border-slate-700/60">
-        <p className="text-[11px] text-slate-400 font-medium mb-1">{label}</p>
-        <p className="text-amber-400 font-bold text-sm">
-          ${payload[0].value.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-        </p>
-        <p className="text-[10px] text-slate-400 font-normal mt-0.5">
-          {data.orders} total items sold
-        </p>
-      </div>
-    );
-  }
-  return null;
-};
 
 const DateInputButton = forwardRef(({ value, onClick, label }, ref) => (
   <button
@@ -107,16 +33,29 @@ const DateInputButton = forwardRef(({ value, onClick, label }, ref) => (
   </button>
 ));
 
-// ==========================================
-// 3. MAIN DASHBOARD PAGE
-// ==========================================
+export default function SalesPage() {
+  const { formatPrice, currency } = useFormatPrice();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [isExporting, setIsExporting] = useState(false);
+  const [categories, setCategories] = useState([]);
 
-export default function Sales() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('all');
-  
-  const [startDate, setStartDate] = useState(subDays(CURRENT_DATE, 6));
-  const [endDate, setEndDate] = useState(CURRENT_DATE);
+  // ✅ 1. URL-driven state including page
+  const currentPage = Number(searchParams.get('page')) || 1;
+  const searchTerm = searchParams.get('search') || '';
+  const categoryFilter = searchParams.get('category') || 'all';
+  const urlStartDate = searchParams.get('start_date');
+  const urlEndDate = searchParams.get('end_date');
+
+  const startDate = useMemo(() => urlStartDate ? new Date(urlStartDate) : subDays(new Date(), 6), [urlStartDate]);
+  const endDate = useMemo(() => urlEndDate ? new Date(urlEndDate) : new Date(), [urlEndDate]);
+
+  // Data & State Flags
+  const [salesStats, setSalesStats] = useState({ total_revenue: 0, total_orders: 0, average_order_value: 0 });
+  const [menuItems, setMenuItems] = useState([]);
+  const [lastPage, setLastPage] = useState(1);       
+  const [totalItems, setTotalItems] = useState(0); 
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const years = Array.from({ length: 20 }, (_, i) => getYear(new Date()) - 10 + i);
   const months = [
@@ -124,317 +63,244 @@ export default function Sales() {
     'July', 'August', 'September', 'October', 'November', 'December'
   ];
 
+  // ✅ 2. Updated URL helper to include page
+  const updateUrlParams = useCallback((newPage, newSearch, newCategory, newStartDate, newEndDate) => {
+    const params = new URLSearchParams();
+    if (newPage > 1) params.set('page', String(newPage));
+    if (newSearch) params.set('search', newSearch);
+    if (newCategory && newCategory !== 'all') params.set('category', newCategory);
+    if (newStartDate) params.set('start_date', format(newStartDate, 'yyyy-MM-dd'));
+    if (newEndDate) params.set('end_date', format(newEndDate, 'yyyy-MM-dd'));
+    setSearchParams(params, { replace: true });
+  }, [setSearchParams]);
+
   const applyPreset = (type) => {
     const now = new Date();
-    if (type === 'today') {
-      setStartDate(now);
-      setEndDate(now);
-    } else if (type === '7days') {
-      setStartDate(subDays(now, 6));
-      setEndDate(now);
-    } else if (type === 'month') {
-      setStartDate(startOfMonth(now));
-      setEndDate(endOfMonth(now));
-    } else if (type === 'year') {
-      setStartDate(startOfYear(now));
-      setEndDate(endOfYear(now));
-    }
+    let newStart = subDays(now, 6);
+    let newEnd = now;
+
+    if (type === 'today') { newStart = now; newEnd = now; } 
+    else if (type === '7days') { newStart = subDays(now, 6); newEnd = now; } 
+    else if (type === 'month') { newStart = startOfMonth(now); newEnd = endOfMonth(now); } 
+    else if (type === 'year') { newStart = startOfYear(now); newEnd = endOfYear(now); }
+
+    updateUrlParams(1, searchTerm, categoryFilter, newStart, newEnd);
   };
 
-  const activeTransactions = useMemo(() => {
-    const start = startOfDay(startDate);
-    const end = endOfDay(endDate);
+  useEffect(() => {
+    CategoriesService.getCategories()
+      .then((data) => setCategories(data || []))
+      .catch((err) => console.error("Failed to load categories", err));
+  }, []);
+    
 
-    return TRANSACTION_LOGS.filter((tx) => {
-      const txDate = parseISO(tx.date);
-      return isWithinInterval(txDate, { start, end });
-    });
-  }, [startDate, endDate]);
-
-  const chartTimelineData = useMemo(() => {
-    if (startDate > endDate) return [];
-
-    const daysInterval = eachDayOfInterval({ start: startDate, end: endDate });
-
-    return daysInterval.map((dayDate) => {
-      const dateKey = format(dayDate, 'yyyy-MM-dd');
-      const dayTransactions = activeTransactions.filter(tx => tx.date === dateKey);
-
-      const dayRevenue = dayTransactions.reduce((acc, curr) => acc + curr.total, 0);
-      const dayOrders = dayTransactions.reduce((acc, curr) => acc + curr.quantity, 0);
-
-      return {
-        dateKey,
-        day: format(dayDate, 'MMM dd'),
-        revenue: dayRevenue,
-        orders: dayOrders
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const params = {
+        page: currentPage,
+        per_page: 15,
+        start_date: urlStartDate || format(subDays(new Date(), 6), 'yyyy-MM-dd'),
+        end_date: urlEndDate || format(new Date(), 'yyyy-MM-dd'),
       };
-    });
-  }, [startDate, endDate, activeTransactions]);
 
-  const menuPerformanceData = useMemo(() => {
-    return MENU_CATALOG.map((item) => {
-      const itemTxLogs = activeTransactions.filter(tx => tx.itemId === item.id);
-      const totalUnitsSold = itemTxLogs.reduce((acc, curr) => acc + curr.quantity, 0);
-      const totalRevenue = itemTxLogs.reduce((acc, curr) => acc + curr.total, 0);
+      // Send search and category to backend so pagination totals are accurate
+      if (searchTerm) params.search = searchTerm;
+      if (categoryFilter && categoryFilter !== 'all') params.category = categoryFilter;
 
-      let status = 'steady';
-      if (totalUnitsSold === 0) status = 'unsold';
-      else if (totalUnitsSold >= 100) status = 'bestseller';
-      else if (totalUnitsSold >= 30) status = 'popular';
-      else if (totalUnitsSold < 10) status = 'low';
+      const [statsRes, itemsRes] = await Promise.all([
+        api.get('/sales/stats', { params }),
+        api.get('/sales/menu-items', { params })
+      ]);
 
-      return {
-        ...item,
-        sold: totalUnitsSold,
-        revenue: totalRevenue,
-        status
-      };
-    });
-  }, [activeTransactions]);
+      setSalesStats(statsRes.data?.data?.stats);
+      
+      const itemsData = itemsRes.data;
+      setMenuItems(itemsData.data);
+      setLastPage(itemsData.pagination?.last_page);
+      setTotalItems(itemsData.pagination?.total);
 
-  const totalRevenue = activeTransactions.reduce((acc, curr) => acc + curr.total, 0);
-  const totalItemsSold = activeTransactions.reduce((acc, curr) => acc + curr.quantity, 0);
-  const averageOrderValue = activeTransactions.length > 0 ? totalRevenue / activeTransactions.length : 0;
-  const unsoldItemsCount = menuPerformanceData.filter(i => i.sold === 0).length;
+    } catch (err) {
+      console.error("Failed to fetch sales data", err);
+      setError(err.response?.data?.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [currentPage, urlStartDate, urlEndDate, searchTerm, categoryFilter]);
 
-  // Standard Light Header Component for DatePicker
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  // ✅ 4. Handlers reset page to 1 when filters change
+  const handleSearchChange = (query) => {
+    updateUrlParams(1, query, categoryFilter, startDate, endDate);
+  };
+
+  const handleCategoryFilterChange = (category) => {
+    updateUrlParams(1, searchTerm, category || 'all', startDate, endDate);
+  };
+
+  const handlePageChange = (newPage) => {
+    updateUrlParams(newPage, searchTerm, categoryFilter, startDate, endDate);
+  };
+
+  const handleExport = () => {
+    setIsExporting(true);
+    setTimeout(() => {
+      setIsExporting(false);
+    }, 1200);
+  };
+
   const renderCustomHeader = ({
-    date,
-    changeYear,
-    changeMonth,
-    decreaseMonth,
-    increaseMonth,
-    prevMonthButtonDisabled,
-    nextMonthButtonDisabled,
+    date, changeYear, changeMonth, decreaseMonth, increaseMonth,
+    prevMonthButtonDisabled, nextMonthButtonDisabled,
   }) => (
     <div className="flex items-center justify-between px-3 py-2 bg-slate-100 border-b border-slate-200 rounded-t-lg">
-      <button
-        type="button"
-        onClick={decreaseMonth}
-        disabled={prevMonthButtonDisabled}
-        className="p-1 rounded bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 disabled:opacity-40 transition-colors cursor-pointer"
-      >
+      <button type="button" onClick={decreaseMonth} disabled={prevMonthButtonDisabled} className="p-1 rounded bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 disabled:opacity-40 transition-colors cursor-pointer">
         <ChevronLeft className="w-4 h-4" />
       </button>
-
       <div className="flex items-center gap-1.5">
-        <select
-          value={months[getMonth(date)]}
-          onChange={({ target: { value } }) => changeMonth(months.indexOf(value))}
-          className="font-semibold text-xs bg-white text-slate-800 border border-slate-300 rounded px-2 py-1 outline-none cursor-pointer focus:ring-1 focus:ring-amber-500"
-        >
-          {months.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
+        <select value={months[getMonth(date)]} onChange={({ target: { value } }) => changeMonth(months.indexOf(value))} className="font-semibold text-xs bg-white text-slate-800 border border-slate-300 rounded px-2 py-1 outline-none cursor-pointer focus:ring-1 focus:ring-amber-500">
+          {months.map((option) => <option key={option} value={option}>{option}</option>)}
         </select>
-
-        <select
-          value={getYear(date)}
-          onChange={({ target: { value } }) => changeYear(Number(value))}
-          className="font-semibold text-xs bg-white text-slate-800 border border-slate-300 rounded px-2 py-1 outline-none cursor-pointer focus:ring-1 focus:ring-amber-500"
-        >
-          {years.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
+        <select value={getYear(date)} onChange={({ target: { value } }) => changeYear(Number(value))} className="font-semibold text-xs bg-white text-slate-800 border border-slate-300 rounded px-2 py-1 outline-none cursor-pointer focus:ring-1 focus:ring-amber-500">
+          {years.map((option) => <option key={option} value={option}>{option}</option>)}
         </select>
       </div>
-
-      <button
-        type="button"
-        onClick={increaseMonth}
-        disabled={nextMonthButtonDisabled}
-        className="p-1 rounded bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 disabled:opacity-40 transition-colors cursor-pointer"
-      >
+      <button type="button" onClick={increaseMonth} disabled={nextMonthButtonDisabled} className="p-1 rounded bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 disabled:opacity-40 transition-colors cursor-pointer">
         <ChevronRight className="w-4 h-4" />
       </button>
     </div>
   );
 
+  const columns = [
+    { label: 'Menu Item' },
+    { label: 'Category' },
+    { label: 'Unit Price' },
+    { label: 'Units Sold', align: 'right' },
+    { label: 'Gross Revenue', align: 'right' },
+    { label: 'Calculated Status' },
+  ];
+
+
+  const renderRow = (item) => {
+    const isUnsold = item.sold === 0;
+    return (
+      <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-slate-800/50 border-b border-gray-100 dark:border-slate-800 transition-colors">
+        <td className="px-6 py-4 font-semibold text-gray-800 dark:text-slate-100">
+          <div className="flex items-center gap-2.5">
+            <div className="p-1.5 rounded-lg bg-orange-50 dark:bg-slate-800 text-orange-500 dark:text-orange-400">
+              <ChefHat className="w-4 h-4" />
+            </div>
+            <span>{item.name}</span>
+          </div>
+        </td>
+        <td className="px-6 py-4 text-gray-500 dark:text-slate-400 font-medium capitalize">{item.category}</td>
+        <td className="px-6 py-4 text-gray-700 dark:text-slate-300 font-mono">{formatPrice(item.price)}</td>
+        <td className="px-6 py-4 text-right font-bold font-mono">
+          <span className={isUnsold ? 'text-rose-600 dark:text-rose-400' : 'text-gray-800 dark:text-slate-200'}>{item.sold}</span>
+        </td>
+        <td className="px-6 py-4 text-right font-bold font-mono text-gray-900 dark:text-slate-100">
+          {currency} {item.revenue?.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+        </td>
+        <td className="px-6 py-4">{item.status}</td>
+      </tr>
+    );
+  };
+
+  const isFiltered = Boolean(searchTerm || categoryFilter !== 'all');
+
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-4 sm:p-6 lg:p-8 space-y-8 font-sans antialiased selection:bg-amber-500 selection:text-slate-950">
+    <div className="p-2 sm:p-4 space-y-6 bg-gray-50 dark:bg-slate-950 min-h-screen text-gray-900 dark:text-slate-100 transition-colors duration-200">
 
-      <div className="relative space-y-8 max-w-7xl mx-auto">
-        
-        {/* Header Section */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-slate-800/80">
-          <div>
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight flex items-center gap-3">
-              Sales & Revenue
-            </h1>
-            <p className="text-sm text-slate-400 mt-1">
-              Real-time calculated metrics aggregated directly from transaction store.
-            </p>
-          </div>
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-orange-400 bg-clip-text text-transparent">Menu Sales Breakdown</h1>
+          <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">Dishes and drinks revenue computed dynamically from your selected date window.</p>
         </div>
+        <button onClick={handleExport} disabled={isExporting} className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-xl text-sm font-medium transition-all duration-200 shadow-lg hover:shadow-orange-500/30 active:scale-[0.98] disabled:opacity-70 cursor-pointer">
+          {isExporting ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <Download className="w-4 h-4" />}
+          <span>Export Report</span>
+        </button>
+      </div>
 
-        {/* Date Controls Toolbar */}
-        <div className="relative z-50 flex flex-col lg:flex-row lg:items-center justify-between gap-4 p-4 bg-slate-900/40 border border-slate-800/80 rounded-2xl backdrop-blur-md">
-          
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 lg:pb-0">
-            <span className="text-xs font-semibold text-slate-400 flex items-center gap-1.5 mr-1">
-              <CalendarIcon className="w-3.5 h-3.5 text-amber-400" />
-              Preset:
-            </span>
-            <button 
-              onClick={() => applyPreset('today')} 
-              className="px-3 py-1.5 rounded-lg bg-slate-950 hover:bg-slate-800 text-xs font-medium text-slate-300 border border-slate-800 hover:border-slate-700 transition-colors cursor-pointer"
-            >
-              Today
-            </button>
-            <button 
-              onClick={() => applyPreset('7days')} 
-              className="px-3 py-1.5 rounded-lg bg-slate-950 hover:bg-slate-800 text-xs font-medium text-slate-300 border border-slate-800 hover:border-slate-700 transition-colors cursor-pointer"
-            >
-              Last 7 Days
-            </button>
-            <button 
-              onClick={() => applyPreset('month')} 
-              className="px-3 py-1.5 rounded-lg bg-slate-950 hover:bg-slate-800 text-xs font-medium text-slate-300 border border-slate-800 hover:border-slate-700 transition-colors cursor-pointer"
-            >
-              This Month
-            </button>
-            <button 
-              onClick={() => applyPreset('year')} 
-              className="px-3 py-1.5 rounded-lg bg-slate-950 hover:bg-slate-800 text-xs font-medium text-slate-300 border border-slate-800 hover:border-slate-700 transition-colors cursor-pointer"
-            >
-              This Year
-            </button>
-          </div>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <StatsCard label="Total Revenue" value={loading ? '...' : `${currency} ${salesStats.total_revenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} />
+      <StatsCard label="Avg Order Value" value={loading ? '...' : `${currency} ${salesStats.average_order_value.toFixed(2)}`} />
+        <StatsCard label="Total Orders" value={loading ? '...' : salesStats.total_orders} />
+      </div>
 
-          <div className="flex items-center gap-2">
-            <DatePicker
-              selected={startDate}
-              onChange={(date) => setStartDate(date)}
-              dateFormat="yyyy-MM-dd"
-              renderCustomHeader={renderCustomHeader}
-              customInput={<DateInputButton label="From" />}
-            />
-            <span className="text-slate-600 font-bold text-xs">–</span>
-            <DatePicker
-              selected={endDate}
-              onChange={(date) => setEndDate(date)}
-              minDate={startDate}
-              dateFormat="yyyy-MM-dd"
-              renderCustomHeader={renderCustomHeader}
-              customInput={<DateInputButton label="To" />}
-            />
+      {/* Toolbar */}
+      <Toolbar
+        searchQuery={searchTerm}
+        onSearchChange={handleSearchChange}
+        searchPlaceholder="Search menu items or categories..."
+        dropdowns={[
+          {
+            id: 'category-filter',
+            placeholder: 'Category...',
+            value: categoryFilter,
+            onChange: handleCategoryFilterChange,
+            options: [
+              { label: 'All Categories', value: 'all' },
+              { label: 'Unsold', value: 'unsold' },
+              ...categories.map((cat) => ({ label: cat.name, value: cat.name })),
+            ],
+          },
+        ]}
+      />
 
-            <button 
-              onClick={() => applyPreset('7days')}
-              className="p-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-amber-400 border border-slate-700 transition-colors cursor-pointer shadow-sm"
-              title="Reset range"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </div>
-
-        {/* Dynamic KPI Cards */}
-        <div className="relative z-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatsCard 
-            label="Total Revenue" 
-            value={`$${totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-          />
-          <StatsCard 
-            label="Avg Order Value" 
-            value={`$${averageOrderValue.toFixed(2)}`}
-          />
-        </div>
-
-        {/* Revenue Trend Area Chart */}
-        <div className="relative z-0 bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 rounded-2xl p-6 shadow-xl overflow-hidden">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-            <div>
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                Revenue Trajectory
-                <span className="text-xs font-normal px-2.5 py-0.5 rounded-full bg-slate-800 text-amber-400 border border-slate-700/50 font-mono">
-                  {format(startDate, 'MMM dd, yyyy')} - {format(endDate, 'MMM dd, yyyy')}
-                </span>
-              </h3>
-              <p className="text-xs text-slate-400 mt-0.5">Aggregated daily earnings calculated from transaction logs</p>
-            </div>
-          </div>
-
-          <div className="w-full h-72 pt-2">
-            {chartTimelineData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={chartTimelineData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="salesRevenueGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.4} />
-                      <stop offset="95%" stopColor="#f59e0b" stopOpacity={0.0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(148, 163, 184, 0.12)" />
-                  <XAxis 
-                    dataKey="day" 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 500 }}
-                  />
-                  <YAxis 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{ fill: '#94a3b8', fontSize: 11 }}
-                    tickFormatter={(val) => `$${val}`}
-                  />
-                  <Tooltip content={<CustomChartTooltip />} />
-                  <Area 
-                    type="monotone" 
-                    dataKey="revenue" 
-                    stroke="#f59e0b" 
-                    strokeWidth={3}
-                    fillOpacity={1} 
-                    fill="url(#salesRevenueGradient)" 
-                    activeDot={{ r: 6, fill: '#f59e0b', stroke: '#0f172a', strokeWidth: 2 }}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="w-full h-full flex flex-col items-center justify-center text-slate-500 text-xs">
-                <CalendarIcon className="w-8 h-8 mb-2 opacity-50" />
-                <span>No sales records found for the selected date range.</span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Link to full Menu Sales Breakdown page */}
-        <Link
-          to="/sales/menu-items"
-          className="group flex items-center justify-between gap-4 p-5 bg-slate-900/60 hover:bg-slate-900/80 backdrop-blur-xl border border-slate-800/80 hover:border-amber-500/40 rounded-2xl shadow-xl transition-all duration-200"
-        >
-          <div className="flex items-center gap-4">
-            <div className="p-3 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
-              <ChefHat className="w-5 h-5" />
-            </div>
-            <div>
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
-                Menu Sales Breakdown
-              </h3>
-              <p className="text-xs text-slate-400 mt-0.5">
-                View itemized performance for every dish and drink on the menu.
-              </p>
-            </div>
-          </div>
-
-          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-400 group-hover:text-amber-300 transition-colors">
-            View Full Page
-            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+      {/* Date Range Picker Controls */}
+      <div className="relative z-50 flex flex-col lg:flex-row lg:items-center justify-between gap-4 p-4 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl shadow-sm">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 lg:pb-0">
+          <span className="text-xs font-semibold text-gray-500 dark:text-slate-400 flex items-center gap-1.5 mr-1">
+            <CalendarIcon className="w-3.5 h-3.5 text-orange-500" /> Preset:
           </span>
-        </Link>
+          <button onClick={() => applyPreset('today')} className="px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-medium text-gray-700 dark:text-slate-300 transition-colors cursor-pointer">Today</button>
+          <button onClick={() => applyPreset('7days')} className="px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-medium text-gray-700 dark:text-slate-300 transition-colors cursor-pointer">Last 7 Days</button>
+          <button onClick={() => applyPreset('month')} className="px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-medium text-gray-700 dark:text-slate-300 transition-colors cursor-pointer">This Month</button>
+          <button onClick={() => applyPreset('year')} className="px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-medium text-gray-700 dark:text-slate-300 transition-colors cursor-pointer">This Year</button>
+        </div>
 
+        <div className="flex items-center gap-2">
+          <DatePicker selected={startDate} onChange={(date) => updateUrlParams(1, searchTerm, categoryFilter, date, endDate)} dateFormat="yyyy-MM-dd" renderCustomHeader={renderCustomHeader} customInput={<DateInputButton label="From" />} />
+          <span className="text-gray-400 font-bold text-xs">–</span>
+          <DatePicker selected={endDate} onChange={(date) => updateUrlParams(1, searchTerm, categoryFilter, startDate, date)} minDate={startDate} dateFormat="yyyy-MM-dd" renderCustomHeader={renderCustomHeader} customInput={<DateInputButton label="To" />} />
+          <button onClick={() => applyPreset('7days')} className="p-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-500 dark:text-slate-400 hover:text-orange-600 dark:hover:text-orange-400 transition-colors cursor-pointer shadow-sm" title="Reset range">
+            <RotateCcw className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </div>
+
+      {/* Table Container */}
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-800 overflow-hidden shadow-sm">
+        <Table
+          columns={columns}
+          data={menuItems} 
+          renderRow={renderRow}
+          loading={loading}
+          error={error}
+          onRetry={fetchData}
+          emptyIcon={isFiltered ? Search : Utensils}
+          emptyTitle={isFiltered ? "No matching menu items" : "No sales data found"}
+          emptyDescription={isFiltered ? "No menu items match your search term or category filter." : "No sales recorded during this date window."}
+        />
+        
+        {/* ✅ 5. Pagination Component */}
+        {!loading && !error && menuItems.length > 0 && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={lastPage}
+              totalRecords={totalItems}
+              onPageChange={handlePageChange}
+              maxVisible={5}
+            />
+        )}
       </div>
     </div>
   );
-}
-
-// Helper for the link badge count
-function filteredMenuItemCountLabel(data, _categoryFilter, _searchTerm) {
-  return `${data.length} Items`;
 }

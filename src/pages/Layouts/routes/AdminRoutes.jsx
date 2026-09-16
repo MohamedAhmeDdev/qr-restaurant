@@ -32,7 +32,6 @@ const EditMenu = lazy(() => import('../../restaurant/menu/EditMenu'));
 const Orders = lazy(() => import('../../restaurant/orders/Orders'));
 const OrderDetails = lazy(() => import('../../restaurant/orders/OrderDetails'));
 const Sales = lazy(() => import('../../restaurant/sales/Sales'));
-const  SalesMenuItem = lazy(() => import('../../restaurant/sales/SalesMenuItem'));
 const SettingsPage = lazy(() => import('../../settings/Layout/SettingsPage'));
 
 export const AdminRoutes = {
@@ -67,7 +66,6 @@ export const AdminRoutes = {
         { path: 'orders', element: <Orders /> },
         { path: 'orders-details/:orderId', element: <OrderDetails /> },
         { path: 'sales', element: <Sales /> },
-        { path: '/sales/menu-items', element: <SalesMenuItem /> },
         { path: '/admin/settings', element: <SettingsPage /> },
       ],
     },
