@@ -76,6 +76,27 @@ const STATUS_CONFIGS = {
     color: 'rose',
     icon: XCircle,
   },
+
+  preparing: {
+    label: 'Preparing',
+    color: 'blue',
+    icon: Clock,
+  },
+  ready: {
+    label: 'Ready',
+    color: 'emerald',
+    icon: CheckCircle2,
+  },
+  completed: {
+    label: 'Completed',
+    color: 'emerald',
+    icon: CheckCircle2,
+  },
+  cancelled: {
+    label: 'Cancelled',
+    color: 'rose',
+    icon: XCircle,
+  },
 };
 
 // Tailwind Theme Mapping
