@@ -146,12 +146,6 @@ export default function SalesPage() {
     updateUrlParams(newPage, searchTerm, categoryFilter, startDate, endDate);
   };
 
-  const handleExport = () => {
-    setIsExporting(true);
-    setTimeout(() => {
-      setIsExporting(false);
-    }, 1200);
-  };
 
   const renderCustomHeader = ({
     date, changeYear, changeMonth, decreaseMonth, increaseMonth,
@@ -212,6 +206,69 @@ export default function SalesPage() {
 
   const isFiltered = Boolean(searchTerm || categoryFilter !== 'all');
 
+    const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      // 1. Prepare parameters to fetch ALL filtered data (bypassing pagination)
+      const exportParams = {
+        per_page: 10000, // Adjust this number based on your API's maximum limit, or use a dedicated export endpoint if available
+        start_date: urlStartDate || format(subDays(new Date(), 6), 'yyyy-MM-dd'),
+        end_date: urlEndDate || format(new Date(), 'yyyy-MM-dd'),
+      };
+
+      if (searchTerm) exportParams.search = searchTerm;
+      if (categoryFilter && categoryFilter !== 'all') exportParams.category = categoryFilter;
+
+      // 2. Fetch the data
+      const response = await api.get('/sales/menu-items', { params: exportParams });
+      const dataToExport = response.data?.data || [];
+
+      if (dataToExport.length === 0) {
+        alert("No data available to export for the selected filters.");
+        return;
+      }
+
+      // 3. Define CSV headers
+      const headers = ['Menu Item', 'Category', 'Unit Price', 'Units Sold', 'Gross Revenue', 'Calculated Status'];
+      
+      // 4. Map data to CSV rows with proper escaping for commas/quotes
+      const rows = dataToExport.map(item => [
+        `"${(item.name || '').replace(/"/g, '""')}"`,
+        `"${(item.category || '').replace(/"/g, '""')}"`,
+        item.price || 0,
+        item.sold || 0,
+        item.revenue || 0,
+        `"${(item.status || '').replace(/"/g, '""')}"`
+      ]);
+
+      // 5. Combine headers and rows into a single CSV string
+      const csvContent = [
+        headers.join(','),
+        ...rows.map(row => row.join(','))
+      ].join('\n');
+
+      // 6. Create Blob and trigger download
+      const blob = new Blob([`\uFEFF${csvContent}`], { type: 'text/csv;charset=utf-8;' }); // \uFEFF adds BOM for Excel compatibility
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      
+      // Generate a descriptive filename
+      const fileName = `sales_report_${exportParams.start_date}_to_${exportParams.end_date}.csv`;
+      link.setAttribute('download', fileName);
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+    } catch (err) {
+      console.error("Failed to export sales data", err);
+      alert("Failed to export report. Please check your connection and try again.");
+    } finally {
+      setIsExporting(false);
+    }
+  };
   return (
     <div className="p-2 sm:p-4 space-y-6 bg-gray-50 dark:bg-slate-950 min-h-screen text-gray-900 dark:text-slate-100 transition-colors duration-200">
 
