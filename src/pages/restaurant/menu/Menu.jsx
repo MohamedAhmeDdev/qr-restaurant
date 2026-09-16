@@ -25,7 +25,7 @@ import StatsCard from '../../../components/cards/StatsCard';
 
 export default function MenuTable() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const formatPrice = useFormatPrice();
+  const {formatPrice} = useFormatPrice();
 
   // URL-driven state
   const currentPage = Number(searchParams.get('page')) || 1;
@@ -119,9 +119,9 @@ export default function MenuTable() {
       const responseData = response.data;
 
       setItems(responseData.data.data);
-      setStats(response.status);
+      setStats(responseData.stats);
 
-      const pagination = responseData.pagination;
+      const pagination = responseData.data;
       setLastPage(pagination?.last_page || 1);
       setTotalItems(pagination?.total || 0);
     } catch (err) {

@@ -36,7 +36,7 @@ export default function ModifierGroups() {
   const [lastPage, setLastPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   
-  const formatPrice = useFormatPrice();
+  const {formatPrice} = useFormatPrice();
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
