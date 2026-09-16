@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../services/api';
 import { getDefaultRouteForRole } from '../../utils/getDefaultRouteForRole';
-import LoadingScreen from '../../components/LoadingScreen';
+import LoadingScreen from '../../components/common/LoadingScreen';
 
 function Register() {
   const [searchParams] = useSearchParams();

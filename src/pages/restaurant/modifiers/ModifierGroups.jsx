@@ -9,7 +9,7 @@ import Toolbar from '../../../components/Toolbar';
 import Pagination from '../../../components/common/Pagination';
 import ConfirmationModal from '../../../components/common/ConfirmationModal';
 import EmptyState from '../../../components/common/EmptyState';
-import StatusBadge from '../../../components/StatusBadge';
+import StatusBadge from '../../../components/common/StatusBadge';
 import api from '../../../services/api';
 import toast from 'react-hot-toast';
 import { useFormatPrice } from '../../../contexts/useFormatPrice';

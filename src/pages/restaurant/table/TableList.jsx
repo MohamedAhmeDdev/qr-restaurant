@@ -6,10 +6,10 @@ import {
   Edit, Hash, Calendar, Activity
 } from 'lucide-react';
 import StatsCard from '../../../components/cards/StatsCard';
-import Toolbar from '../../../components/Toolbar';
+import Toolbar from '../../../components/common/Toolbar';
 import Pagination from '../../../components/common/Pagination';
 import EmptyState from '../../../components/common/EmptyState';
-import StatusBadge from '../../../components/StatusBadge';
+import StatusBadge from '../../../components/common/StatusBadge';
 import ConfirmationModal from '../../../components/common/ConfirmationModal';
 import api from '../../../services/api';
 import toast from 'react-hot-toast';

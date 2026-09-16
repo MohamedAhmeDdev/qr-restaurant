@@ -12,8 +12,8 @@ import {
 } from 'date-fns';
 import { useSearchParams } from 'react-router-dom';
 import StatsCard from '../../../components/cards/StatsCard';
-import Toolbar from '../../../components/Toolbar';
-import Table from '../../../components/Table';
+import Toolbar from '../../../components/common/Toolbar';
+import Table from '../../../components/common/Table';
 import Pagination from '../../../components/common/Pagination';
 import api from '../../../services/api';
 import CategoriesService from '../../../services/categories';

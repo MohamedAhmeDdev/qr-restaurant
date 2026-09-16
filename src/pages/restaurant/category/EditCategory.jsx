@@ -4,7 +4,7 @@ import { ArrowLeft } from 'lucide-react';
 import CategoryForm from '../../../components/forms/CategoryForm';
 import toast from 'react-hot-toast';
 import api from '../../../services/api';
-import LoadingScreen from '../../../components/LoadingScreen';
+import LoadingScreen from '../../../components/common/LoadingScreen';
 
 export default function EditCategory() {
   const navigate = useNavigate();

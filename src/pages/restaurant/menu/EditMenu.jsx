@@ -5,7 +5,7 @@ import MenuForm from '../../../components/forms/MenuForm';
 import toast from 'react-hot-toast';
 import api from '../../../services/api';
 import { getImageUrl } from '../../../utils/getImageUrl';
-import LoadingScreen from '../../../components/LoadingScreen';
+import LoadingScreen from '../../../components/common/LoadingScreen';
 
 
 export default function EditMenu() {

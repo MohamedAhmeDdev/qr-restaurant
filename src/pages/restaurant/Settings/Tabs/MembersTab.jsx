@@ -10,9 +10,9 @@ import StaffFormModal from '../../../../components/forms/StaffFormModal';
 import ConfirmationModal from '../../../../components/common/ConfirmationModal';
 import RoleService from '../../../../services/Roles';
 import Pagination from '../../../../components/common/Pagination';
-import Table from '../../../../components/Table';
+import Table from '../../../../components/common/Table';
 import { formatDate } from '../../../../utils/formatDate';
-import StatusBadge from '../../../../components/StatusBadge';
+import StatusBadge from '../../../../components/common/StatusBadge';
 
 export default function MembersTab() {
     const [members, setMembers] = useState([]);

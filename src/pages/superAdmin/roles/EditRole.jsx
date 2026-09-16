@@ -4,7 +4,7 @@ import RoleForm from '../../../components/forms/RoleForm';
 import { ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../../services/api';
-import LoadingScreen from '../../../components/LoadingScreen';
+import LoadingScreen from '../../../components/common/LoadingScreen';
 
 export default function EditRole() {
   const navigate = useNavigate();

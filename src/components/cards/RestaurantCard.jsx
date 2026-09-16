@@ -6,7 +6,7 @@ import {
     ArrowRight, Power, CheckCircle, XCircle, Loader2, Building2,
     Globe, Calendar, Activity, ChefHat
 } from 'lucide-react';
-import StatusBadge from '../StatusBadge';
+import StatusBadge from '../../components/common/StatusBadge';
 import { formatDate } from '../../utils/formatDate';
 import { getImageUrl } from '../../utils/getImageUrl';
 

@@ -7,9 +7,9 @@ import { Link, useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
 import Toolbar from '../../../components/Toolbar';
-import StatusBadge from '../../../components/StatusBadge';
+import StatusBadge from '../../../components/common/StatusBadge';
 import StatsCard from '../../../components/cards/StatsCard';
-import Table from '../../../components/Table';
+import Table from '../../../components/common/Table';
 import ConfirmationModal from '../../../components/common/ConfirmationModal';
 import api from '../../../services/api';
 import Pagination from '../../../components/common/Pagination';

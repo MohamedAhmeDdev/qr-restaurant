@@ -5,7 +5,7 @@ import RestaurantForm from '../../../components/forms/RestaurantForm';
 import toast from 'react-hot-toast';
 import api from '../../../services/api';
 import { getImageUrl } from '../../../utils/getImageUrl';
-import LoadingScreen from '../../../components/LoadingScreen';
+import LoadingScreen from '../../../components/common/LoadingScreen';
 
 export default function EditRestaurant() {
   const navigate = useNavigate();

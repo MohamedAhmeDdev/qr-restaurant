@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import { Navigate, useLocation, Outlet } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
-import LoadingScreen from '../components/LoadingScreen';
+import LoadingScreen from '../components/common/LoadingScreen';
 
 
 export const ProtectedRoute = ({ allowedRoles }) => {
