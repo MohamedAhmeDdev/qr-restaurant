@@ -41,15 +41,13 @@ export default function ModifierGroups() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Delete Modal State
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [groupToDelete, setGroupToDelete] = useState(null);
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  // Force Delete Modal State
-  const [isForceDeleteModalOpen, setIsForceDeleteModalOpen] = useState(false);
-  const [groupToForceDelete, setGroupToForceDelete] = useState(null);
-  const [isForceDeleting, setIsForceDeleting] = useState(false);
+  // Unified Confirmation Modal State
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    group: null,
+    action: null, // 'trash' | 'restore' | 'forceDelete'
+    isProcessing: false
+  });
 
   // URL update helper
   const updateUrlParams = useCallback((newPage, newSearch, newStatus) => {
@@ -133,59 +131,39 @@ export default function ModifierGroups() {
 
   const isFiltered = Boolean(searchQuery || statusFilter !== 'all');
 
-  // Open Confirmation Modal
-  const handleOpenDeleteModal = (group) => {
-    setGroupToDelete(group);
-    setIsDeleteModalOpen(true);
+  // --- UNIFIED CONFIRMATION MODAL HANDLERS ---
+  const openConfirmModal = (group, action) => {
+    setConfirmModal({ isOpen: true, group, action, isProcessing: false });
   };
 
-  // Perform Soft Delete Action
-  const handleConfirmDelete = async () => {
-    if (!groupToDelete) return;
-    setIsDeleting(true);
-    try {
-      const response = await api.delete(`/modifier-groups/${groupToDelete.id}`);
-      toast.success(response?.data?.message);
-      setIsDeleteModalOpen(false);
-      setGroupToDelete(null);
-      await fetchModifierGroups();
-    } catch (err) {
-      toast.error(err.response?.data?.message);
-    } finally {
-      setIsDeleting(false);
+  const closeConfirmModal = () => {
+    if (!confirmModal.isProcessing) {
+      setConfirmModal({ isOpen: false, group: null, action: null, isProcessing: false });
     }
   };
 
-  // Restore Handler
-  const handleRestore = async (group) => {
+  const handleConfirmAction = async () => {
+    const { group, action } = confirmModal;
+    if (!group || !action) return;
+
+    setConfirmModal(prev => ({ ...prev, isProcessing: true }));
+
     try {
-      const response = await api.patch(`/modifier-groups/${group.id}/restore`);
-      toast.success(response.data?.message);
-      await fetchModifierGroups();
+      if (action === 'trash') {
+        const response = await api.delete(`/modifier-groups/${group.id}`);
+        toast.success(response?.data?.message);
+      } else if (action === 'restore') {
+        const response = await api.patch(`/modifier-groups/${group.id}/restore`);
+        toast.success(response?.data?.message);
+      } else if (action === 'forceDelete') {
+        const response = await api.delete(`/modifier-groups/${group.id}/force`);
+        toast.success(response?.data?.message);
+      }
+      closeConfirmModal();
+      fetchModifierGroups();
     } catch (err) {
       toast.error(err.response?.data?.message);
-    }
-  };
-
-  // Force Delete Handlers
-  const handleOpenForceDeleteModal = (group) => {
-    setGroupToForceDelete(group);
-    setIsForceDeleteModalOpen(true);
-  };
-
-  const handleConfirmForceDelete = async () => {
-    if (!groupToForceDelete) return;
-    setIsForceDeleting(true);
-    try {
-      const response = await api.delete(`/modifier-groups/${groupToForceDelete.id}/force`);
-      toast.success(response.data?.message);
-      setIsForceDeleteModalOpen(false);
-      setGroupToForceDelete(null);
-      await fetchModifierGroups();
-    } catch (err) {
-      toast.error(err.response?.data?.message);
-    } finally {
-      setIsForceDeleting(false);
+      setConfirmModal(prev => ({ ...prev, isProcessing: false }));
     }
   };
 
@@ -373,7 +351,7 @@ export default function ModifierGroups() {
                       <>
                         <button
                           type="button"
-                          onClick={() => handleRestore(group)}
+                          onClick={() => openConfirmModal(group, 'restore')}
                           className="p-2 rounded-lg text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-950/30 transition-colors"
                           title="Restore"
                         >
@@ -381,7 +359,7 @@ export default function ModifierGroups() {
                         </button>
                         {/* <button
                           type="button"
-                          onClick={() => handleOpenForceDeleteModal(group)}
+                          onClick={() => openConfirmModal(group, 'forceDelete')}
                           className="p-2 rounded-lg text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors cursor-pointer"
                           title="Permanently Delete"
                         >
@@ -399,7 +377,7 @@ export default function ModifierGroups() {
                         </Link>
                         <button
                           type="button"
-                          onClick={() => handleOpenDeleteModal(group)}
+                          onClick={() => openConfirmModal(group, 'trash')}
                           className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-gray-500 hover:text-red-600 transition-colors cursor-pointer"
                           title="Remove"
                         >
@@ -428,52 +406,34 @@ export default function ModifierGroups() {
       )}
 
       <ConfirmationModal
-        isOpen={isDeleteModalOpen}
-        onClose={() => {
-          if (!isDeleting) {
-            setIsDeleteModalOpen(false);
-            setGroupToDelete(null);
-          }
-        }}
-        onConfirm={handleConfirmDelete}
-        title="Delete Modifier Group"
-        message={
-          <>
-            Are you sure you want to delete <span className="font-bold text-slate-900 dark:text-white">"{groupToDelete?.name}"</span>?
-            <br />
-            <span className="text-sm text-slate-500 mt-2 block">
-              This action cannot be undone and will remove these options from all linked menu items.
-            </span>
-          </>
+        isOpen={confirmModal.isOpen}
+        onClose={closeConfirmModal}
+        onConfirm={handleConfirmAction}
+        title={
+          confirmModal.action === 'trash' ? 'Move Modifier Group to Trash' :
+          confirmModal.action === 'restore' ? 'Restore Modifier Group' :
+          'Permanently Delete Modifier Group'
         }
-        isLoading={isDeleting}
-        confirmText="Delete Group"
-        confirmClassName="bg-rose-600 hover:bg-rose-700 text-white"
-      />
-
-      <ConfirmationModal
-        isOpen={isForceDeleteModalOpen}
-        onClose={() => {
-          if (!isForceDeleting) {
-            setIsForceDeleteModalOpen(false);
-            setGroupToForceDelete(null);
-          }
-        }}
-        onConfirm={handleConfirmForceDelete}
-        title="Permanently Delete Modifier Group"
         message={
-          <>
-            Are you sure you want to <span className="font-bold text-red-600">permanently delete</span>{' '}
-            <span className="font-bold text-slate-900 dark:text-white">"{groupToForceDelete?.name}"</span>?
-            <br />
-            <span className="text-sm text-slate-500 mt-2 block">
-              This action cannot be undone and will permanently destroy it from the database.
-            </span>
-          </>
+          confirmModal.action === 'trash' ? (
+            <>Are you sure you want to move <span className="font-bold text-slate-900 dark:text-white">"{confirmModal.group?.name}"</span> to the trash?<br /><span className="text-sm text-slate-500 mt-2 block">This will remove these options from all linked menu items, but it can be restored later.</span></>
+          ) : confirmModal.action === 'restore' ? (
+            <>Are you sure you want to restore <span className="font-bold text-slate-900 dark:text-white">"{confirmModal.group?.name}"</span>? It will be available again.</>
+          ) : (
+            <>Are you sure you want to <span className="font-bold text-rose-600">permanently delete</span> <span className="font-bold text-slate-900 dark:text-white">"{confirmModal.group?.name}"</span>?<br /><span className="text-sm text-slate-500 mt-2 block">This action cannot be undone and will permanently destroy it from the database.</span></>
+          )
         }
-        isLoading={isForceDeleting}
-        confirmText="Permanently Delete"
-        confirmClassName="bg-rose-600 hover:bg-rose-700 text-white"
+        isLoading={confirmModal.isProcessing}
+        confirmText={
+          confirmModal.action === 'trash' ? 'Move to Trash' :
+          confirmModal.action === 'restore' ? 'Restore' :
+          'Permanently Delete'
+        }
+        confirmClassName={
+          confirmModal.action === 'forceDelete' 
+            ? 'bg-rose-600 hover:bg-rose-700 text-white' 
+            : 'bg-orange-600 hover:bg-orange-700 text-white'
+        }
       />
     </div>
   );

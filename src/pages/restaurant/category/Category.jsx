@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Trash2, AlertCircle, Folder, Hash, Search, 
-  Power, PlusCircle, Edit, Tag, ArrowUpDown, RefreshCw 
+  Power, PlusCircle, Edit, Tag, RefreshCw 
 } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -32,19 +32,17 @@ export default function CategoryPage() {
     trash: 0
   });
 
-
-  // Modal Delete State
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [categoryToDelete, setCategoryToDelete] = useState(null);
-  const [isDeleting, setIsDeleting] = useState(false);
-
   // Pagination State
   const [lastPage, setLastPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  // Force Delete Modal State
-  const [isForceDeleteModalOpen, setIsForceDeleteModalOpen] = useState(false);
-  const [categoryToForceDelete, setCategoryToForceDelete] = useState(null);
-  const [isForceDeleting, setIsForceDeleting] = useState(false);
+
+  // Unified Confirmation Modal State
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    category: null,
+    action: null, // 'trash' | 'restore' | 'forceDelete'
+    isProcessing: false
+  });
 
   // URL update helper
   const updateUrlParams = useCallback((newPage, newSearch, newStatus) => {
@@ -128,26 +126,39 @@ export default function CategoryPage() {
     }
   };
 
-  // Open delete confirmation modal
-  const handleOpenDeleteModal = (category) => {
-    setCategoryToDelete(category);
-    setIsDeleteModalOpen(true);
+  // --- UNIFIED CONFIRMATION MODAL HANDLERS ---
+  const openConfirmModal = (category, action) => {
+    setConfirmModal({ isOpen: true, category, action, isProcessing: false });
   };
 
-  // Confirm delete handler
-  const handleConfirmDelete = async () => {
-    if (!categoryToDelete) return;
-    setIsDeleting(true);
+  const closeConfirmModal = () => {
+    if (!confirmModal.isProcessing) {
+      setConfirmModal({ isOpen: false, category: null, action: null, isProcessing: false });
+    }
+  };
+
+  const handleConfirmAction = async () => {
+    const { category, action } = confirmModal;
+    if (!category || !action) return;
+
+    setConfirmModal(prev => ({ ...prev, isProcessing: true }));
+
     try {
-      const response = await api.delete(`/categories/${categoryToDelete.id}`);
-      toast.success(response.data?.message);
-      setIsDeleteModalOpen(false);
-      setCategoryToDelete(null);
+      if (action === 'trash') {
+        const response = await api.delete(`/categories/${category.id}`);
+        toast.success(response?.data?.message);
+      } else if (action === 'restore') {
+        const response = await api.patch(`/categories/${category.id}/restore`);
+        toast.success(response?.data?.message);
+      } else if (action === 'forceDelete') {
+        const response = await api.delete(`/categories/${category.id}/force`);
+        toast.success(response?.data?.message);
+      }
+      closeConfirmModal();
       fetchCategories();
     } catch (err) {
       toast.error(err.response?.data?.message);
-    } finally {
-      setIsDeleting(false);
+      setConfirmModal(prev => ({ ...prev, isProcessing: false }));
     }
   };
 
@@ -183,39 +194,6 @@ export default function CategoryPage() {
 
   const isFiltered = Boolean(searchQuery || statusFilter !== 'all');
 
-  // Restore Handler
-  const handleRestore = async (category) => {
-    try {
-      const response = await api.patch(`/categories/${category.id}/restore`);
-      toast.success(response.data?.message);
-      fetchCategories();
-    } catch (err) {
-      toast.error(err.response?.data?.message);
-    }
-  };
-
-  // Force Delete Handlers
-  const handleOpenForceDeleteModal = (category) => {
-    setCategoryToForceDelete(category);
-    setIsForceDeleteModalOpen(true);
-  };
-
-  const handleConfirmForceDelete = async () => {
-    if (!categoryToForceDelete) return;
-    setIsForceDeleting(true);
-    try {
-      const response = await api.delete(`/categories/${categoryToForceDelete.id}/force`);
-      toast.success(response.data?.message);
-      setIsForceDeleteModalOpen(false);
-      setCategoryToForceDelete(null);
-      fetchCategories();
-    } catch (err) {
-      toast.error(err.response?.data?.message);
-    } finally {
-      setIsForceDeleting(false);
-    }
-  };
-
   // Row Renderer for Generic Table Component
   const renderRow = (cat) => {
     const isTrashed = Boolean(cat.deleted_at);
@@ -247,14 +225,14 @@ export default function CategoryPage() {
             {isTrashed ? (
               <>
                 <button
-                  onClick={() => handleRestore(cat)}
+                  onClick={() => openConfirmModal(cat, 'restore')}
                   className="p-2 rounded-lg text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-950/30 transition-colors"
                   title="Restore"
                 >
                   <RefreshCw className="w-4 h-4" />
                 </button>
                 {/* <button
-              onClick={() => handleOpenForceDeleteModal(cat)}
+              onClick={() => openConfirmModal(cat, 'forceDelete')}
               className="p-2 rounded-lg text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors cursor-pointer"
               title="Permanently Delete"
             >
@@ -283,7 +261,7 @@ export default function CategoryPage() {
                 </Link>
 
                 <button
-                  onClick={() => handleOpenDeleteModal(cat)}
+                  onClick={() => openConfirmModal(cat, 'trash')}
                   className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-gray-500 hover:text-red-600 transition-colors cursor-pointer"
                   title="Remove"
                 >
@@ -370,7 +348,7 @@ export default function CategoryPage() {
         />
       </div>
 
-       {!loading && !error && categories.length > 0 && (
+        {!loading && !error && categories.length > 0 && (
           <Pagination
             currentPage={currentPage}
             totalPages={lastPage}
@@ -380,53 +358,36 @@ export default function CategoryPage() {
           />
         )}
 
-      {/* Reusable Delete Confirmation Modal */}
+      {/* Unified Confirmation Modal */}
       <ConfirmationModal
-        isOpen={isDeleteModalOpen}
-        onClose={() => {
-          if (!isDeleting) {
-            setIsDeleteModalOpen(false);
-            setCategoryToDelete(null);
-          }
-        }}
-        onConfirm={handleConfirmDelete}
-        title="Delete Category"
-        message={
-          <>
-            Are you sure you want to delete the{' '}
-            <span className="font-bold text-slate-900 dark:text-slate-200">
-              {categoryToDelete?.name}
-            </span>{' '}
-            category? This action cannot be undone and associated menu items may become uncategorized.
-          </>
+        isOpen={confirmModal.isOpen}
+        onClose={closeConfirmModal}
+        onConfirm={handleConfirmAction}
+        title={
+          confirmModal.action === 'trash' ? 'Move Category to Trash' :
+          confirmModal.action === 'restore' ? 'Restore Category' :
+          'Permanently Delete Category'
         }
-        isLoading={isDeleting}
-        confirmText="Delete"
-      />
-
-      {/* Force Delete Confirmation Modal */}
-      <ConfirmationModal
-        isOpen={isForceDeleteModalOpen}
-        onClose={() => {
-          if (!isForceDeleting) {
-            setIsForceDeleteModalOpen(false);
-            setCategoryToForceDelete(null);
-          }
-        }}
-        onConfirm={handleConfirmForceDelete}
-        title="Permanently Delete Category"
         message={
-          <>
-            Are you sure you want to <span className="font-bold text-red-600">permanently delete</span> the{' '}
-            <span className="font-bold text-slate-900 dark:text-slate-200">
-              {categoryToForceDelete?.name}
-            </span>{' '}
-            category? This action cannot be undone and will permanently destroy all associated menu items.
-          </>
+          confirmModal.action === 'trash' ? (
+            <>Are you sure you want to move <span className="font-bold text-slate-900 dark:text-slate-200">{confirmModal.category?.name}</span> to the trash? Associated menu items may become uncategorized.</>
+          ) : confirmModal.action === 'restore' ? (
+            <>Are you sure you want to restore <span className="font-bold text-slate-900 dark:text-slate-200">{confirmModal.category?.name}</span>? It will be available again.</>
+          ) : (
+            <>Are you sure you want to <span className="font-bold text-rose-600">permanently delete</span> <span className="font-bold text-slate-900 dark:text-slate-200">{confirmModal.category?.name}</span>? This action cannot be undone and will permanently destroy all associated menu items.</>
+          )
         }
-        isLoading={isForceDeleting}
-        confirmText="Permanently Delete"
-        confirmClassName="bg-rose-600 hover:bg-rose-700 text-white"
+        isLoading={confirmModal.isProcessing}
+        confirmText={
+          confirmModal.action === 'trash' ? 'Move to Trash' :
+          confirmModal.action === 'restore' ? 'Restore' :
+          'Permanently Delete'
+        }
+        confirmClassName={
+          confirmModal.action === 'forceDelete' 
+            ? 'bg-rose-600 hover:bg-rose-700 text-white' 
+            : 'bg-orange-600 hover:bg-orange-700 text-white'
+        }
       />
     </div>
   );

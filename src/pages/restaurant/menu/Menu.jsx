@@ -51,15 +51,13 @@ export default function MenuTable() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Modal Delete State
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState(null);
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  // Force Delete Modal State
-  const [isForceDeleteModalOpen, setIsForceDeleteModalOpen] = useState(false);
-  const [itemToForceDelete, setItemToForceDelete] = useState(null);
-  const [isForceDeleting, setIsForceDeleting] = useState(false);
+  // Unified Confirmation Modal State
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    item: null,
+    action: null, // 'trash' | 'restore' | 'forceDelete'
+    isProcessing: false
+  });
 
   // URL update helper
   const updateUrlParams = useCallback((newPage, newSearch, newStatus, newCategory) => {
@@ -193,57 +191,39 @@ export default function MenuTable() {
     }
   };
 
-  const handleOpenDeleteModal = (item) => {
-    setItemToDelete(item);
-    setIsDeleteModalOpen(true);
+  // --- UNIFIED CONFIRMATION MODAL HANDLERS ---
+  const openConfirmModal = (item, action) => {
+    setConfirmModal({ isOpen: true, item, action, isProcessing: false });
   };
 
-  const handleConfirmDelete = async () => {
-    if (!itemToDelete) return;
-    setIsDeleting(true);
-    try {
-      const response = await api.delete(`/menu-items/${itemToDelete.id}`);
-      toast.success(response?.data?.message);
-      setIsDeleteModalOpen(false);
-      setItemToDelete(null);
-      fetchMenuItems();
-    } catch (err) {
-      toast.error(err.response?.data?.message);
-    } finally {
-      setIsDeleting(false);
+  const closeConfirmModal = () => {
+    if (!confirmModal.isProcessing) {
+      setConfirmModal({ isOpen: false, item: null, action: null, isProcessing: false });
     }
   };
 
-  // Restore Handler
-  const handleRestore = async (item) => {
+  const handleConfirmAction = async () => {
+    const { item, action } = confirmModal;
+    if (!item || !action) return;
+
+    setConfirmModal(prev => ({ ...prev, isProcessing: true }));
+
     try {
-      const response = await api.patch(`/menu-items/${item.id}/restore`);
-      toast.success(response.data?.message);
+      if (action === 'trash') {
+        const response = await api.delete(`/menu-items/${item.id}`);
+        toast.success(response?.data?.message);
+      } else if (action === 'restore') {
+        const response = await api.patch(`/menu-items/${item.id}/restore`);
+        toast.success(response?.data?.message);
+      } else if (action === 'forceDelete') {
+        const response = await api.delete(`/menu-items/${item.id}/force`);
+        toast.success(response?.data?.message);
+      }
+      closeConfirmModal();
       fetchMenuItems();
     } catch (err) {
       toast.error(err.response?.data?.message);
-    }
-  };
-
-  // Force Delete Handlers
-  const handleOpenForceDeleteModal = (item) => {
-    setItemToForceDelete(item);
-    setIsForceDeleteModalOpen(true);
-  };
-
-  const handleConfirmForceDelete = async () => {
-    if (!itemToForceDelete) return;
-    setIsForceDeleting(true);
-    try {
-      const response = await api.delete(`/menu-items/${itemToForceDelete.id}/force`);
-      toast.success(response.data?.message);
-      setIsForceDeleteModalOpen(false);
-      setItemToForceDelete(null);
-      fetchMenuItems();
-    } catch (err) {
-      toast.error(err.response?.data?.message);
-    } finally {
-      setIsForceDeleting(false);
+      setConfirmModal(prev => ({ ...prev, isProcessing: false }));
     }
   };
 
@@ -316,7 +296,7 @@ export default function MenuTable() {
               <>
             <button
                 type="button"
-                onClick={() => handleRestore(item)}
+                onClick={() => openConfirmModal(item, 'restore')}
                 className="p-2 rounded-lg text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-950/30 transition-colors"
                 title="Restore"
               >
@@ -324,7 +304,7 @@ export default function MenuTable() {
               </button>
                 {/* <button
                 type="button"
-                onClick={() => handleOpenForceDeleteModal(item)}
+                onClick={() => openConfirmModal(item, 'forceDelete')}
                 className="p-2 rounded-lg text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors cursor-pointer"
                 title="Permanently Delete"
               >
@@ -372,7 +352,7 @@ export default function MenuTable() {
 
                 <button
                   type="button"
-                  onClick={() => handleOpenDeleteModal(item)}
+                  onClick={() => openConfirmModal(item, 'trash')}
                   className="p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-gray-500 hover:text-red-600 transition-colors cursor-pointer"
                   title="Remove"
                 >
@@ -477,51 +457,36 @@ export default function MenuTable() {
         )}
       </div>
 
+      {/* Unified Confirmation Modal */}
       <ConfirmationModal
-        isOpen={isDeleteModalOpen}
-        onClose={() => {
-          if (!isDeleting) {
-            setIsDeleteModalOpen(false);
-            setItemToDelete(null);
-          }
-        }}
-        onConfirm={handleConfirmDelete}
-        title="Delete Menu Item"
-        message={
-          <>
-            Are you sure you want to delete the menu item{' '}
-            <span className="font-bold text-slate-900 dark:text-slate-200">
-              "{itemToDelete?.name}"
-            </span>
-            ? This action cannot be undone and may affect order history or reports.
-          </>
+        isOpen={confirmModal.isOpen}
+        onClose={closeConfirmModal}
+        onConfirm={handleConfirmAction}
+        title={
+          confirmModal.action === 'trash' ? 'Move Menu Item to Trash' :
+          confirmModal.action === 'restore' ? 'Restore Menu Item' :
+          'Permanently Delete Menu Item'
         }
-        isLoading={isDeleting}
-        confirmText="Delete"
-      />
-
-      <ConfirmationModal
-        isOpen={isForceDeleteModalOpen}
-        onClose={() => {
-          if (!isForceDeleting) {
-            setIsForceDeleteModalOpen(false);
-            setItemToForceDelete(null);
-          }
-        }}
-        onConfirm={handleConfirmForceDelete}
-        title="Permanently Delete Menu Item"
         message={
-          <>
-            Are you sure you want to <span className="font-bold text-red-600">permanently delete</span> the{' '}
-            <span className="font-bold text-slate-900 dark:text-slate-200">
-              "{itemToForceDelete?.name}"
-            </span>
-            ? This action cannot be undone and will permanently destroy it from the database.
-          </>
+          confirmModal.action === 'trash' ? (
+            <>Are you sure you want to move <span className="font-bold text-slate-900 dark:text-slate-200">"{confirmModal.item?.name}"</span> to the trash? This may affect order history or reports.</>
+          ) : confirmModal.action === 'restore' ? (
+            <>Are you sure you want to restore <span className="font-bold text-slate-900 dark:text-slate-200">"{confirmModal.item?.name}"</span>? It will be available again.</>
+          ) : (
+            <>Are you sure you want to <span className="font-bold text-rose-600">permanently delete</span> <span className="font-bold text-slate-900 dark:text-slate-200">"{confirmModal.item?.name}"</span>? This action cannot be undone and will permanently destroy it from the database.</>
+          )
         }
-        isLoading={isForceDeleting}
-        confirmText="Permanently Delete"
-        confirmClassName="bg-rose-600 hover:bg-rose-700 text-white"
+        isLoading={confirmModal.isProcessing}
+        confirmText={
+          confirmModal.action === 'trash' ? 'Move to Trash' :
+          confirmModal.action === 'restore' ? 'Restore' :
+          'Permanently Delete'
+        }
+        confirmClassName={
+          confirmModal.action === 'forceDelete' 
+            ? 'bg-rose-600 hover:bg-rose-700 text-white' 
+            : 'bg-orange-600 hover:bg-orange-700 text-white'
+        }
       />
     </div>
   );

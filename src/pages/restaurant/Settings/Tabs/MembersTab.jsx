@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
     Users, UserPlus, Mail, Search, X, Trash2, Pencil,
-    RotateCcw, Building2, AlertCircle, Filter
+    RotateCcw, Building2, Filter, Sun, Moon, ShieldAlert, Clock
 } from 'lucide-react';
 import api from '../../../../services/api';
 import toast from 'react-hot-toast';
 import { RestaurantService } from '../../../../services/restaurant';
 import StaffFormModal from '../../../../components/forms/StaffFormModal';
+import ConfirmationModal from '../../../../components/common/ConfirmationModal';
 import RoleService from '../../../../services/Roles';
 import Pagination from '../../../../components/common/Pagination';
 import Table from '../../../../components/Table';
@@ -17,6 +18,14 @@ export default function MembersTab() {
     const [members, setMembers] = useState([]);
     const [restaurants, setRestaurants] = useState([]);
     const [roles, setRoles] = useState([]);
+    const [stats, setStats] = useState({
+        total: 0,
+        active: 0,
+        suspended: 0,
+        on_leave: 0,
+        inactive: 0,
+        trash: 0
+    });
 
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -24,7 +33,9 @@ export default function MembersTab() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
 
+    // Filter States
     const [statusFilter, setStatusFilter] = useState('active');
+    const [shiftTypeFilter, setShiftTypeFilter] = useState('all');
     const [selectedRestaurantFilter, setSelectedRestaurantFilter] = useState('all');
 
     // Pagination State
@@ -34,6 +45,14 @@ export default function MembersTab() {
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingMember, setEditingMember] = useState(null);
+
+    // Confirmation Modal State
+    const [confirmModal, setConfirmModal] = useState({
+        isOpen: false,
+        member: null,
+        action: null, // 'trash' | 'restore' | 'forceDelete'
+        isProcessing: false
+    });
 
     const fetchRestaurants = useCallback(async () => {
         try {
@@ -71,16 +90,24 @@ export default function MembersTab() {
                 params.restaurant_id = selectedRestaurantFilter;
             }
 
-            // 3. Backend soft-delete parameters
+            if (shiftTypeFilter !== 'all') {
+                params.shift_type = shiftTypeFilter;
+            }
+
+            // Standardized Backend Parameter Alignment
             if (statusFilter === 'trash') {
-                params.trashed = 1;
+                params.only_trashed = 1;
             } else if (statusFilter === 'all') {
                 params.with_trashed = 1;
+            } else {
+                // Passes 'active', 'suspended', 'on_leave', etc. directly to backend
+                params.status = statusFilter;
             }
 
             const response = await api.get('/organization/staff', { params });
             
             setMembers(response.data?.data);
+            setStats(response.data?.stats);
             setLastPage(response.data?.pagination?.last_page || 1);
             setTotalItems(response.data?.pagination?.total || 0);
             
@@ -89,7 +116,7 @@ export default function MembersTab() {
         } finally {
             setIsLoading(false);
         }
-    }, [searchQuery, selectedRestaurantFilter, statusFilter, currentPage]);
+    }, [searchQuery, selectedRestaurantFilter, statusFilter, shiftTypeFilter, currentPage]);
 
     useEffect(() => {
         fetchRestaurants();
@@ -106,10 +133,10 @@ export default function MembersTab() {
         }
     };
 
-    // Reset to page 1 when filters change
+    // Reset to page 1 on filter modification
     useEffect(() => {
         setCurrentPage(1);
-    }, [searchQuery, selectedRestaurantFilter, statusFilter]);
+    }, [searchQuery, selectedRestaurantFilter, statusFilter, shiftTypeFilter]);
 
     const validate = (formData) => {
         const newErrors = {};
@@ -144,9 +171,9 @@ export default function MembersTab() {
                 const response = await api.post('/organization/staff', formData);
                 toast.success(response?.data?.message);
 
-                // Reset view filters on addition
                 setSearchQuery('');
                 setStatusFilter('active');
+                setShiftTypeFilter('all');
                 setSelectedRestaurantFilter('all');
                 setCurrentPage(1);
             }
@@ -183,27 +210,41 @@ export default function MembersTab() {
         return selectedRestaurantFilter !== 'all' ? `?restaurant_id=${selectedRestaurantFilter}` : '';
     };
 
-    const handleMoveToTrash = async (member) => {
-        try {
-            const response = await api.delete(`/organization/staff/${member.id}${getDeleteParams()}`);
-            toast.success(response?.data?.message);
-            fetchMembers();
-        } catch (err) {
-            toast.error(err.response?.data?.message);
+    const openConfirmModal = (member, action) => {
+        setConfirmModal({ isOpen: true, member, action, isProcessing: false });
+    };
+
+    const closeConfirmModal = () => {
+        if (!confirmModal.isProcessing) {
+            setConfirmModal({ isOpen: false, member: null, action: null, isProcessing: false });
         }
     };
 
-    const handleRestoreMember = async (member) => {
+    const handleConfirmAction = async () => {
+        const { member, action } = confirmModal;
+        if (!member || !action) return;
+
+        setConfirmModal(prev => ({ ...prev, isProcessing: true }));
+
         try {
-            const response = await api.patch(`/organization/staff/${member.id}/restore${getDeleteParams()}`);
-            toast.success(response?.data?.message);
+            if (action === 'trash') {
+                const response = await api.delete(`/organization/staff/${member.id}${getDeleteParams()}`);
+                toast.success(response?.data?.message);
+            } else if (action === 'restore') {
+                const response = await api.patch(`/organization/staff/${member.id}/restore${getDeleteParams()}`);
+                toast.success(response?.data?.message);
+            } else if (action === 'forceDelete') {
+                const response = await api.delete(`/organization/staff/${member.id}/force${getDeleteParams()}`);
+                toast.success(response?.data?.message);
+            }
+            closeConfirmModal();
             fetchMembers();
         } catch (err) {
             toast.error(err.response?.data?.message);
+            setConfirmModal(prev => ({ ...prev, isProcessing: false }));
         }
     };
 
-    // Table Column Definitions
     const columns = [
         { label: 'ID', align: 'left' },
         { label: 'Member', align: 'left' },
@@ -215,7 +256,6 @@ export default function MembersTab() {
         { label: 'Actions', align: 'right' }
     ];
 
-    // Table Row Renderer
     const renderRow = (member) => {
         const isTrashed = Boolean(member.deleted_at);
         const assignedRestaurant = member.restaurants?.[0];
@@ -246,8 +286,8 @@ export default function MembersTab() {
                 </td>
 
                 <td className="px-6 py-3.5">
-                  <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-gray-700 dark:text-slate-300 ">
-                            {assignedRestaurant.name}
+                  <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-gray-700 dark:text-slate-300">
+                            {assignedRestaurant?.name}
                         </span>
                 </td>
 
@@ -271,17 +311,22 @@ export default function MembersTab() {
                              <>
                             <button 
                                 type="button" 
-                                onClick={() => handleRestoreMember(member)} 
-                                className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/50 rounded-lg transition-colors duration-200 disabled:opacity-50"
+                                onClick={() => openConfirmModal(member, 'restore')} 
+                                className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/50 rounded-lg transition-colors duration-200"
                             >
                                 <RotateCcw className="w-3.5 h-3.5" /> 
-                                <span> Restore Member</span>
-                            </button>
+                               <span>Restore</span>
+                          </button>
 
-                                   {/* <button type="button" onClick={() => handleOpenDeleteModal(member)} className="p-1.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors cursor-pointer" title="Delete Permanently">
-                                                                    <Trash2 className="w-4 h-4" />
-                                                                </button> */}
-                                                            </>
+                                {/* <button 
+                                    type="button" 
+                                    onClick={() => openConfirmModal(member, 'forceDelete')} 
+                                    className="p-1.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors cursor-pointer" 
+                                        title="Delete Permanently"
+                                      >
+                                    <Trash2 className="w-4 h-4" />
+                                 </button> */}
+                            </>
                         ) : (
                             <>
                                 <button 
@@ -294,7 +339,7 @@ export default function MembersTab() {
                                 </button>
                                 <button 
                                     type="button" 
-                                    onClick={() => handleMoveToTrash(member)} 
+                                    onClick={() => openConfirmModal(member, 'trash')} 
                                     className="p-1.5 text-gray-500 hover:text-rose-600 dark:text-slate-400 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors cursor-pointer" 
                                     title="Move to Trash"
                                 >
@@ -336,8 +381,37 @@ export default function MembersTab() {
                 </button>
             </div>
 
+            {/* Stats Summary Bar */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                <div className="p-3 bg-white dark:bg-slate-900 border border-gray-200/80 dark:border-slate-800 rounded-xl">
+                    <p className="text-xs text-gray-500 dark:text-slate-400">Total Staff</p>
+                    <p className="text-lg font-bold text-gray-900 dark:text-white mt-1">{stats.total}</p>
+                </div>
+                <div className="p-3 bg-white dark:bg-slate-900 border border-gray-200/80 dark:border-slate-800 rounded-xl">
+                    <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">Active</p>
+                    <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-1">{stats.active}</p>
+                </div>
+                <div className="p-3 bg-white dark:bg-slate-900 border border-gray-200/80 dark:border-slate-800 rounded-xl">
+                    <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">Suspended</p>
+                    <p className="text-lg font-bold text-amber-600 dark:text-amber-400 mt-1">{stats.suspended || 0}</p>
+                </div>
+                <div className="p-3 bg-white dark:bg-slate-900 border border-gray-200/80 dark:border-slate-800 rounded-xl">
+                    <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">On Leave</p>
+                    <p className="text-lg font-bold text-blue-600 dark:text-blue-400 mt-1">{stats.on_leave || 0}</p>
+                </div>
+                <div className="p-3 bg-white dark:bg-slate-900 border border-gray-200/80 dark:border-slate-800 rounded-xl">
+                    <p className="text-xs text-slate-500 dark:text-slate-400">Inactive</p>
+                    <p className="text-lg font-bold text-slate-600 dark:text-slate-300 mt-1">{stats.inactive || 0}</p>
+                </div>
+                <div className="p-3 bg-white dark:bg-slate-900 border border-gray-200/80 dark:border-slate-800 rounded-xl">
+                    <p className="text-xs text-rose-500 dark:text-rose-400">Trashed</p>
+                    <p className="text-lg font-bold text-rose-600 dark:text-rose-400 mt-1">{stats.trash}</p>
+                </div>
+            </div>
+
             {/* Filter and Search Row */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+            <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+                {/* Search Bar */}
                 <div className="relative flex-1 max-w-md">
                     <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500 pointer-events-none" />
                     <input
@@ -358,8 +432,10 @@ export default function MembersTab() {
                     )}
                 </div>
 
-                <div className="flex flex-col sm:flex-row items-center gap-3">
-                    <div className="relative min-w-[150px] w-full sm:w-auto">
+                {/* Filter Controls */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {/* Status Filter Dropdown */}
+                    <div className="relative min-w-[140px]">
                         <Filter className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500 pointer-events-none" />
                         <select
                             value={statusFilter}
@@ -367,6 +443,8 @@ export default function MembersTab() {
                             className="w-full pl-10 pr-8 py-2 bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 border border-gray-200 dark:border-slate-800 rounded-xl text-xs transition-all focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 shadow-xs appearance-none cursor-pointer"
                         >
                             <option value="active">Active Staff</option>
+                            <option value="suspended">Suspended</option>
+                            <option value="on_leave">On Leave</option>
                             <option value="trash">Trash</option>
                             <option value="all">All Members</option>
                         </select>
@@ -377,7 +455,27 @@ export default function MembersTab() {
                         </div>
                     </div>
 
-                    <div className="relative min-w-[180px] w-full sm:w-auto">
+                    {/* Shift Type Dropdown */}
+                    <div className="relative min-w-[130px]">
+                        <Clock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500 pointer-events-none" />
+                        <select
+                            value={shiftTypeFilter}
+                            onChange={(e) => setShiftTypeFilter(e.target.value)}
+                            className="w-full pl-10 pr-8 py-2 bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 border border-gray-200 dark:border-slate-800 rounded-xl text-xs transition-all focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 shadow-xs appearance-none cursor-pointer"
+                        >
+                            <option value="all">All Shifts</option>
+                            <option value="day">Day Shift</option>
+                            <option value="night">Night Shift</option>
+                        </select>
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    {/* Restaurant Dropdown */}
+                    <div className="relative min-w-[160px]">
                         <Building2 className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500 pointer-events-none" />
                         <select
                             value={selectedRestaurantFilter}
@@ -414,7 +512,6 @@ export default function MembersTab() {
                     emptyDescription={searchQuery ? `No members found matching "${searchQuery}".` : statusFilter === 'trash' ? 'Members moved to trash will appear here.' : 'Start adding staff members to manage restaurant access.'}
                 />
 
-                {/* Pagination Component */}
                 {!isLoading && !error && members.length > 0 && (
                     <Pagination
                         currentPage={currentPage}
@@ -438,28 +535,36 @@ export default function MembersTab() {
                 setErrors={setErrors}
             />
 
-            {/* <ConfirmationModal
-                isOpen={isDeleteModalOpen}
-                onClose={() => {
-                    if (!isDeleting) {
-                        setIsDeleteModalOpen(false);
-                        setMemberToDelete(null);
-                    }
-                }}
-                onConfirm={handlePermanentDelete}
-                title="Permanently Delete Member"
-                message={
-                    <>
-                        Are you sure you want to permanently delete{' '}
-                        <span className="font-bold text-slate-900 dark:text-slate-100">
-                            "{memberToDelete?.name}"
-                        </span>
-                        ? This action cannot be undone.
-                    </>
+            <ConfirmationModal
+                isOpen={confirmModal.isOpen}
+                onClose={closeConfirmModal}
+                onConfirm={handleConfirmAction}
+                title={
+                    confirmModal.action === 'trash' ? 'Move Staff to Trash' :
+                    confirmModal.action === 'restore' ? 'Restore Staff Member' :
+                    'Permanently Delete Staff'
                 }
-                isLoading={isDeleting}
-                confirmText="Delete Permanently"
-            /> */}
+                message={
+                    confirmModal.action === 'trash' ? (
+                        <>Are you sure you want to move <span className="font-bold text-slate-900 dark:text-slate-200">{confirmModal.member?.name}</span> to the trash? They will lose access immediately, but can be restored later.</>
+                    ) : confirmModal.action === 'restore' ? (
+                        <>Are you sure you want to restore <span className="font-bold text-slate-900 dark:text-slate-200">{confirmModal.member?.name}</span>? They will regain their previous access.</>
+                    ) : (
+                        <>Are you sure you want to <span className="font-bold text-rose-600">permanently delete</span> <span className="font-bold text-slate-900 dark:text-slate-200">{confirmModal.member?.name}</span>? This action cannot be undone and will destroy their record.</>
+                    )
+                }
+                isLoading={confirmModal.isProcessing}
+                confirmText={
+                    confirmModal.action === 'trash' ? 'Move to Trash' :
+                    confirmModal.action === 'restore' ? 'Restore' :
+                    'Permanently Delete'
+                }
+                confirmClassName={
+                    confirmModal.action === 'forceDelete' 
+                        ? 'bg-rose-600 hover:bg-rose-700 text-white' 
+                        : 'bg-orange-600 hover:bg-orange-700 text-white'
+                }
+            />
         </div>
     );
 }

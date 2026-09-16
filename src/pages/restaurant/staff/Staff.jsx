@@ -27,6 +27,7 @@ export default function StaffPage() {
   const searchQuery = searchParams.get('search') || '';
   const statusFilter = searchParams.get('status') || 'all';
   const roleFilter = searchParams.get('role') || 'all';
+  const shiftTypeFilter = searchParams.get('shift_type') || 'all';
 
   // Local UI State
   const [roles, setRoles] = useState([]);
@@ -42,27 +43,28 @@ export default function StaffPage() {
     const [stats, setStats] = useState({
        total: 0,
        active: 0,
+      suspended: 0,
+      on_leave: 0,
        inactive: 0,
        trash: 0
      });
 
-  // Modal Delete State
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [staffToDelete, setStaffToDelete] = useState(null);
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  // Force Delete Modal State
-  const [isForceDeleteModalOpen, setIsForceDeleteModalOpen] = useState(false);
-  const [staffToForceDelete, setStaffToForceDelete] = useState(null);
-  const [isForceDeleting, setIsForceDeleting] = useState(false);
+  // Unified Confirmation Modal State
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    staff: null,
+    action: null, // 'trash' | 'restore' | 'forceDelete'
+    isProcessing: false
+  });
 
   // URL update helper
-  const updateUrlParams = useCallback((newPage, newSearch, newStatus, newRole) => {
+  const updateUrlParams = useCallback((newPage, newSearch, newStatus, newRole, newShift) => {
     const params = new URLSearchParams();
     if (newPage > 1) params.set('page', String(newPage));
     if (newSearch) params.set('search', newSearch);
     if (newStatus && newStatus !== 'all') params.set('status', newStatus);
     if (newRole && newRole !== 'all') params.set('role', newRole);
+    if (newShift && newShift !== 'all') params.set('shift_type', newShift);
     setSearchParams(params, { replace: true });
   }, [setSearchParams]);
 
@@ -89,24 +91,30 @@ export default function StaffPage() {
       per_page: 15,
     };
 
-    if (statusFilter === 'trash') {
-      params.only_trashed = 1;
-    } else if (statusFilter !== 'all') {
-      params.status = statusFilter;
-    }
-
     if (searchQuery.trim() !== '') {
       params.search = searchQuery.trim();
     }
     if (roleFilter !== 'all') {
       params.role_id = roleFilter;
     }
+    if (shiftTypeFilter !== 'all') {
+      params.shift_type = shiftTypeFilter;
+    }
+
+    // Standardized Status Filter Alignment
+    if (statusFilter === 'trash') {
+      params.only_trashed = 1;
+    } else if (statusFilter === 'all') {
+      params.with_trashed = 1;
+    } else {
+      params.status = statusFilter;
+    }
 
     try {
       const response = await api.get('/staff', { params });
-        const responseData = response.data;
+      const responseData = response.data;
 
-     setStaffList(responseData.data);
+      setStaffList(responseData.data);
       
       const pagination = responseData.pagination;
       setLastPage(pagination?.last_page || 1);
@@ -117,92 +125,70 @@ export default function StaffPage() {
     } finally {
       setLoading(false);
     }
-  }, [currentPage, searchQuery, roleFilter, statusFilter]);
+  }, [currentPage, searchQuery, roleFilter, statusFilter, shiftTypeFilter]);
 
   useEffect(() => {
     fetchStaff();
   }, [fetchStaff]);
 
   const handleSearchChange = (query) => {
-    updateUrlParams(1, query, statusFilter, roleFilter);
+    updateUrlParams(1, query, statusFilter, roleFilter, shiftTypeFilter);
   };
 
   const handleRoleFilterChange = (selectedRoleId) => {
-    updateUrlParams(1, searchQuery, statusFilter, selectedRoleId || 'all');
+    updateUrlParams(1, searchQuery, statusFilter, selectedRoleId || 'all', shiftTypeFilter);
   };
 
   const handleStatusFilterChange = (selectedStatus) => {
-    updateUrlParams(1, searchQuery, selectedStatus || 'all', roleFilter);
+    updateUrlParams(1, searchQuery, selectedStatus || 'all', roleFilter, shiftTypeFilter);
   };
 
-  const isFiltered = Boolean(searchQuery || statusFilter !== 'all' || roleFilter !== 'all');
+  const handleShiftTypeFilterChange = (selectedShift) => {
+    updateUrlParams(1, searchQuery, statusFilter, roleFilter, selectedShift || 'all');
+  };
+
+  const isFiltered = Boolean(searchQuery || statusFilter !== 'all' || roleFilter !== 'all' || shiftTypeFilter !== 'all');
 
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= lastPage) {
-      updateUrlParams(newPage, searchQuery, statusFilter, roleFilter);
+      updateUrlParams(newPage, searchQuery, statusFilter, roleFilter, shiftTypeFilter);
     }
   };
 
-  // Open delete confirmation modal
-  const handleOpenDeleteModal = (staff) => {
-    setStaffToDelete(staff);
-    setIsDeleteModalOpen(true);
+  // --- UNIFIED CONFIRMATION MODAL HANDLERS ---
+  const openConfirmModal = (staff, action) => {
+    setConfirmModal({ isOpen: true, staff, action, isProcessing: false });
   };
 
-  // Confirm delete handler
-  const handleConfirmDelete = async () => {
-    if (!staffToDelete) return;
-    setIsDeleting(true);
+  const closeConfirmModal = () => {
+    if (!confirmModal.isProcessing) {
+      setConfirmModal({ isOpen: false, staff: null, action: null, isProcessing: false });
+    }
+  };
+
+  const handleConfirmAction = async () => {
+    const { staff, action } = confirmModal;
+    if (!staff || !action) return;
+
+    setConfirmModal(prev => ({ ...prev, isProcessing: true }));
+
     try {
-      await api.delete(`/staff/${staffToDelete.id}`);
-      toast.success('Staff member removed successfully');
-      setIsDeleteModalOpen(false);
-      setStaffToDelete(null);
-      await fetchStaff();
+      if (action === 'trash') {
+        const response = await api.delete(`/staff/${staff.id}`);
+        toast.success(response?.data?.message || 'Staff member removed successfully');
+      } else if (action === 'restore') {
+        const response = await api.patch(`/staff/${staff.id}/restore`);
+        toast.success(response?.data?.message || 'Staff member restored successfully');
+      } else if (action === 'forceDelete') {
+        const response = await api.delete(`/staff/${staff.id}/force`);
+        toast.success(response?.data?.message || 'Staff member permanently deleted');
+      }
+      closeConfirmModal();
+      fetchStaff();
     } catch (err) {
-      console.error('Failed to delete staff member:', err);
-      toast.error('Failed to delete staff member');
-    } finally {
-      setIsDeleting(false);
+      toast.error(err.response?.data?.message || 'Action failed');
+      setConfirmModal(prev => ({ ...prev, isProcessing: false }));
     }
-  };
-
-  // Restore Handler
-  const handleRestore = async (staff) => {
-    try {
-      const response = await api.patch(`/staff/${staff.id}/restore`);
-      toast.success(response.data?.message);
-      await fetchStaff();
-    } catch (err) {
-      toast.error(err.response?.data?.message);
-    }
-  };
-
-  // Force Delete Handlers
-  const handleOpenForceDeleteModal = (staff) => {
-    setStaffToForceDelete(staff);
-    setIsForceDeleteModalOpen(true);
-  };
-
-  const handleConfirmForceDelete = async () => {
-    if (!staffToForceDelete) return;
-    setIsForceDeleting(true);
-    try {
-      const response = await api.delete(`/staff/${staffToForceDelete.id}/force`);
-      toast.success(response.data?.message);
-      setIsForceDeleteModalOpen(false);
-      setStaffToForceDelete(null);
-      await fetchStaff();
-    } catch (err) {
-      toast.error(err.response?.data?.message);
-    } finally {
-      setIsForceDeleting(false);
-    }
-  };
-
-  const formatShiftType = (shift) => {
-    if (!shift) return 'N/A';
-    return shift.replace('_', ' ').replace(/\b\w/g, (char) => char.toUpperCase());
   };
 
   const columns = [
@@ -241,7 +227,7 @@ export default function StaffPage() {
           {staff.role?.name}
         </td>
         <td className="px-6 py-4 text-gray-700 dark:text-slate-300">
-          {formatShiftType(staff.shift_type)}
+          {staff.shift_type}
         </td>
         <td className="px-6 py-4 text-gray-700 dark:text-slate-300">
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-gray-700 dark:text-slate-300 text-xs font-medium">
@@ -256,14 +242,14 @@ export default function StaffPage() {
             {isTrashed ? (
               <>
                 <button
-                  onClick={() => handleRestore(staff)}
+                  onClick={() => openConfirmModal(staff, 'restore')}
                   className="p-2 rounded-lg text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-950/30 transition-colors"
                   title="Restore"
                 >
                   <RefreshCw className="w-4 h-4" />
                 </button>
                 {/* <button
-                onClick={() => handleOpenForceDeleteModal(staff)}
+                onClick={() => openConfirmModal(staff, 'forceDelete')}
                 className="p-2 rounded-lg text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors cursor-pointer"
                 title="Permanently Delete"
               >
@@ -281,14 +267,13 @@ export default function StaffPage() {
                     <Edit className="w-4 h-4" />
                   </Link>
                   <button
-                    onClick={() => handleOpenDeleteModal(staff)}
+                    onClick={() => openConfirmModal(staff, 'trash')}
                     className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-gray-500 hover:text-red-600 transition-colors cursor-pointer"
                     title="Remove"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </>
-
               )
             )}
           </div>
@@ -317,11 +302,13 @@ export default function StaffPage() {
         </Link>
       </div>
 
-          {/* Statistics Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         <StatsCard label="Total Staff" value={loading && stats.total === 0 ? '...' : stats.total} />
         <StatsCard label="Active Staff" value={loading && stats.active === 0 ? '...' : stats.active} />
-        <StatsCard label="Inactive Staff" value={loading && stats.inactive === 0 ? '...' : stats.inactive} />
+        <StatsCard label="Suspended" value={loading && stats.suspended === 0 ? '...' : (stats.suspended || 0)} />
+        <StatsCard label="On Leave" value={loading && stats.on_leave === 0 ? '...' : (stats.on_leave || 0)} />
+        <StatsCard label="Inactive" value={loading && stats.inactive === 0 ? '...' : stats.inactive} />
         <StatsCard label="Trash" value={loading && stats.trash === 0 ? '...' : stats.trash} />
       </div>
 
@@ -342,6 +329,17 @@ export default function StaffPage() {
             ],
           },
           {
+            id: 'shift-filter',
+            placeholder: 'Shift...',
+            value: shiftTypeFilter,
+            onChange: handleShiftTypeFilterChange,
+            options: [
+              { label: 'All Shifts', value: 'all' },
+              { label: 'Day Shift', value: 'day' },
+              { label: 'Night Shift', value: 'night' },
+            ],
+          },
+          {
             id: 'status-filter',
             placeholder: 'Status...',
             value: statusFilter,
@@ -349,6 +347,8 @@ export default function StaffPage() {
             options: [
               { label: 'All Statuses', value: 'all' },
               { label: 'Active', value: 'active' },
+              { label: 'Suspended', value: 'suspended' },
+              { label: 'On Leave', value: 'on_leave' },
               { label: 'Inactive', value: 'inactive' },
               { label: 'Trash', value: 'trash' },
             ],
@@ -385,53 +385,36 @@ export default function StaffPage() {
         )}
       </div>
 
-      {/* Reusable Delete Confirmation Modal */}
+      {/* Unified Confirmation Modal */}
       <ConfirmationModal
-        isOpen={isDeleteModalOpen}
-        onClose={() => {
-          if (!isDeleting) {
-            setIsDeleteModalOpen(false);
-            setStaffToDelete(null);
-          }
-        }}
-        onConfirm={handleConfirmDelete}
-        title="Remove Staff Member"
-        message={
-          <>
-            Are you sure you want to delete the{' '}
-            <span className="font-bold text-slate-900 dark:text-slate-200">
-              {staffToDelete?.name}
-            </span>{' '}
-            staff member? This action can be restored later.
-          </>
+        isOpen={confirmModal.isOpen}
+        onClose={closeConfirmModal}
+        onConfirm={handleConfirmAction}
+        title={
+          confirmModal.action === 'trash' ? 'Move Staff to Trash' :
+          confirmModal.action === 'restore' ? 'Restore Staff Member' :
+          'Permanently Delete Staff'
         }
-        isLoading={isDeleting}
-        confirmText="Remove"
-      />
-
-      {/* Force Delete Confirmation Modal */}
-      <ConfirmationModal
-        isOpen={isForceDeleteModalOpen}
-        onClose={() => {
-          if (!isForceDeleting) {
-            setIsForceDeleteModalOpen(false);
-            setStaffToForceDelete(null);
-          }
-        }}
-        onConfirm={handleConfirmForceDelete}
-        title="Permanently Delete Staff Member"
         message={
-          <>
-            Are you sure you want to <span className="font-bold text-red-600">permanently delete</span> the{' '}
-            <span className="font-bold text-slate-900 dark:text-slate-200">
-              {staffToForceDelete?.name}
-            </span>{' '}
-            staff member? This action cannot be undone and will permanently destroy their record.
-          </>
+          confirmModal.action === 'trash' ? (
+            <>Are you sure you want to move <span className="font-bold text-slate-900 dark:text-slate-200">{confirmModal.staff?.name}</span> to the trash? They will lose access immediately, but can be restored later.</>
+          ) : confirmModal.action === 'restore' ? (
+            <>Are you sure you want to restore <span className="font-bold text-slate-900 dark:text-slate-200">{confirmModal.staff?.name}</span>? They will regain their previous access.</>
+          ) : (
+            <>Are you sure you want to <span className="font-bold text-rose-600">permanently delete</span> <span className="font-bold text-slate-900 dark:text-slate-200">{confirmModal.staff?.name}</span>? This action cannot be undone and will permanently destroy their record.</>
+          )
         }
-        isLoading={isForceDeleting}
-        confirmText="Permanently Delete"
-        confirmClassName="bg-rose-600 hover:bg-rose-700 text-white"
+        isLoading={confirmModal.isProcessing}
+        confirmText={
+          confirmModal.action === 'trash' ? 'Move to Trash' :
+          confirmModal.action === 'restore' ? 'Restore' :
+          'Permanently Delete'
+        }
+        confirmClassName={
+          confirmModal.action === 'forceDelete' 
+            ? 'bg-rose-600 hover:bg-rose-700 text-white' 
+            : 'bg-orange-600 hover:bg-orange-700 text-white'
+        }
       />
     </div>
   );

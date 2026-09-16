@@ -1,12 +1,12 @@
 import React from 'react';
-import { Search, ChevronDown } from 'lucide-react';
+import { Search, ChevronDown, Filter } from 'lucide-react';
 
 export default function Toolbar({ 
   searchQuery = '', 
   onSearchChange = null, 
   searchPlaceholder = "Search...",
   showSearch = true,
-  // Pass an array of dropdown objects: [{ id, placeholder, options, value, onChange }]
+  // Dropdown shape: [{ id, placeholder, options, value, onChange, icon: IconComponent }]
   dropdowns = [],
 }) {
   return (
@@ -29,35 +29,45 @@ export default function Toolbar({
       {/* Filter Controls */}
       {dropdowns.length > 0 && (
         <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
-          {dropdowns.map((dd, index) => (
-            <div key={dd.id || index} className="relative flex-1 md:w-40 shrink-0 min-w-[120px]">
-              <select
-                value={dd.value ?? ''}
-                onChange={(e) => dd.onChange && dd.onChange(e.target.value)}
-                className="w-full appearance-none px-3 py-2 pr-8 bg-gray-50 dark:bg-slate-800 text-gray-900 dark:text-slate-100 border border-gray-200 dark:border-slate-700 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-orange-500/20 transition-colors duration-200 cursor-pointer"
-              >
-                {dd.placeholder && (
-                  <option value="" disabled hidden>
-                    {dd.placeholder}
-                  </option>
-                )}
-                {dd.options?.map((opt) => {
-                  const label = typeof opt === 'object' ? opt.label : opt;
-                  const val = typeof opt === 'object' ? opt.value : opt;
-                  return (
-                    <option 
-                      key={val} 
-                      value={val}
-                      className="bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 py-1"
-                    >
-                      {label}
+          {dropdowns.map((dd, index) => {
+            // Default to Lucide's Filter icon if no custom icon is provided
+            const IconComponent = dd.icon || Filter;
+
+            return (
+              <div key={dd.id || index} className="relative flex-1 md:w-44 shrink-0 min-w-[130px]">
+                {/* Left Filter Icon */}
+                <IconComponent className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-slate-500 pointer-events-none transition-colors duration-200" />
+
+                <select
+                  value={dd.value ?? ''}
+                  onChange={(e) => dd.onChange && dd.onChange(e.target.value)}
+                  className="w-full appearance-none pl-9 pr-8 py-2 bg-gray-50 dark:bg-slate-800 text-gray-900 dark:text-slate-100 border border-gray-200 dark:border-slate-700 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-orange-500/20 transition-colors duration-200 cursor-pointer"
+                >
+                  {dd.placeholder && (
+                    <option value="" disabled hidden>
+                      {dd.placeholder}
                     </option>
-                  );
-                })}
-              </select>
-              <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-slate-500 pointer-events-none transition-colors duration-200" />
-            </div>
-          ))}
+                  )}
+                  {dd.options?.map((opt) => {
+                    const label = typeof opt === 'object' ? opt.label : opt;
+                    const val = typeof opt === 'object' ? opt.value : opt;
+                    return (
+                      <option 
+                        key={val} 
+                        value={val}
+                        className="bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 py-1"
+                      >
+                        {label}
+                      </option>
+                    );
+                  })}
+                </select>
+
+                {/* Right Arrow Icon */}
+                <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-slate-500 pointer-events-none transition-colors duration-200" />
+              </div>
+            );
+          })}
         </div>
       )}
 

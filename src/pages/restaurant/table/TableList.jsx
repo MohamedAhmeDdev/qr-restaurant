@@ -39,18 +39,13 @@ export default function TableList() {
   const [lastPage, setLastPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
 
-  // Confirmation Modal State
-  const [deleteModalState, setDeleteModalState] = useState({
+  // Unified Confirmation Modal State
+  const [confirmModal, setConfirmModal] = useState({
     isOpen: false,
-    tableId: null,
-    tableName: '',
-    isDeleting: false
+    table: null,
+    action: null, // 'trash' | 'restore' | 'forceDelete'
+    isProcessing: false
   });
-
-  // Force Delete Modal State
-  const [isForceDeleteModalOpen, setIsForceDeleteModalOpen] = useState(false);
-  const [tableToForceDelete, setTableToForceDelete] = useState(null);
-  const [isForceDeleting, setIsForceDeleting] = useState(false);
 
   // URL update helper
   const updateUrlParams = useCallback((newPage, newSearch, newStatus) => {
@@ -74,7 +69,7 @@ export default function TableList() {
     if (statusFilter === 'trash') {
       params.only_trashed = 1;
     } else if (statusFilter !== 'all') {
-      params.status = statusFilter;
+      params.status = statusFilter; 
     }
 
     if (searchQuery.trim() !== '') {
@@ -146,89 +141,48 @@ export default function TableList() {
 
     try {
       const response = await api.post(`/tables/${tableId}/regenerate-qr`);
-
       setTables(prev => prev.map(table =>
         table.id === tableId ? response.data.data : table
       ));
-
       toast.success(response.data.message);
     } catch (err) {
       toast.error(err.response?.data?.message);
     }
   };
 
-  // Open Modal
-  const openDeleteModal = (e, table) => {
-    e.stopPropagation();
-    setDeleteModalState({
-      isOpen: true,
-      tableId: table.id,
-      tableName: table.name,
-      isDeleting: false
-    });
+  // --- UNIFIED CONFIRMATION MODAL HANDLERS ---
+  const openConfirmModal = (table, action) => {
+    setConfirmModal({ isOpen: true, table, action, isProcessing: false });
   };
 
-  // Close Modal
-  const closeDeleteModal = () => {
-    if (deleteModalState.isDeleting) return;
-    setDeleteModalState({
-      isOpen: false,
-      tableId: null,
-      tableName: '',
-      isDeleting: false
-    });
-  };
-
-  // Confirm Delete Handler
-  const handleConfirmDelete = async () => {
-    const { tableId } = deleteModalState;
-    if (!tableId) return;
-
-    setDeleteModalState(prev => ({ ...prev, isDeleting: true }));
-
-    try {
-      const response = await api.delete(`/tables/${tableId}`);
-      toast.success(response.data?.message);
-      closeDeleteModal();
-      await fetchTables();
-    } catch (err) {
-      toast.error(err.response?.data?.message);
-      setDeleteModalState(prev => ({ ...prev, isDeleting: false }));
+  const closeConfirmModal = () => {
+    if (!confirmModal.isProcessing) {
+      setConfirmModal({ isOpen: false, table: null, action: null, isProcessing: false });
     }
   };
 
-  // Restore Handler
-  const handleRestore = async (e, table) => {
-    e.stopPropagation();
-    try {
-      const response = await api.patch(`/tables/${table.id}/restore`);
-      toast.success(response.data?.message);
-      await fetchTables();
-    } catch (err) {
-      toast.error(err.response?.data?.message);
-    }
-  };
+  const handleConfirmAction = async () => {
+    const { table, action } = confirmModal;
+    if (!table || !action) return;
 
-  // Force Delete Handlers
-  const openForceDeleteModal = (e, table) => {
-    e.stopPropagation();
-    setTableToForceDelete(table);
-    setIsForceDeleteModalOpen(true);
-  };
+    setConfirmModal(prev => ({ ...prev, isProcessing: true }));
 
-  const handleConfirmForceDelete = async () => {
-    if (!tableToForceDelete) return;
-    setIsForceDeleting(true);
     try {
-      const response = await api.delete(`/tables/${tableToForceDelete.id}/force`);
-      toast.success(response.data?.message);
-      setIsForceDeleteModalOpen(false);
-      setTableToForceDelete(null);
-      await fetchTables();
+      if (action === 'trash') {
+        const response = await api.delete(`/tables/${table.id}`);
+        toast.success(response?.data?.message || 'Table moved to trash');
+      } else if (action === 'restore') {
+        const response = await api.patch(`/tables/${table.id}/restore`);
+        toast.success(response?.data?.message || 'Table restored');
+      } else if (action === 'forceDelete') {
+        const response = await api.delete(`/tables/${table.id}/force`);
+        toast.success(response?.data?.message || 'Table permanently deleted');
+      }
+      closeConfirmModal();
+      fetchTables();
     } catch (err) {
-      toast.error(err.response?.data?.message);
-    } finally {
-      setIsForceDeleting(false);
+      toast.error(err.response?.data?.message || 'Action failed');
+      setConfirmModal(prev => ({ ...prev, isProcessing: false }));
     }
   };
   const isFiltered = Boolean(searchQuery || statusFilter !== 'all');
@@ -256,17 +210,17 @@ export default function TableList() {
         </button>
       </div>
 
-        {/* Stats Cards */}
+      {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatsCard label="Total Tables" value={loading && stats.total === 0 ? '...' : stats.total} />
         <StatsCard label="Active Tables" value={loading && stats.active === 0 ? '...' : stats.active} />
-        <StatsCard label="Inactive Tables" value={loading && stats.inactive === 0 ? '...' : stats.inactive}/>
-        <StatsCard label="Trash" value={loading && stats.trash === 0 ? '...' : stats.trash}/>
+        <StatsCard label="Inactive Tables" value={loading && stats.inactive === 0 ? '...' : stats.inactive} />
+        <StatsCard label="Trash" value={loading && stats.trash === 0 ? '...' : stats.trash} />
       </div>
 
 
      
-      {/* Search & Filter Toolbar*/}
+      {/* Search & Filter Toolbar */}
       <Toolbar
         searchQuery={searchQuery}
         onSearchChange={handleSearchChange}
@@ -297,7 +251,7 @@ export default function TableList() {
             >
               <div className="w-40 h-40 rounded-xl bg-slate-200 dark:bg-slate-800 shrink-0" />
               <div className="flex-1 space-y-3 py-1">
-                  <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-1/3" />
+                <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-1/3" />
                 <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-1/3" />
                 <div className="h-6 bg-slate-200 dark:bg-slate-800 rounded w-2/3" />
                 <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-1/2" />
@@ -328,7 +282,7 @@ export default function TableList() {
           />
         </div>
       ) : (
-        /* 4. LIST/GRID DISPLAY STATE - IMPROVED CARD UI */
+        /* 4. LIST/GRID DISPLAY STATE */
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 gap-5">
           {tables.map((table) => {
             const isTrashed = Boolean(table.deleted_at);
@@ -336,7 +290,8 @@ export default function TableList() {
             return (
               <div
                 key={table.id}
-                className="group relative bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-orange-500/30 dark:hover:border-orange-500/30 transition-all duration-300 overflow-hidden" >
+                className="group relative bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-orange-500/30 dark:hover:border-orange-500/30 transition-all duration-300 overflow-hidden"
+              >
                 <div className="flex flex-col sm:flex-row h-full">
 
                   {/* QR CODE SECTION - Left Side */}
@@ -363,8 +318,7 @@ export default function TableList() {
                     {/* Header: Title & Actions */}
                     <div className="flex items-start justify-between gap-3 mb-3">
                       <div className="min-w-0">
-
-                         <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1.5">
                           <span className="text-sm text-slate-400">ID:</span>
                           <h3 className="font-bold text-md text-slate-900 dark:text-slate-100 truncate pr-2">
                             {table.id}
@@ -376,7 +330,6 @@ export default function TableList() {
                             {table.name}
                           </h3>
                         </div>
-
                         <div className="flex items-center gap-1.5">
                           <span className="text-xs text-slate-400">Slug:</span>
                           <p className="text-xs text-slate-400 dark:text-slate-500 font-mono truncate flex items-center gap-1">
@@ -390,14 +343,14 @@ export default function TableList() {
                         {isTrashed ? (
                           <>
                             <button
-                              onClick={(e) => handleRestore(e, table)}
+                              onClick={(e) => { e.stopPropagation(); openConfirmModal(table, 'restore'); }}
                               className="p-2 rounded-lg text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-950/30 transition-colors"
                               title="Restore"
                             >
                               <RefreshCw className="w-4 h-4" />
                             </button>
                             {/* <button
-                              onClick={(e) => openForceDeleteModal(e, table)}
+                              onClick={(e) => { e.stopPropagation(); openConfirmModal(table, 'forceDelete'); }}
                               className="p-2 rounded-lg text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors cursor-pointer"
                               title="Permanently Delete"
                             >
@@ -415,7 +368,7 @@ export default function TableList() {
                               </button>
                             </Link>
                             <button
-                              onClick={(e) => openDeleteModal(e, table)}
+                              onClick={(e) => { e.stopPropagation(); openConfirmModal(table, 'trash'); }}
                               className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-gray-500 hover:text-red-600 transition-colors cursor-pointer"
                               title="Remove"
                             >
@@ -426,7 +379,6 @@ export default function TableList() {
                       </div>
                     </div>
 
-
                     {/* Metadata Grid */}
                     <div className="grid grid-cols-2 gap-y-3 gap-x-4 mb-4">
                       <div className="flex items-center gap-2">
@@ -436,7 +388,7 @@ export default function TableList() {
                         <div className="flex flex-col">
                           <span className="text-[10px] text-slate-400 uppercase font-medium">Table</span>
                           <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">
-                             <StatusBadge status={table.is_active ? 'active' : 'inactive'} />
+                            <StatusBadge status={table.is_active ? 'active' : 'inactive'} />
                           </span>
                         </div>
                       </div>
@@ -479,7 +431,7 @@ export default function TableList() {
                         onClick={(e) => handleRegenerateQr(e, table.id)}
                         className="flex-1 py-2 px-3 text-xs font-medium bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
                       >
-                        <RefreshCw  className="w-3.5 h-3.5" />
+                        <RefreshCw className="w-3.5 h-3.5" />
                         Regenerate QR
                       </button>
 
@@ -513,42 +465,36 @@ export default function TableList() {
         </div>
       )}
 
-      {/* Confirmation Modal */}
+      {/* Unified Confirmation Modal */}
       <ConfirmationModal
-        isOpen={deleteModalState.isOpen}
-        onClose={closeDeleteModal}
-        onConfirm={handleConfirmDelete}
-        title="Delete Table"
-        message={`Are you sure you want to delete "${deleteModalState.tableName}"? This action cannot be undone.`}
-        isLoading={deleteModalState.isDeleting}
-        confirmText="Delete Table"
-        cancelText="Cancel"
-      />
-
-      {/* Force Delete Confirmation Modal */}
-      <ConfirmationModal
-        isOpen={isForceDeleteModalOpen}
-        onClose={() => {
-          if (!isForceDeleting) {
-            setIsForceDeleteModalOpen(false);
-            setTableToForceDelete(null);
-          }
-        }}
-        onConfirm={handleConfirmForceDelete}
-        title="Permanently Delete Table"
-        message={
-          <>
-            Are you sure you want to <span className="font-bold text-red-600">permanently delete</span>{' '}
-            <span className="font-bold text-slate-900 dark:text-slate-200">"{tableToForceDelete?.name}"</span>?
-            <br />
-            <span className="text-sm text-slate-500 mt-2 block">
-              This action cannot be undone and will permanently destroy it from the database.
-            </span>
-          </>
+        isOpen={confirmModal.isOpen}
+        onClose={closeConfirmModal}
+        onConfirm={handleConfirmAction}
+        title={
+          confirmModal.action === 'trash' ? 'Move Table to Trash' :
+          confirmModal.action === 'restore' ? 'Restore Table' :
+          'Permanently Delete Table'
         }
-        isLoading={isForceDeleting}
-        confirmText="Permanently Delete"
-        confirmClassName="bg-rose-600 hover:bg-rose-700 text-white"
+        message={
+          confirmModal.action === 'trash' ? (
+            <>Are you sure you want to move <span className="font-bold text-slate-900 dark:text-slate-200">"{confirmModal.table?.name}"</span> to the trash? This action can be restored later.</>
+          ) : confirmModal.action === 'restore' ? (
+            <>Are you sure you want to restore <span className="font-bold text-slate-900 dark:text-slate-200">"{confirmModal.table?.name}"</span>? It will be available again.</>
+          ) : (
+            <>Are you sure you want to <span className="font-bold text-rose-600">permanently delete</span> <span className="font-bold text-slate-900 dark:text-slate-200">"{confirmModal.table?.name}"</span>?<br /><span className="text-sm text-slate-500 mt-2 block">This action cannot be undone and will permanently destroy it from the database.</span></>
+          )
+        }
+        isLoading={confirmModal.isProcessing}
+        confirmText={
+          confirmModal.action === 'trash' ? 'Move to Trash' :
+          confirmModal.action === 'restore' ? 'Restore' :
+          'Permanently Delete'
+        }
+        confirmClassName={
+          confirmModal.action === 'forceDelete' 
+            ? 'bg-rose-600 hover:bg-rose-700 text-white' 
+            : 'bg-orange-600 hover:bg-orange-700 text-white'
+        }
       />
     </div>
   );
