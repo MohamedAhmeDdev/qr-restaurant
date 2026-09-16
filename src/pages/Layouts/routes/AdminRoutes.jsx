@@ -64,7 +64,7 @@ export const AdminRoutes = {
         { path: 'menu-items/create', element: <CreateMenu /> },
         { path: 'menu-items/edit/:id', element: <EditMenu /> },
         { path: 'orders', element: <Orders /> },
-        { path: 'orders-details/:orderId', element: <OrderDetails /> },
+        { path: 'orders-details/:id', element: <OrderDetails /> },
         { path: 'sales', element: <Sales /> },
         { path: '/admin/settings', element: <SettingsPage /> },
       ],

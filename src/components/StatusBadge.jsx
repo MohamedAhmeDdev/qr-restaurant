@@ -87,8 +87,8 @@ const STATUS_CONFIGS = {
     color: 'emerald',
     icon: CheckCircle2,
   },
-  completed: {
-    label: 'Completed',
+  served: {
+    label: 'Served',
     color: 'emerald',
     icon: CheckCircle2,
   },
