@@ -19,7 +19,7 @@ import toast from 'react-hot-toast';
 
 import api from '../../../services/api';
 import { getImageUrl } from '../../../utils/getImageUrl';
-import StatusBadge from '../../../components/common/StatusBadge'';
+import StatusBadge from '../../../components/common/StatusBadge';
 import { useFormatPrice } from '../../../contexts/useFormatPrice';
 
 export default function MenuItemsDetails() {

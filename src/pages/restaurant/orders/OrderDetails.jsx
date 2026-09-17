@@ -6,7 +6,7 @@ import {
   AlertCircle, RotateCcw, ClipboardList
 } from 'lucide-react';
 import { formatTime } from '../../../utils/formatTime';
-import StatusBadge from '../../../components/common/StatusBadge'';
+import StatusBadge from '../../../components/common/StatusBadge';
 import EmptyState from '../../../components/common/EmptyState';
 import api from '../../../services/api';
 import toast from 'react-hot-toast';

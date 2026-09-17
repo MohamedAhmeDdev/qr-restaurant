@@ -15,7 +15,7 @@ import toast from 'react-hot-toast';
 import Toolbar from '../../../components/Toolbar';
 import Pagination from '../../../components/common/Pagination';
 import ConfirmationModal from '../../../components/common/ConfirmationModal';
-import StatusBadge from '../../../components/common/StatusBadge'';
+import StatusBadge from '../../../components/common/StatusBadge';
 import api from '../../../services/api';
 import { getImageUrl } from '../../../utils/getImageUrl';
 import Table from '../../../components/common/Table';
