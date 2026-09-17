@@ -8,7 +8,7 @@ import {
 import toast from 'react-hot-toast';
 
 import StatsCard from '../../../components/cards/StatsCard';
-import Toolbar from '../../../components/Toolbar';
+import Toolbar from '../../../components/common/Toolbar';
 import StatusBadge from '../../../components/common/StatusBadge';
 import Table from '../../../components/common/Table';
 import Pagination from '../../../components/common/Pagination';

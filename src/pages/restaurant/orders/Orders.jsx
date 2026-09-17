@@ -8,7 +8,7 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { format, subDays, getYear, getMonth, parse } from 'date-fns';
 import { Link, useSearchParams } from 'react-router-dom';
-import Toolbar from '../../../components/Toolbar';
+import Toolbar from '../../../components/common/Toolbar';
 import StatusBadge from '../../../components/common/StatusBadge';
 import EmptyState from '../../../components/common/EmptyState';
 import Pagination from '../../../components/common/Pagination';

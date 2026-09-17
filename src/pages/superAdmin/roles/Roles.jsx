@@ -4,7 +4,7 @@ import {
   Shield, PlusCircle, Trash2, Edit, AlertCircle
 } from 'lucide-react';
 import StatsCard from '../../../components/cards/StatsCard';
-import Toolbar from '../../../components/Toolbar';
+import Toolbar from '../../../components/common/Toolbar';
 import ConfirmationModal from '../../../components/common/ConfirmationModal';
 import EmptyState from '../../../components/common/EmptyState';
 import api from '../../../services/api';

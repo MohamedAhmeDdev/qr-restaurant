@@ -13,8 +13,8 @@ import {
 } from 'lucide-react';
 import RestaurantInviteModal from '../../components/modal/RestaurantInviteModal';
 import StatsCard from '../../components/cards/StatsCard';
-import Toolbar from '../../components/Toolbar';
-import Table from '../../components/Table';
+import Toolbar from '../../components/common/Toolbar';
+import Table from '../../components/common/Table';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
 import { formatDate } from '../../utils/formatDate';

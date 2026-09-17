@@ -6,7 +6,7 @@ import {
 import { Link, useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
-import Toolbar from '../../../components/Toolbar';
+import Toolbar from '../../../components/common/Toolbar';
 import StatusBadge from '../../../components/common/StatusBadge';
 import StatsCard from '../../../components/cards/StatsCard';
 import Table from '../../../components/common/Table';

@@ -12,7 +12,7 @@ import {
 import { Link, useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
-import Toolbar from '../../../components/Toolbar';
+import Toolbar from '../../../components/common/Toolbar';
 import Pagination from '../../../components/common/Pagination';
 import ConfirmationModal from '../../../components/common/ConfirmationModal';
 import StatusBadge from '../../../components/common/StatusBadge';

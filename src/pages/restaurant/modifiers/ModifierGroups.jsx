@@ -5,7 +5,7 @@ import {
   Edit, RefreshCw
 } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
-import Toolbar from '../../../components/Toolbar';
+import Toolbar from '../../../components/common/Toolbar';
 import Pagination from '../../../components/common/Pagination';
 import ConfirmationModal from '../../../components/common/ConfirmationModal';
 import EmptyState from '../../../components/common/EmptyState';
