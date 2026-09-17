@@ -33,7 +33,7 @@ const DateInputButton = forwardRef(({ value, onClick, label }, ref) => (
 
 export default function Orders() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { formatPrice } = useFormatPrice();
+  const { formatPrice, currency } = useFormatPrice();
 
   // URL-driven state
   const currentPage = Number(searchParams.get('page')) || 1;
@@ -473,7 +473,7 @@ const fetchOrders = useCallback(async () => {
                       Total
                     </span>
                     <span className="text-sm font-black text-gray-900 dark:text-white font-mono leading-tight">
-                      {formatPrice(order.total_amount)}
+                      {currency} {order.total_amount}
                     </span>
                   </div>
 

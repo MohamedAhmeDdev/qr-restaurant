@@ -23,7 +23,7 @@ const STATUS_STEPS = [
 export default function OrderDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
-   const { formatPrice } = useFormatPrice();
+   const { formatPrice,currency } = useFormatPrice();
 
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -358,7 +358,7 @@ export default function OrderDetails() {
                     </div>
                     <div className="flex justify-between items-center pt-4 mt-2 border-t border-dashed border-gray-200 dark:border-slate-700">
                       <span className="text-base font-bold text-gray-900 dark:text-white">Total</span>
-                      <span className="text-2xl font-bold text-gray-900 dark:text-white font-mono">{formatPrice(order.total_amount)}</span>
+                      <span className="text-2xl font-bold text-gray-900 dark:text-white font-mono"> {currency} {order.total_amount}</span>
                     </div>
                   </div>
 
