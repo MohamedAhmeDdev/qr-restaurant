@@ -175,18 +175,60 @@ export default function StaffPage() {
     try {
       if (action === 'trash') {
         const response = await api.delete(`/staff/${staff.id}`);
-        toast.success(response?.data?.message || 'Staff member removed successfully');
+        toast.success(response?.data?.message);
+
+        // Optimistic UI updates
+        setStaffList(prevList => {
+          if (statusFilter === 'all') {
+            return prevList.map(item =>
+              item.id === staff.id ? { ...item, deleted_at: new Date().toISOString() } : item
+            );
+          }
+          return prevList.filter(item => item.id !== staff.id);
+        });
+
+        setStats(prevStats => ({
+          ...prevStats,
+          trash: (prevStats.trash || 0) + 1,
+          [staff.status]: Math.max(0, (prevStats[staff.status] || 0) - 1)
+        }));
+
       } else if (action === 'restore') {
         const response = await api.patch(`/staff/${staff.id}/restore`);
-        toast.success(response?.data?.message || 'Staff member restored successfully');
+        toast.success(response?.data?.message);
+
+        // Optimistic UI updates
+        setStaffList(prevList => {
+          if (statusFilter === 'trash') {
+            return prevList.filter(item => item.id !== staff.id);
+          }
+          return prevList.map(item =>
+            item.id === staff.id ? { ...item, deleted_at: null } : item
+          );
+        });
+
+        setStats(prevStats => ({
+          ...prevStats,
+          trash: Math.max(0, (prevStats.trash || 0) - 1),
+          [staff.status]: (prevStats[staff.status] || 0) + 1
+        }));
+
       } else if (action === 'forceDelete') {
         const response = await api.delete(`/staff/${staff.id}/force`);
-        toast.success(response?.data?.message || 'Staff member permanently deleted');
+        toast.success(response?.data?.message);
+
+        // Optimistic UI updates
+        setStaffList(prevList => prevList.filter(item => item.id !== staff.id));
+        setStats(prevStats => ({
+          ...prevStats,
+          total: Math.max(0, (prevStats.total || 0) - 1),
+          trash: Math.max(0, (prevStats.trash || 0) - 1)
+        }));
       }
+
       closeConfirmModal();
-      fetchStaff();
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Action failed');
+      toast.error(err.response?.data?.message);
       setConfirmModal(prev => ({ ...prev, isProcessing: false }));
     }
   };

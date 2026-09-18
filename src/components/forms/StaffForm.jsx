@@ -90,21 +90,28 @@ useEffect(() => {
             Account & Access
           </label>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700 dark:text-slate-300">Role Assignment</label>
-            {/* In StaffForm component */}
-<select
-  value={formData.role}
-  onChange={(e) => handleChange('role', e.target.value)}
-  className="w-full px-4 py-2.5 rounded-xl border border-gray-300/80 dark:border-slate-700 bg-white dark:bg-slate-800/80 focus:ring-4 focus:ring-orange-500/15 focus:border-orange-500 outline-none text-gray-900 dark:text-white appearance-none cursor-pointer transition-all text-sm shadow-sm"
->
-  <option value="">Select Role</option>
-  {roles.map(r => (
-    <option key={r.id} value={r.id}>{r.name}</option>
-  ))}
-</select>
-              {errors.role && <p className="text-xs text-red-500 mt-1">{Array.isArray(errors.role) ? errors.role[0] : errors.role}</p>}
-            </div>
+<div className="space-y-1.5">
+  <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
+    Role Assignment
+  </label>
+  <select
+    value={formData.role_id || ''}
+    onChange={(e) => handleChange('role_id', e.target.value)}
+    className="w-full px-4 py-2.5 rounded-xl border border-gray-300/80 dark:border-slate-700 bg-white dark:bg-slate-800/80 focus:ring-4 focus:ring-orange-500/15 focus:border-orange-500 outline-none text-gray-900 dark:text-white appearance-none cursor-pointer transition-all text-sm shadow-sm"
+  >
+    <option value="">Select Role</option>
+    {roles.map((r) => (
+      <option key={r.id} value={r.id}>
+        {r.name}
+      </option>
+    ))}
+  </select>
+  {errors.role_id && (
+    <p className="text-xs text-red-500 mt-1">
+      {Array.isArray(errors.role_id) ? errors.role_id[0] : errors.role_id}
+    </p>
+  )}
+</div>
 
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-gray-700 dark:text-slate-300">Account Status</label>

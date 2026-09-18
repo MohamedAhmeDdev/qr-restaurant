@@ -111,20 +111,38 @@ export default function CategoryPage() {
 
 
   // Quick Toggle Active/Inactive
-  const toggleStatus = async (category) => {
-    const updatedStatus = !category.is_active;
+const toggleStatus = async (category) => {
+  const updatedStatus = !category.is_active;
 
-    setCategories(prev => prev.map(c => c.id === category.id ? { ...c, is_active: updatedStatus } : c));
-
-    try {
-      const response = await api.put(`/categories/${category.id}`, { is_active: updatedStatus });
-      toast.success(response.data?.message);
-    } catch (err) {
-      console.error('Failed to toggle status:', err);
-      toast.error(err.response?.data?.message);
-      setCategories(prev => prev.map(c => c.id === category.id ? { ...c, is_active: category.is_active } : c));
+  // Optimistically update list based on active filter view
+  setCategories(prev => {
+    if (statusFilter === 'active' && !updatedStatus) {
+      return prev.filter(c => c.id !== category.id);
     }
-  };
+    if (statusFilter === 'inactive' && updatedStatus) {
+      return prev.filter(c => c.id !== category.id);
+    }
+    return prev.map(c => c.id === category.id ? { ...c, is_active: updatedStatus } : c);
+  });
+
+  // Optimistically update counts
+  setStats(prev => ({
+    ...prev,
+    active: updatedStatus ? prev.active + 1 : Math.max(0, prev.active - 1),
+    inactive: updatedStatus ? Math.max(0, prev.inactive - 1) : prev.inactive + 1
+  }));
+
+  try {
+    const response = await api.put(`/categories/${category.id}`, { is_active: updatedStatus });
+    toast.success(response.data?.message);
+  } catch (err) {
+    console.error('Failed to toggle status:', err);
+    toast.error(err.response?.data?.message);
+    
+    // Refresh to restore accurate server state on failure
+    fetchCategories();
+  }
+};
 
   // --- UNIFIED CONFIRMATION MODAL HANDLERS ---
   const openConfirmModal = (category, action) => {
@@ -147,15 +165,58 @@ export default function CategoryPage() {
       if (action === 'trash') {
         const response = await api.delete(`/categories/${category.id}`);
         toast.success(response?.data?.message);
+
+        // Optimistic state updates
+        setCategories(prevList => {
+          if (statusFilter === 'all') {
+            return prevList.map(item =>
+              item.id === category.id ? { ...item, deleted_at: new Date().toISOString() } : item
+            );
+          }
+          return prevList.filter(item => item.id !== category.id);
+        });
+
+        setStats(prevStats => ({
+          ...prevStats,
+          trash: (prevStats.trash || 0) + 1,
+          active: category.is_active ? Math.max(0, (prevStats.active || 0) - 1) : prevStats.active,
+          inactive: !category.is_active ? Math.max(0, (prevStats.inactive || 0) - 1) : prevStats.inactive
+        }));
+
       } else if (action === 'restore') {
         const response = await api.patch(`/categories/${category.id}/restore`);
         toast.success(response?.data?.message);
+
+        // Optimistic state updates
+        setCategories(prevList => {
+          if (statusFilter === 'trash') {
+            return prevList.filter(item => item.id !== category.id);
+          }
+          return prevList.map(item =>
+            item.id === category.id ? { ...item, deleted_at: null } : item
+          );
+        });
+
+        setStats(prevStats => ({
+          ...prevStats,
+          trash: Math.max(0, (prevStats.trash || 0) - 1),
+          active: category.is_active ? (prevStats.active || 0) + 1 : prevStats.active,
+          inactive: !category.is_active ? (prevStats.inactive || 0) + 1 : prevStats.inactive
+        }));
+
       } else if (action === 'forceDelete') {
         const response = await api.delete(`/categories/${category.id}/force`);
         toast.success(response?.data?.message);
+
+        // Optimistic state updates
+        setCategories(prevList => prevList.filter(item => item.id !== category.id));
+        setStats(prevStats => ({
+          ...prevStats,
+          total: Math.max(0, (prevStats.total || 0) - 1),
+          trash: Math.max(0, (prevStats.trash || 0) - 1)
+        }));
       }
       closeConfirmModal();
-      fetchCategories();
     } catch (err) {
       toast.error(err.response?.data?.message);
       setConfirmModal(prev => ({ ...prev, isProcessing: false }));

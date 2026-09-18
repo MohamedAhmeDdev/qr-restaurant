@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Search, Users, Trash2,
   AlertCircle, QrCode, RefreshCw, Download,
-  Edit, Hash, Calendar, Activity
+  Edit, Hash, Calendar, Activity, Loader2
 } from 'lucide-react';
 import StatsCard from '../../../components/cards/StatsCard';
 import Toolbar from '../../../components/common/Toolbar';
@@ -27,8 +27,11 @@ export default function TableList() {
   const [tables, setTables] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // Track which table is currently regenerating its QR code
+  const [generatingQrId, setGeneratingQrId] = useState(null);
 
-     const [stats, setStats] = useState({
+      const [stats, setStats] = useState({
         total: 0,
         active: 0,
         inactive: 0,
@@ -83,7 +86,7 @@ export default function TableList() {
       setTables(responseData.data.data);
       setStats(responseData.stats); 
 
-      const pagination = responseData.data
+      const pagination = responseData.data;
 
       setLastPage(pagination?.last_page || 1);
       setTotalItems(pagination?.total || 0);
@@ -135,10 +138,11 @@ export default function TableList() {
     window.URL.revokeObjectURL(url);
   };
 
-  // Regenerate QR with Toast feedback
+  // Regenerate QR with status state and Toast feedback
   const handleRegenerateQr = async (e, tableId) => {
     e.stopPropagation();
 
+    setGeneratingQrId(tableId);
     try {
       const response = await api.post(`/tables/${tableId}/regenerate-qr`);
       setTables(prev => prev.map(table =>
@@ -147,6 +151,8 @@ export default function TableList() {
       toast.success(response.data.message);
     } catch (err) {
       toast.error(err.response?.data?.message);
+    } finally {
+      setGeneratingQrId(null);
     }
   };
 
@@ -170,18 +176,61 @@ export default function TableList() {
     try {
       if (action === 'trash') {
         const response = await api.delete(`/tables/${table.id}`);
-        toast.success(response?.data?.message || 'Table moved to trash');
+        toast.success(response?.data?.message);
+
+        // Optimistic state updates
+        setTables(prevList => {
+          if (statusFilter === 'all') {
+            return prevList.map(item =>
+              item.id === table.id ? { ...item, deleted_at: new Date().toISOString() } : item
+            );
+          }
+          return prevList.filter(item => item.id !== table.id);
+        });
+
+        setStats(prevStats => ({
+          ...prevStats,
+          trash: (prevStats.trash || 0) + 1,
+          active: table.is_active ? Math.max(0, (prevStats.active || 0) - 1) : prevStats.active,
+          inactive: !table.is_active ? Math.max(0, (prevStats.inactive || 0) - 1) : prevStats.inactive
+        }));
+
       } else if (action === 'restore') {
         const response = await api.patch(`/tables/${table.id}/restore`);
-        toast.success(response?.data?.message || 'Table restored');
+        toast.success(response?.data?.message);
+
+        // Optimistic state updates
+        setTables(prevList => {
+          if (statusFilter === 'trash') {
+            return prevList.filter(item => item.id !== table.id);
+          }
+          return prevList.map(item =>
+            item.id === table.id ? { ...item, deleted_at: null } : item
+          );
+        });
+
+        setStats(prevStats => ({
+          ...prevStats,
+          trash: Math.max(0, (prevStats.trash || 0) - 1),
+          active: table.is_active ? (prevStats.active || 0) + 1 : prevStats.active,
+          inactive: !table.is_active ? (prevStats.inactive || 0) + 1 : prevStats.inactive
+        }));
+
       } else if (action === 'forceDelete') {
         const response = await api.delete(`/tables/${table.id}/force`);
-        toast.success(response?.data?.message || 'Table permanently deleted');
+        toast.success(response?.data?.message);
+
+        // Optimistic state updates
+        setTables(prevList => prevList.filter(item => item.id !== table.id));
+        setStats(prevStats => ({
+          ...prevStats,
+          total: Math.max(0, (prevStats.total || 0) - 1),
+          trash: Math.max(0, (prevStats.trash || 0) - 1)
+        }));
       }
       closeConfirmModal();
-      fetchTables();
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Action failed');
+      toast.error(err.response?.data?.message);
       setConfirmModal(prev => ({ ...prev, isProcessing: false }));
     }
   };
@@ -286,6 +335,7 @@ export default function TableList() {
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 gap-5">
           {tables.map((table) => {
             const isTrashed = Boolean(table.deleted_at);
+            const isGenerating = generatingQrId === table.id;
 
             return (
               <div
@@ -298,16 +348,30 @@ export default function TableList() {
                   <div className="sm:w-48 shrink-0 bg-slate-50 dark:bg-slate-800/30 border-b sm:border-b-0 sm:border-r border-slate-100 dark:border-slate-800 p-4 flex flex-col items-center justify-center gap-3 relative">
                     {table.qr_code ? (
                       <>
-                        <div
-                          className="w-32 h-32 rounded-lg bg-white p-2 shadow-sm flex items-center justify-center overflow-hidden [&>svg]:w-full [&>svg]:h-full"
-                          dangerouslySetInnerHTML={{ __html: table.qr_code }}
-                        />
+                        <div className="w-32 h-32 rounded-lg bg-white p-2 shadow-sm flex items-center justify-center overflow-hidden relative [&>svg]:w-full [&>svg]:h-full">
+                          <div dangerouslySetInnerHTML={{ __html: table.qr_code }} className="w-full h-full flex items-center justify-center" />
+                          {isGenerating && (
+                            <div className="absolute inset-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-[1px] flex flex-col items-center justify-center gap-1.5 transition-all">
+                              <Loader2 className="w-6 h-6 text-orange-500 animate-spin" />
+                              <span className="text-[10px] font-semibold text-orange-600 dark:text-orange-400">Generating...</span>
+                            </div>
+                          )}
+                        </div>
                         <span className="text-[10px] uppercase tracking-wider text-slate-400 font-medium">QR code</span>
                       </>
                     ) : (
-                      <div className="w-32 h-32 rounded-lg border-2 border-dashed border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 flex flex-col items-center justify-center gap-2">
-                        <QrCode className="w-8 h-8 text-slate-300 dark:text-slate-600" />
-                        <span className="text-[10px] text-slate-400 font-medium">No QR</span>
+                      <div className="w-32 h-32 rounded-lg border-2 border-dashed border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 flex flex-col items-center justify-center gap-2 relative">
+                        {isGenerating ? (
+                          <div className="flex flex-col items-center justify-center gap-1.5">
+                            <Loader2 className="w-6 h-6 text-orange-500 animate-spin" />
+                            <span className="text-[10px] font-semibold text-orange-600 dark:text-orange-400">Generating...</span>
+                          </div>
+                        ) : (
+                          <>
+                            <QrCode className="w-8 h-8 text-slate-300 dark:text-slate-600" />
+                            <span className="text-[10px] text-slate-400 font-medium">No QR</span>
+                          </>
+                        )}
                       </div>
                     )}
                   </div>
@@ -429,15 +493,26 @@ export default function TableList() {
                     <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2 mt-auto">
                       <button
                         onClick={(e) => handleRegenerateQr(e, table.id)}
-                        className="flex-1 py-2 px-3 text-xs font-medium bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                        disabled={isGenerating || generatingQrId !== null}
+                        className="flex-1 py-2 px-3 text-xs font-medium bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        <RefreshCw className="w-3.5 h-3.5" />
-                        Regenerate QR
+                        {isGenerating ? (
+                          <>
+                            <Loader2 className="w-3.5 h-3.5 animate-spin text-orange-500" />
+                            <span>Generating...</span>
+                          </>
+                        ) : (
+                          <>
+                            <RefreshCw className="w-3.5 h-3.5" />
+                            <span>Regenerate QR</span>
+                          </>
+                        )}
                       </button>
 
                       <button
                         onClick={(e) => handleDownloadQr(e, table)}
-                        className="flex-1 py-2 px-3 text-xs font-medium bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors flex items-center justify-center gap-2 shadow-sm shadow-orange-500/20"
+                        disabled={isGenerating}
+                        className="flex-1 py-2 px-3 text-xs font-medium bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors flex items-center justify-center gap-2 shadow-sm shadow-orange-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <Download className="w-3.5 h-3.5" />
                         Download

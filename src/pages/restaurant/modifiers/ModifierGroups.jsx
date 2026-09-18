@@ -2,7 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
   Trash2, Layers, AlertCircle,
   PlusCircle, Search,
-  Edit, RefreshCw
+  Edit, RefreshCw,
+  Power
 } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import Toolbar from '../../../components/common/Toolbar';
@@ -142,30 +143,100 @@ export default function ModifierGroups() {
     }
   };
 
-  const handleConfirmAction = async () => {
-    const { group, action } = confirmModal;
-    if (!group || !action) return;
+  // Toggle Active/Inactive Status Optimistically
+// Toggle Active/Inactive Status Optimistically
+const toggleActive = async (group) => {
+  const updatedStatus = !group.is_active;
 
-    setConfirmModal(prev => ({ ...prev, isProcessing: true }));
-
-    try {
-      if (action === 'trash') {
-        const response = await api.delete(`/modifier-groups/${group.id}`);
-        toast.success(response?.data?.message);
-      } else if (action === 'restore') {
-        const response = await api.patch(`/modifier-groups/${group.id}/restore`);
-        toast.success(response?.data?.message);
-      } else if (action === 'forceDelete') {
-        const response = await api.delete(`/modifier-groups/${group.id}/force`);
-        toast.success(response?.data?.message);
-      }
-      closeConfirmModal();
-      fetchModifierGroups();
-    } catch (err) {
-      toast.error(err.response?.data?.message);
-      setConfirmModal(prev => ({ ...prev, isProcessing: false }));
+  // Check if item should remain in view based on current status filter
+  setGroups(prev => {
+    if (
+      (statusFilter === 'active' && !updatedStatus) ||
+      (statusFilter === 'inactive' && updatedStatus)
+    ) {
+      return prev.filter(g => g.id !== group.id);
     }
-  };
+    return prev.map(g => g.id === group.id ? { ...g, is_active: updatedStatus } : g);
+  });
+
+  setStats(prev => ({
+    ...prev,
+    active: updatedStatus ? prev.active + 1 : Math.max(0, prev.active - 1),
+    inactive: updatedStatus ? Math.max(0, prev.inactive - 1) : prev.inactive + 1
+  }));
+
+  try {
+    const response = await api.patch(`/modifier-groups/${group.id}/toggle-active`);
+    toast.success(response.data?.message);
+  } catch (err) {
+    console.error('Failed to toggle status:', err);
+    toast.error(err.response?.data?.message);
+
+    // Rollback: Refetch list on failure to ensure accurate state and pagination sync
+    fetchModifierGroups();
+  }
+};
+
+const handleConfirmAction = async () => {
+  const { group, action } = confirmModal;
+  if (!group || !action) return;
+
+  setConfirmModal(prev => ({ ...prev, isProcessing: true }));
+
+  try {
+    if (action === 'trash') {
+      const response = await api.delete(`/modifier-groups/${group.id}`);
+      toast.success(response?.data?.message);
+
+      // Remove item completely from current filtered view
+      setGroups(prevList => prevList.filter(item => item.id !== group.id));
+
+      setStats(prevStats => ({
+        ...prevStats,
+        trash: (prevStats.trash || 0) + 1,
+        active: group.is_active ? Math.max(0, (prevStats.active || 0) - 1) : prevStats.active,
+        inactive: !group.is_active ? Math.max(0, (prevStats.inactive || 0) - 1) : prevStats.inactive
+      }));
+
+    } else if (action === 'restore') {
+      const response = await api.patch(`/modifier-groups/${group.id}/restore`);
+      toast.success(response?.data?.message);
+
+      // Remove from trash view when restored
+      setGroups(prevList => {
+        if (statusFilter === 'trash') {
+          return prevList.filter(item => item.id !== group.id);
+        }
+        return prevList.map(item =>
+          item.id === group.id ? { ...item, deleted_at: null } : item
+        );
+      });
+
+      setStats(prevStats => ({
+        ...prevStats,
+        trash: Math.max(0, (prevStats.trash || 0) - 1),
+        active: group.is_active ? (prevStats.active || 0) + 1 : prevStats.active,
+        inactive: !group.is_active ? (prevStats.inactive || 0) + 1 : prevStats.inactive
+      }));
+
+    } else if (action === 'forceDelete') {
+      const response = await api.delete(`/modifier-groups/${group.id}/force`);
+      toast.success(response?.data?.message);
+
+      setGroups(prevList => prevList.filter(item => item.id !== group.id));
+      setStats(prevStats => ({
+        ...prevStats,
+        total: Math.max(0, (prevStats.total || 0) - 1),
+        trash: Math.max(0, (prevStats.trash || 0) - 1)
+      }));
+    }
+
+    closeConfirmModal();
+  } catch (err) {
+    toast.error(err.response?.data?.message);
+    setConfirmModal(prev => ({ ...prev, isProcessing: false }));
+  }
+};
 
   return (
     <div className="p-1 sm:p-4 space-y-6 bg-gray-50 dark:bg-slate-950 min-h-screen text-gray-900 dark:text-slate-100 transition-colors duration-200">
@@ -368,6 +439,17 @@ export default function ModifierGroups() {
                       </>
                     ) : (
                       <>
+                        <button
+                          type="button"
+                          onClick={() => toggleActive(group)}
+                          className={`p-2 rounded-lg transition-colors ${group.is_active
+                              ? 'text-red-500 hover:bg-red-100/50 dark:text-red-400 dark:hover:bg-red-950/30'
+                              : 'text-emerald-600 hover:bg-emerald-100/50 dark:text-emerald-400 dark:hover:bg-emerald-950/30'
+                            }`}
+                          title={group.is_active ? 'Deactivate' : 'Activate'}
+                        >
+                          <Power className="w-4 h-4" />
+                        </button>
                         <Link
                           to={`/modifier-groups/edit/${group.id}`}
                           className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg text-gray-500 hover:text-blue-600 transition-colors inline-block"

@@ -120,11 +120,10 @@ const fetchOrders = useCallback(async () => {
     const response = await api.get('/orders', { params });
     const payload = response.data;
     
-    // Fallback checks for array vs paginated envelope
     const orderList = Array.isArray(payload) ? payload : (payload?.data || []);
     setOrders(orderList);
     
-    setStats(payload?.stats);
+      if (payload?.stats) setStats(payload.stats);
     setLastPage(payload?.pagination?.last_page || payload?.last_page || 1);
     setTotalItems(payload?.pagination?.total || payload?.total || orderList.length);
   } catch (err) {
@@ -159,21 +158,40 @@ const fetchOrders = useCallback(async () => {
   const getNextStatus = (current) => ({ pending: 'preparing', preparing: 'ready', ready: 'served' })[current];
   const getActionLabel = (current) => ({ pending: 'Start Prep', preparing: 'Mark Ready', ready: 'Mark Served' })[current];
 
+  // Optimistic Status Update with Stat Management
   const updateOrderStatus = async (orderId, newStatus) => {
+    const targetOrder = orders.find(o => o.id === orderId);
+    if (!targetOrder) return;
+
+    const previousStatus = targetOrder.status;
     const previousOrders = [...orders]; 
+    const previousStats = { ...stats };
+
     setUpdatingOrderId(orderId);
 
-    // Optimistic update
-    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
+    // 1. Optimistically update local orders array
+    setOrders(prev => {
+      if (selectedStatus !== 'all' && selectedStatus !== newStatus) {
+        return prev.filter(o => o.id !== orderId);
+      }
+      return prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o);
+    });
+
+    // 2. Optimistically update summary stats
+    setStats(prev => ({
+      ...prev,
+      [previousStatus]: Math.max(0, (prev[previousStatus] || 0) - 1),
+      [newStatus]: (prev[newStatus] || 0) + 1
+    }));
 
     try {
       const response = await api.patch(`/orders/${orderId}`, { status: newStatus });
       toast.success(response?.data?.message);
-      // Refetch to ensure stats and pagination stay perfectly in sync
-      fetchOrders(); 
     } catch (err) {
       toast.error(err.response?.data?.message);
-      setOrders(previousOrders); // Rollback on error
+      // Rollback on failure
+      setOrders(previousOrders);
+      setStats(previousStats);
     } finally {
       setUpdatingOrderId(null);
     }
@@ -220,7 +238,7 @@ const fetchOrders = useCallback(async () => {
         <button 
           onClick={fetchOrders} 
           disabled={isLoading}
-          className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-lg text-xs font-semibold text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+          className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-lg text-xs font-semibold text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} /> Refresh
         </button>
@@ -322,7 +340,7 @@ const fetchOrders = useCallback(async () => {
             action={
               <button
                 onClick={fetchOrders}
-                className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-950/30 rounded-lg transition-colors duration-200"
+                className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-950/30 rounded-lg transition-colors duration-200 cursor-pointer"
               >
                 <RotateCcw className="w-3.5 h-3.5" /> Try again
               </button>
@@ -344,7 +362,7 @@ const fetchOrders = useCallback(async () => {
               isFiltered ? (
                 <button
                   onClick={() => updateUrlParams(1, '', 'all', subDays(new Date(), 6), new Date())}
-                  className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors duration-200"
+                  className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors duration-200 cursor-pointer"
                 >
                   Clear filters
                 </button>
@@ -412,7 +430,7 @@ const fetchOrders = useCallback(async () => {
                       </span>
                     </div>
                     
-                    <div className="space-y-3 max-h-48 overflow-y-auto pr-1">
+                    <div className="space-y-3 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
                       {order.items?.map(item => (
                         <div key={item.id} className="border-b border-gray-50 dark:border-slate-800 last:border-0 pb-2 last:pb-0">
                           <div className="flex justify-between items-start text-sm">
@@ -483,7 +501,7 @@ const fetchOrders = useCallback(async () => {
                       <button
                         onClick={() => updateOrderStatus(order.id, 'cancelled')}
                         disabled={isUpdating}
-                        className="flex items-center gap-1 px-3 py-2 bg-red-50 hover:bg-red-100 dark:bg-red-950/40 dark:hover:bg-red-900/60 text-red-600 dark:text-red-400 text-xs font-semibold rounded-xl border border-red-200/60 dark:border-red-900/40 transition-all active:scale-95 disabled:opacity-50"
+                        className="flex items-center gap-1 px-3 py-2 bg-red-50 hover:bg-red-100 dark:bg-red-950/40 dark:hover:bg-red-900/60 text-red-600 dark:text-red-400 text-xs font-semibold rounded-xl border border-red-200/60 dark:border-red-900/40 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
                         title="Cancel Order"
                       >
                         <XCircle className="w-3.5 h-3.5" />
@@ -496,7 +514,7 @@ const fetchOrders = useCallback(async () => {
                       <button
                         onClick={() => updateOrderStatus(order.id, nextStatus)}
                         disabled={isUpdating}
-                        className="flex items-center gap-1.5 px-3.5 py-2 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 disabled:bg-orange-400 text-white text-xs font-bold rounded-xl shadow-sm transition-all active:scale-95 min-w-[90px] justify-center"
+                        className="flex items-center gap-1.5 px-3.5 py-2 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 disabled:bg-orange-400 text-white text-xs font-bold rounded-xl shadow-sm transition-all active:scale-95 min-w-[90px] justify-center cursor-pointer"
                       >
                         {isUpdating ? (
                           <Loader2 className="w-3.5 h-3.5 animate-spin" />

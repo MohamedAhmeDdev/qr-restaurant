@@ -85,9 +85,9 @@ export default function OrganizationTab() {
         setInitialData(refreshedData);
       }
 
-      toast.success(response?.data?.message || 'Organization updated successfully');
+      toast.success(response?.data?.message);
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to update organization');
+      toast.error(err.response?.data?.message);
     } finally {
       setSaving(false);
     }

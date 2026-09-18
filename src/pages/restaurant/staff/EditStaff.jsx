@@ -17,7 +17,7 @@ export default function EditStaff() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    role: '',
+    role_id: '',
     status: '',
     shift_type: '',
   });
@@ -28,7 +28,6 @@ const fetchStaff = useCallback(async () => {
 
     const response = await api.get(`/staff/${id}`);
     const data = response.data?.data;
-    console.log(response);
     
     setFormData({
       name: data.name,
