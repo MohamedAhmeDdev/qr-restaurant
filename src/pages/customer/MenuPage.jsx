@@ -1,20 +1,20 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Search, X, ChevronRight, ImagesIcon, AlertCircle, RotateCcw, UtensilsCrossed, Images, Image } from 'lucide-react';
+import { Search, X, ChevronRight, AlertCircle, RotateCcw, UtensilsCrossed, Image } from 'lucide-react';
 import '../../Customer.css';
 import StickyBottomBar from '../../components/StickyBottomBar';
 import { useCart } from '../../contexts/CartContext';
 import guestApi from '../../services/guestApi';
-import RestaurantService from '../../services/RestaurantDetails';
 import { getImageUrl } from '../../utils/getImageUrl';
 import { useFormatPrice } from '../../contexts/useFormatPrice';
+import HeroHeader from '../../components/HeroHeader';
+import ActiveOrderBanner from '../../components/ActiveOrderBanner';
 
 export default function MenuPage() {
   const { restaurantSlug, tableSlug } = useParams();
   const { cartItems } = useCart();
-    const {formatPrice} = useFormatPrice();
+  const { formatPrice } = useFormatPrice();
 
-  const [restaurantData, setRestaurantData] = useState(null);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -22,21 +22,15 @@ export default function MenuPage() {
   const [activeCategory, setActiveCategory] = useState('all');
   const [query, setQuery] = useState('');
 
-  // Fetch Menu & Restaurant Data
+  // Fetch Menu Data
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
 
-      const [restaurantRes, menuRes] = await Promise.all([
-        RestaurantService.getRestaurantDetails(restaurantSlug),
-        guestApi.get('/menu'),
-      ]);
-
- const fetchedRestaurant =  restaurantRes;
+      const menuRes = await guestApi.get('/menu');
       const fetchedCategories = menuRes.data?.data?.categories;
 
-      setRestaurantData(fetchedRestaurant);
       setCategories(fetchedCategories);
     } catch (err) {
       console.error('Failed to fetch menu data:', err);
@@ -44,7 +38,7 @@ export default function MenuPage() {
     } finally {
       setLoading(false);
     }
-  }, [restaurantSlug]);
+  }, []);
 
   useEffect(() => {
     fetchData();
@@ -77,23 +71,19 @@ export default function MenuPage() {
   const cartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
   const cartTotal = cartItems.reduce((total, item) => total + item.unitPrice * item.quantity, 0);
 
-  return (
+return (
     <div className="min-h-screen pb-28 bg-paper text-ink font-sans transition-colors duration-200">
-      
-      {/* 1. LOADING SKELETON STATE */}
+      {/* 1. HERO HEADER */}
+      <HeroHeader />
+
+      {/* 2. ACTIVE ORDER BANNER */}
+      <ActiveOrderBanner />
+
+      {/* 3. LOADING SKELETON STATE */}
       {loading ? (
         <div className="animate-pulse">
-          {/* Hero Skeleton */}
-          <div className="w-full h-72 sm:h-80 bg-hairline relative">
-            <div className="absolute bottom-0 left-0 right-0 px-6 pb-7 space-y-3">
-              <div className="h-4 bg-paper/30 rounded w-28" />
-              <div className="h-10 bg-paper/40 rounded w-2/3" />
-              <div className="h-3 bg-paper/20 rounded w-1/2" />
-            </div>
-          </div>
-
           {/* Search Bar Skeleton */}
-          <div className="px-4 -mt-5 relative z-10">
+          <div className="px-4 pt-3 max-w-2xl mx-auto relative z-10">
             <div className="h-12 rounded-xl bg-paper border border-hairline shadow-sm" />
           </div>
 
@@ -123,7 +113,7 @@ export default function MenuPage() {
           </div>
         </div>
       ) : error ? (
-        /* 2. ERROR STATE */
+        /* 4. ERROR STATE */
         <div className="min-h-screen flex items-center justify-center p-6">
           <div className="max-w-md w-full bg-paper border border-hairline rounded-2xl p-8 text-center shadow-sm space-y-4">
             <div className="w-12 h-12 rounded-full bg-rust/10 text-rust flex items-center justify-center mx-auto">
@@ -139,43 +129,11 @@ export default function MenuPage() {
             </button>
           </div>
         </div>
-      ) : !restaurantData ? (
-        /* 3. EMPTY STATE (RESTAURANT NOT FOUND) */
-        <div className="min-h-screen flex items-center justify-center p-6">
-          <div className="max-w-md w-full bg-paper border border-hairline rounded-2xl p-8 text-center shadow-sm space-y-4">
-            <div className="w-12 h-12 rounded-full bg-hairline text-ink-soft flex items-center justify-center mx-auto">
-              <UtensilsCrossed className="w-6 h-6" />
-            </div>
-            <h2 className="font-serif font-semibold text-2xl text-ink">Restaurant Unavailable</h2>
-            <p className="text-sm text-ink-soft leading-relaxed">
-              We couldn't locate details for this restaurant. Please check the QR code or link and try again.
-            </p>
-          </div>
-        </div>
       ) : (
-        /* 4. LIST / CONTENT DISPLAY STATE */
+        /* 5. LIST / CONTENT DISPLAY STATE */
         <>
-          {/* HERO */}
-          <div className="relative w-full h-72 sm:h-80 shrink-0 overflow-hidden">
-            <div
-              className="absolute inset-0 bg-cover bg-center w-full h-full"
-              style={{ backgroundImage: `url('${getImageUrl(restaurantData.background_image)}')` }}
-            />
-            <div className="absolute inset-0 bg-gradient-to-b from-[#182019]/55 via-[#182019]/35 to-[#182019]/92" />
-
-            <div className="absolute bottom-0 left-0 right-0 px-6 pb-7 animate-fade-in-up">
-              <div className="flex items-center gap-2 text-3xl font-bold uppercase tracking-[0.2em] mb-2 text-white">
-                <span>{restaurantData.name}</span>
-              </div>
-              <h1 className="font-serif italic text-4xl sm:text-5xl leading-none text-paper font-medium">
-                {restaurantData.name}
-              </h1>
-              <p className="text-sm mt-2 text-paper/65">Tap any dish to customize and add to your table order.</p>
-            </div>
-          </div>
-
           {/* SEARCH */}
-          <div className="px-4 -mt-5 relative z-10">
+          <div className="px-4 pt-3 max-w-2xl mx-auto relative z-10">
             <div className="flex items-center px-4 py-3 rounded-xl shadow-sm bg-paper border border-hairline">
               <Search className="w-4 h-4 mr-3 shrink-0 text-sage" />
               <input
@@ -185,7 +143,7 @@ export default function MenuPage() {
                 placeholder="Search the menu..."
                 className="w-full bg-transparent outline-none text-sm text-ink placeholder:text-ink-soft"
               />
-              {query && (
+                            {query && (
                 <button onClick={() => setQuery('')} className="ml-2 shrink-0 text-sage hover:text-ink">
                   <X className="w-4 h-4" />
                 </button>
@@ -272,14 +230,14 @@ export default function MenuPage() {
                         <h3 className="font-serif font-semibold text-lg leading-tight text-ink group-hover:text-rust transition-colors truncate">
                           {item.name}
                         </h3>
-                        <span className="font-serif font-semibold text-lg shrink-0 text-ink">
-                          {formatPrice(item.price, { currency: restaurantData?.currency })}               
-                      </span>
+                        <span className="text-md shrink-0 text-ink">
+                          {formatPrice(item.price)}
+                        </span>
                       </div>
                       <p className="text-[13px] mt-1 leading-snug line-clamp-2 text-ink-soft">{item.description}</p>
                     </div>
-                   <Link to={`/${restaurantSlug}/${tableSlug}/item/${item.id}`}>
-                      <div className="flex items-center justify-end gap-1 mt-2 text-xs font-semibold text-brass">
+                    <Link to={`/${restaurantSlug}/${tableSlug}/item/${item.id}`}>
+                      <div className="flex items-center justify-end gap-1 mt-2 text-sm font-semibold text-brass">
                         <span>View Item</span>
                         <ChevronRight className="w-3.5 h-3.5" />
                       </div>
