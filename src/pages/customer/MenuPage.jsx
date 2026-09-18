@@ -1,8 +1,9 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Search, X, ChevronRight, AlertCircle, RotateCcw, UtensilsCrossed, Image } from 'lucide-react';
+import { Search, X, ChevronRight, AlertCircle, RotateCcw, UtensilsCrossed, Image as ImageIcon } from 'lucide-react';
 import '../../Customer.css';
 import StickyBottomBar from '../../components/StickyBottomBar';
+import EmptyState from '../../components/common/EmptyState';
 import { useCart } from '../../contexts/CartContext';
 import guestApi from '../../services/guestApi';
 import { getImageUrl } from '../../utils/getImageUrl';
@@ -44,17 +45,22 @@ export default function MenuPage() {
     fetchData();
   }, [fetchData]);
 
-  // Flattened items list
-  const flatItems = useMemo(() => {
+  // Categories containing at least 1 menu item
+  const nonEmptyCategories = useMemo(() => {
     if (!categories || !Array.isArray(categories)) return [];
-    return categories.flatMap((cat) =>
-      (cat.menu_items || []).map((item) => ({
+    return categories.filter((cat) => Array.isArray(cat.menu_items) && cat.menu_items.length > 0);
+  }, [categories]);
+
+  // Flattened items list from populated categories only
+  const flatItems = useMemo(() => {
+    return nonEmptyCategories.flatMap((cat) =>
+      cat.menu_items.map((item) => ({
         ...item,
         categoryId: cat.id,
         categoryName: cat.name,
       }))
     );
-  }, [categories]);
+  }, [nonEmptyCategories]);
 
   // Filtered items based on Category tab and Search query
   const filteredItems = useMemo(() => {
@@ -70,8 +76,9 @@ export default function MenuPage() {
 
   const cartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
   const cartTotal = cartItems.reduce((total, item) => total + item.unitPrice * item.quantity, 0);
+  const totalItemCount = flatItems.length;
 
-return (
+  return (
     <div className="min-h-screen pb-28 bg-paper text-ink font-sans transition-colors duration-200">
       {/* 1. HERO HEADER */}
       <HeroHeader />
@@ -114,23 +121,40 @@ return (
         </div>
       ) : error ? (
         /* 4. ERROR STATE */
-        <div className="min-h-screen flex items-center justify-center p-6">
-          <div className="max-w-md w-full bg-paper border border-hairline rounded-2xl p-8 text-center shadow-sm space-y-4">
-            <div className="w-12 h-12 rounded-full bg-rust/10 text-rust flex items-center justify-center mx-auto">
-              <AlertCircle className="w-6 h-6" />
-            </div>
-            <h2 className="font-serif font-semibold text-2xl text-ink">Failed to Load Menu</h2>
-            <p className="text-sm text-ink-soft leading-relaxed">{error}</p>
-            <button
-              onClick={fetchData}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-rust text-paper text-sm font-medium hover:opacity-90 transition-opacity"
-            >
-              <RotateCcw className="w-4 h-4" /> Try Again
-            </button>
-          </div>
+        <div className="py-12 px-6 max-w-2xl mx-auto">
+          <EmptyState
+            icon={AlertCircle}
+            title="Failed to Load Menu"
+            description={error}
+            action={
+              <button
+                onClick={fetchData}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-rust text-paper text-sm font-medium hover:opacity-90 transition-opacity"
+              >
+                <RotateCcw className="w-4 h-4" /> Try Again
+              </button>
+            }
+          />
+        </div>
+      ) : totalItemCount === 0 ? (
+        /* 5. GLOBAL EMPTY MENU STATE (0 Items Across All Categories) */
+        <div className="py-16 px-6 max-w-2xl mx-auto">
+          <EmptyState
+            icon={UtensilsCrossed}
+            title="Menu Currently Unavailable"
+            description="There are no items currently available on the menu. Please check back shortly or speak with your server."
+            action={
+              <button
+                onClick={fetchData}
+                className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-rust hover:opacity-80 transition-opacity"
+              >
+                <RotateCcw className="w-3.5 h-3.5" /> Refresh Menu
+              </button>
+            }
+          />
         </div>
       ) : (
-        /* 5. LIST / CONTENT DISPLAY STATE */
+        /* 6. LIST / CONTENT DISPLAY STATE */
         <>
           {/* SEARCH */}
           <div className="px-4 pt-3 max-w-2xl mx-auto relative z-10">
@@ -143,7 +167,7 @@ return (
                 placeholder="Search the menu..."
                 className="w-full bg-transparent outline-none text-sm text-ink placeholder:text-ink-soft"
               />
-                            {query && (
+              {query && (
                 <button onClick={() => setQuery('')} className="ml-2 shrink-0 text-sage hover:text-ink">
                   <X className="w-4 h-4" />
                 </button>
@@ -151,7 +175,7 @@ return (
             </div>
           </div>
 
-          {/* CATEGORY NAV */}
+          {/* CATEGORY NAV (Displays Non-Empty Categories Only) */}
           <div className="sticky top-0 z-20 pt-5 pb-3 bg-paper">
             <div className="flex overflow-x-auto space-x-6 px-5 no-scrollbar border-b border-hairline">
               <button
@@ -167,7 +191,7 @@ return (
                   style={{ transform: activeCategory === 'all' ? 'scaleX(1)' : 'scaleX(0)' }}
                 />
               </button>
-              {categories.map((cat) => {
+              {nonEmptyCategories.map((cat) => {
                 const active = activeCategory === cat.id;
                 return (
                   <button
@@ -188,22 +212,29 @@ return (
             </div>
           </div>
 
-          {/* MENU LIST & EMPTY MENU STATE */}
+          {/* MENU LIST & FILTER/SEARCH EMPTY STATE */}
           <div className="px-5 py-4 max-w-2xl mx-auto">
             {filteredItems.length === 0 ? (
-              <div className="text-center py-16 space-y-3">
-                <UtensilsCrossed className="w-8 h-8 mx-auto text-ink-soft/40" />
-                <p className="font-serif italic text-lg text-ink-soft">
-                  {query ? `Nothing matches "${query}"` : 'No menu items available in this category.'}
-                </p>
-                {query && (
-                  <button
-                    onClick={() => setQuery('')}
-                    className="text-xs text-rust font-semibold underline underline-offset-4 hover:opacity-80"
-                  >
-                    Clear search filter
-                  </button>
-                )}
+              <div className="py-8">
+                <EmptyState
+                  icon={query ? Search : UtensilsCrossed}
+                  title={query ? `Nothing matches "${query}"` : 'No items found'}
+                  description={
+                    query
+                      ? 'Try adjusting your search query or switching category filters.'
+                      : 'No items match your selected filter.'
+                  }
+                  action={
+                    query ? (
+                      <button
+                        onClick={() => setQuery('')}
+                        className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-rust hover:opacity-80 transition-opacity"
+                      >
+                        Clear search filter
+                      </button>
+                    ) : null
+                  }
+                />
               </div>
             ) : (
               filteredItems.map((item, idx) => (
@@ -221,7 +252,7 @@ return (
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <Image className="w-6 h-6 text-ink-soft/40" />
+                      <ImageIcon className="w-6 h-6 text-ink-soft/40" />
                     )}
                   </div>
                   <div className="flex-1 min-w-0 flex flex-col justify-between">
@@ -230,11 +261,13 @@ return (
                         <h3 className="font-serif font-semibold text-lg leading-tight text-ink group-hover:text-rust transition-colors truncate">
                           {item.name}
                         </h3>
-                        <span className="text-md shrink-0 text-ink">
+                        <span className="text-md shrink-0 text-ink font-medium">
                           {formatPrice(item.price)}
                         </span>
                       </div>
-                      <p className="text-[13px] mt-1 leading-snug line-clamp-2 text-ink-soft">{item.description}</p>
+                      <p className="text-[13px] mt-1 leading-snug line-clamp-2 text-ink-soft">
+                        {item.description}
+                      </p>
                     </div>
                     <Link to={`/${restaurantSlug}/${tableSlug}/item/${item.id}`}>
                       <div className="flex items-center justify-end gap-1 mt-2 text-sm font-semibold text-brass">

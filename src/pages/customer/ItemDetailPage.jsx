@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus, Minus, Check, Info, AlertCircle, ImagesIcon, UtensilsCrossed } from 'lucide-react';
 import '../../Customer.css';
 import StickyBottomBar from '../../components/StickyBottomBar';
-import GuestAccessError from '../../components/common/GuestAccessError';
+
 import { useCart } from '../../contexts/CartContext';
 import guestApi from '../../services/guestApi';
 import { getImageUrl } from '../../utils/getImageUrl';
@@ -21,42 +21,8 @@ export default function ItemDetailPage() {
   const [specialNotes, setSpecialNotes] = useState('');
   const [isAdding, setIsAdding] = useState(false);
 
-  const fetchItem = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const res = await guestApi.get(`/menu/items/${itemId}`);
-      const data = res.data?.data;
-      setItem(data);
-
-      const initialOptions = {};
-      if (Array.isArray(data?.modifier_groups)) {
-        data.modifier_groups.forEach((mod) => {
-          if (mod.is_required && mod.max_selections === 1 && mod.options?.length > 0) {
-            initialOptions[mod.id] = [mod.options[0].id];
-          }
-        });
-      }
-      setSelectedOptions(initialOptions);
-    } catch (err) {
-      console.error('Failed to fetch item:', err);
-      setError(err.response?.data?.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    let isMounted = true;
-
     const runFetch = async () => {
-      if (!itemId) {
-        setError('Invalid Item ID');
-        setLoading(false);
-        return;
-      }
-
       try {
         setLoading(true);
         setError(null);
@@ -64,40 +30,26 @@ export default function ItemDetailPage() {
         const res = await guestApi.get(`/menu/items/${itemId}`);
         const data = res.data?.data;
 
-        if (!data || !data.id) {
-          setError('Item data not found');
-        }
+        setItem(data);
 
-        if (isMounted) {
-          setItem(data);
-
-          const initialOptions = {};
-          if (Array.isArray(data?.modifier_groups)) {
-            data.modifier_groups.forEach((mod) => {
-              if (mod.is_required && mod.max_selections === 1 && mod.options?.length > 0) {
-                initialOptions[mod.id] = [mod.options[0].id];
-              }
-            });
-          }
-          setSelectedOptions(initialOptions);
+        const initialOptions = {};
+        if (Array.isArray(data?.modifier_groups)) {
+          data.modifier_groups.forEach((mod) => {
+            if (mod.is_required && mod.max_selections === 1 && mod.options?.length > 0) {
+              initialOptions[mod.id] = [mod.options[0].id];
+            }
+          });
         }
+        setSelectedOptions(initialOptions);
       } catch (err) {
         console.error('Failed to fetch item:', err);
-        if (isMounted) {
-          setError(err.response?.data?.message);
-        }
+        setError(err.response?.data?.message);
       } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
     };
 
     runFetch();
-
-    return () => {
-      isMounted = false;
-    };
   }, [itemId]);
 
   const toggleOption = (mod, optionId) => {
@@ -173,29 +125,18 @@ export default function ItemDetailPage() {
     }, 600);
   };
 
-  const isMiddlewareError =
-    error &&
-    [
-      'Restaurant is currently unavailable for guest ordering.',
-      'Table not found or no longer active.',
-      'Table is currently unavailable.',
-      'Invalid or missing table scan token.',
-    ].includes(error);
-
   return (
     <div className="menu-root min-h-screen pb-36 bg-paper text-ink relative">
-      {/* Back Button Header */}
-      {!isMiddlewareError && (
-        <div className="fixed top-0 left-0 right-0 z-40 px-5 py-4 flex items-center justify-between pointer-events-none">
-          <button
-            onClick={() => navigate(-1)}
-            aria-label="Go back"
-            className="pointer-events-auto w-10 h-10 rounded-full flex items-center justify-center shadow-lg bg-paper/80 backdrop-blur-md text-ink hover:scale-105 active:scale-95 transition-all border border-hairline"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-        </div>
-      )}
+      {/* Back Button Floating Header */}
+      <div className="fixed top-0 left-0 right-0 z-40 px-5 py-4 flex items-center justify-between pointer-events-none">
+        <button
+          onClick={() => navigate(-1)}
+          aria-label="Go back"
+          className="pointer-events-auto w-10 h-10 rounded-full flex items-center justify-center shadow-lg bg-paper/80 backdrop-blur-md text-ink hover:scale-105 active:scale-95 transition-all border border-hairline"
+        >
+          <ArrowLeft className="w-5 h-5" />
+        </button>
+      </div>
 
       {/* 1. LOADING SKELETON STATE */}
       {loading ? (
@@ -218,11 +159,8 @@ export default function ItemDetailPage() {
             </div>
           </div>
         </div>
-      ) : isMiddlewareError ? (
-        /* 2A. MIDDLEWARE ACCESS ERROR STATE */
-        <GuestAccessError message={error} onRetry={fetchItem} />
       ) : error ? (
-        /* 2B. GENERAL ERROR STATE */
+        /* 2. ERROR STATE */
         <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
           <div className="w-12 h-12 rounded-full bg-rust/10 text-rust flex items-center justify-center mb-3">
             <AlertCircle className="w-6 h-6" />
@@ -237,7 +175,7 @@ export default function ItemDetailPage() {
           </button>
         </div>
       ) : !item ? (
-        /* 3. EMPTY STATE */
+        /* 3. EMPTY / UNAVAILABLE STATE */
         <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
           <div className="w-12 h-12 rounded-full bg-hairline text-ink-soft flex items-center justify-center mb-3">
             <UtensilsCrossed className="w-6 h-6" />
