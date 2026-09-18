@@ -1,3 +1,5 @@
+import { Url } from "./ServerUrl";
+
 export const getImageUrl = (imagePath) => {
   if (!imagePath) return null;
   
@@ -6,7 +8,7 @@ export const getImageUrl = (imagePath) => {
     return imagePath;
   }
 
-  const baseURL = import.meta.env.VITE_API_URL || '';
+  const baseURL = Url;
   
   // Clean trailing slash from base and leading slash from path
   const cleanBase = baseURL.replace(/\/+$/, '');
