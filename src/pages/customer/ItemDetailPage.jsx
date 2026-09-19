@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Minus, Check, Info, AlertCircle, ImagesIcon, UtensilsCrossed } from 'lucide-react';
+import { ArrowLeft, Plus, Minus, Check, Info, ImagesIcon} from 'lucide-react';
 import '../../Customer.css';
 import StickyBottomBar from '../../components/StickyBottomBar';
 
@@ -103,6 +103,7 @@ export default function ItemDetailPage() {
         const opt = mod.options?.find((o) => o.id === optId);
         if (opt) {
           modifiersPayload.push({
+            modifier_group_id: mod.id, // <-- ENSURE THIS IS HERE
             modifier_group_name: mod.name,
             modifier_option_name: opt.name,
             option_id: opt.id,
@@ -122,15 +123,15 @@ export default function ItemDetailPage() {
       modifiers: modifiersPayload,
     });
 
-    setTimeout(() => {
+  setTimeout(() => {
       setIsAdding(false);
-      navigate(-1);
+      // Navigation removed here so it stays on the page!
     }, 600);
   };
 
   return (
     <div className="menu-root min-h-screen pb-36 bg-paper text-ink relative">
-      {/* Back Button Floating Header */}
+
       <div className="fixed top-0 left-0 right-0 z-40 px-5 py-4 flex items-center justify-between pointer-events-none">
         <button
           onClick={() => navigate(-1)}
@@ -140,7 +141,6 @@ export default function ItemDetailPage() {
           <ArrowLeft className="w-5 h-5" />
         </button>
       </div>
-
       {/* 1. LOADING SKELETON STATE */}
       {loading ? (
         <div className="animate-pulse">
@@ -272,18 +272,19 @@ export default function ItemDetailPage() {
 
           {/* Details Body */}
           <div className="px-5 pt-6 relative z-10 max-w-2xl mx-auto animate-fade-up">
-            <div className="flex items-start justify-between gap-4 mb-3">
-              <h1 className="font-serif text-3xl sm:text-4xl font-semibold leading-tight text-ink">{item.name}</h1>
-              <span className="font-serif font-bold text-xl shrink-0 text-brass pt-0.5">
+              <h1 className="mb-1.5 font-serif text-xl sm:text-3xl font-semibold leading-tight text-ink">{item.name}</h1>
+
+               <p className="mb-1.5 font-serif font-bold text-xl shrink-0 text-brass pt-0.5">
                 {formatPrice(item.price)}
-              </span>
-            </div>
+              </p>
             {item.description && (
               <p className="text-[15px] leading-relaxed pb-6 text-ink-soft font-normal">{item.description}</p>
             )}
 
+            
+
             {/* Quantity Selector */}
-            <div className="flex items-center justify-between py-4 px-5 mb-6 rounded-2xl bg-paper/80 border border-hairline/80 shadow-sm backdrop-blur-sm">
+            <div className="flex items-center justify-between py-2 px-5 mb-6 rounded-md bg-paper/80 border border-hairline/80 backdrop-blur-sm">
               <span className="font-serif font-semibold text-base text-ink">Quantity</span>
               <div className="flex items-center gap-3">
                 <button
@@ -307,14 +308,14 @@ export default function ItemDetailPage() {
             <div className="border-t border-hairline/80 my-6" />
 
             {/* Modifiers List */}
-            <div className="space-y-8 mt-6">
+<div className="space-y-8 mt-6">
               {(item.modifier_groups || []).map((mod, idx) => (
                 <div key={mod.id} className="animate-fade-up" style={{ animationDelay: `${0.1 + idx * 0.08}s` }}>
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="font-serif text-xl font-semibold flex items-center gap-2 text-ink">
                       {mod.name}
                       {mod.is_required ? (
-                        <span className="text-[10px] font-sans font-bold uppercase tracking-wider px-2 py-0.5 rounded-md text-rust bg-rust/10 border border-rust/20">
+                        <span className="text-[10px] font-sans font-bold uppercase tracking-wider px-2 py-1 rounded-md text-rust bg-rust/10 border border-rust/20">
                           Required
                         </span>
                       ) : (
@@ -326,30 +327,26 @@ export default function ItemDetailPage() {
                     {(mod.options || []).map((opt) => {
                       const isSelected = (selectedOptions[mod.id] || []).includes(opt.id);
                       return (
-                        <button
+                        <div
                           key={opt.id}
-                          type="button"
-                          onClick={() => toggleOption(mod, opt.id)}
-                          className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all duration-200 text-left ${
-                            isSelected
-                              ? 'border-forest bg-forest/5 shadow-sm ring-1 ring-forest/10'
-                              : 'border-hairline/80 bg-paper/60 hover:bg-paper'
-                          }`}
+                          className="w-full flex items-center justify-between py-2 px-1 text-left"
                         >
                           <div className="flex items-center gap-3.5">
-                            <div
-                              className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 border transition-all ${
-                                isSelected ? 'border-forest bg-forest text-paper' : 'border-hairline/80 bg-paper'
+                            <button
+                              type="button"
+                              onClick={() => toggleOption(mod, opt.id)}
+                              className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 border transition-all cursor-pointer ${
+                                isSelected ? 'border-forest bg-forest text-paper' : 'border-hairline/80 bg-paper hover:border-forest'
                               }`}
                             >
                               {isSelected && <Check className="w-3.5 h-3.5" strokeWidth={3} />}
-                            </div>
+                            </button>
                             <span className="text-sm font-medium text-ink">{opt.name}</span>
                           </div>
-                          <span className={`text-xs font-semibold ${isSelected ? 'text-forest' : 'text-brass'}`}>
+                          <span className="text-xs font-semibold text-brass">
                             {formatPrice(opt.price)}
                           </span>
-                        </button>
+                        </div>
                       );
                     })}
                   </div>

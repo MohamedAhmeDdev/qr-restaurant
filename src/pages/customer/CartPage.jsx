@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Trash2, ShoppingBag, Pencil, Image } from 'lucide-react';
+import { useNavigate, useParams } from 'react-router-dom';
+import {  Trash2,  Image } from 'lucide-react';
 import '../../Customer.css';
 import StickyBottomBar from '../../components/StickyBottomBar';
 import { useCart } from '../../contexts/CartContext';
@@ -8,13 +8,15 @@ import guestApi from '../../services/guestApi';
 import { getImageUrl } from '../../utils/getImageUrl';
 import HeroHeader from '../../components/HeroHeader';
 import { useFormatPrice } from '../../contexts/useFormatPrice';
+import toast from 'react-hot-toast';
+
 
 export default function CartPage() {
   const navigate = useNavigate();
   const { cartItems, removeItem, clearCart } = useCart();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { restaurantSlug, tableSlug } = useParams();
-      const { formatPrice, currency } = useFormatPrice();
+      const { formatPrice } = useFormatPrice();
 
   const subtotal = useMemo(() => {
     return cartItems.reduce((acc, item) => acc + item.unitPrice * item.quantity, 0);
@@ -37,6 +39,7 @@ export default function CartPage() {
           quantity: item.quantity,
           special_instructions: item.special_instructions || null,
           modifiers: item.modifiers.map((m) => ({
+            modifier_group_id: m.modifier_group_id, // <-- ADD THIS LINE
             modifier_option_id: m.option_id,
           })),
         })),
@@ -49,7 +52,7 @@ export default function CartPage() {
       navigate(`/${restaurantSlug}/${tableSlug}/track`);
     } catch (err) {
       console.error('Order failed:', err);
-      alert(err.response?.data?.message);
+      toast.error(err.response?.data?.message);
       setIsSubmitting(false);
     }
   };
@@ -135,10 +138,10 @@ export default function CartPage() {
             {cartItems.map((item, idx) => (
               <div
                 key={item.cartItemId}
-                className="bg-paper/85 backdrop-blur-sm border border-hairline/80 rounded-2xl p-4 animate-fade-up flex flex-col gap-3 shadow-sm"
+                className="bg-paper/85 backdrop-blur-sm border border-hairline/80 rounded-md p-4 animate-fade-up flex flex-col gap-3"
                 style={{ animationDelay: `${idx * 0.05}s` }}
               >
-                <div className="flex gap-3.5">
+                <div className="flex gap-3">
                   <div className="w-20 h-20 sm:w-24 sm:h-24 overflow-hidden relative rounded-xl shrink-0 border border-hairline/80 flex items-center justify-center bg-forest/5">
                     {item.image_url ? (
                       <img
@@ -153,7 +156,7 @@ export default function CartPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <h3 className="font-serif font-semibold text-base text-ink leading-tight truncate">
+                        <h3 className="font-serif font-semibold text-md text-ink leading-tight truncate">
                           {item.name}
                         </h3>
                         <span className="text-xs font-semibold text-ink-soft">Qty: {item.quantity}</span>
@@ -188,13 +191,8 @@ export default function CartPage() {
                 </div>
 
                 <div className="flex items-center justify-between pt-2.5 border-t border-hairline/60">
-                  <Link
-                    to={`/${restaurantSlug}/${tableSlug}/item/${item.menu_item_id}`}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-paper border border-hairline/80 text-xs font-semibold text-ink hover:border-forest hover:text-forest active:scale-95 transition-all"
-                  >
-                    <Pencil className="w-3.5 h-3.5 text-brass" /> Edit
-                  </Link>
-                  <span className="font-serif font-bold text-base text-brass tabular-nums">
+                 <p className='text-sm'>Price</p>
+                  <span className="font-serif  text-base text-brass tabular-nums">
                     {formatPrice(item.unitPrice * item.quantity)}
                   </span>
                 </div>
@@ -204,7 +202,7 @@ export default function CartPage() {
         )}
 
         {cartItems.length > 0 && (
-          <div className="bg-paper/85 backdrop-blur-sm rounded-2xl border border-hairline/80 p-5 space-y-3 mb-8 shadow-sm">
+          <div className="bg-paper/85 backdrop-blur-sm rounded-md border border-hairline/80 p-3 space-y-3 mb-8">
             <h3 className="font-serif font-bold text-lg text-ink mb-2">Order Summary</h3>
             <div className="flex items-center justify-between text-sm text-ink-soft">
               <span>Subtotal</span>

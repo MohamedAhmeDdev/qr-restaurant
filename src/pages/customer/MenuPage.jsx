@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Search, X, ChevronRight, AlertCircle, RotateCcw, UtensilsCrossed, Store, QrCode, ShieldAlert, WifiOff, Image as ImageIcon } from 'lucide-react';
+import { Search, X, ChevronRight, RotateCcw, UtensilsCrossed, Image as ImageIcon } from 'lucide-react';
 import '../../Customer.css';
 import StickyBottomBar from '../../components/StickyBottomBar';
 import EmptyState from '../../components/common/EmptyState';
@@ -307,7 +307,7 @@ export default function MenuPage() {
                   <button
                     key={cat.id}
                     onClick={() => setActiveCategory(cat.id)}
-                    className={`relative whitespace-nowrap pb-3 text-sm font-medium tracking-wide transition-colors ${
+                    className={`relative whitespace-nowrap pb-3 text-xs tracking-wide transition-colors ${
                       active ? 'text-ink' : 'text-ink-soft hover:text-ink'
                     }`}
                   >
@@ -357,7 +357,7 @@ export default function MenuPage() {
               filteredItems.map((item, idx) => (
                 <div
                   key={item.id}
-                  className={`py-5 flex gap-4 cursor-pointer group transition-opacity hover:opacity-90 ${
+                  className={`py-5 flex gap-2 cursor-pointer group transition-opacity hover:opacity-90 ${
                     idx !== 0 ? 'border-t border-hairline' : ''
                   }`}
                 >
@@ -375,10 +375,10 @@ export default function MenuPage() {
                   <div className="flex-1 min-w-0 flex flex-col justify-between">
                     <div>
                       <div className="flex items-baseline justify-between gap-2">
-                        <h3 className="font-serif font-semibold text-lg leading-tight text-ink group-hover:text-rust transition-colors truncate">
+                        <h3 className="font-serif text-md leading-tight text-ink group-hover:text-rust transition-colors truncate">
                           {item.name}
                         </h3>
-                        <span className="text-md shrink-0 text-ink font-medium">
+                        <span className="text-sm shrink-0 text-ink font-medium">
                           {formatPrice(item.price)}
                         </span>
                       </div>

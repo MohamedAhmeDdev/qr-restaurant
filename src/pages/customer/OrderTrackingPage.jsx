@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Utensils, Check, ChefHat, Sparkles, AlertCircle, ShoppingBag } from 'lucide-react';
+import { Utensils, Check, ChefHat, Sparkles, AlertCircle } from 'lucide-react';
 import '../../Customer.css';
 import guestApi from '../../services/guestApi';
 import HeroHeader from '../../components/HeroHeader';
@@ -158,7 +158,7 @@ export default function OrderTrackingPage() {
             <span className="inline-flex items-center gap-1.5 text-[10px] font-sans font-bold uppercase tracking-widest px-2.5 py-1 rounded-full bg-forest/10 text-forest border border-forest/20 mb-2">
               Live Status
             </span>
-            <h1 className="font-serif text-3xl sm:text-4xl font-bold leading-tight text-ink">
+            <h1 className="font-serif text-xl  font-bold leading-tight text-ink">
               Track Order #{order?.order_number}
             </h1>
             <p className="text-xs sm:text-sm text-ink-soft font-medium mt-1">
@@ -168,7 +168,7 @@ export default function OrderTrackingPage() {
 
           <div className="px-5 pt-4 max-w-2xl mx-auto space-y-6 relative z-10">
             {/* Progress Tracker Card */}
-            <div className="bg-paper/80 backdrop-blur-sm rounded-3xl p-6 animate-fade-up border border-hairline/80 shadow-sm">
+            <div className="bg-paper/80 backdrop-blur-sm rounded-md p-6 animate-fade-up border border-hairline/80">
               <div className="flex items-center justify-between mb-6 pb-4 border-b border-hairline/80">
                 <h2 className="font-serif font-bold text-lg text-ink">Order Progress</h2>
                 {order?.table?.name && (
@@ -228,7 +228,7 @@ export default function OrderTrackingPage() {
             </div>
 
             {/* Receipt Summary Card (Updated with Modifiers & Notes) */}
-            <div className="bg-paper/80 backdrop-blur-sm rounded-2xl p-5 space-y-4 border border-hairline/80 shadow-sm">
+            <div className="bg-paper/80 backdrop-blur-sm rounded-md p-5 space-y-4 border border-hairline/80">
               <h3 className="font-serif font-bold text-lg text-ink mb-2">Receipt & Items</h3>
               
               {Array.isArray(order?.items) &&

@@ -2,13 +2,13 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import RestaurantCurrencyService from '../services/RestaurantCurrencyService';
 
-
 // Module-level cache to prevent duplicate requests across components
 const currencyCache = {};
 
-export const useFormatPrice = () => {
+export const useFormatPrice = (defaultCurrency = '') => {
   const { restaurantSlug: urlSlug } = useParams();
-  const [currency, setCurrency] = useState('KES');
+  // Changed initial state from 'KES' to an empty string (or your preferred fallback)
+  const [currency, setCurrency] = useState(defaultCurrency);
 
   useEffect(() => {
     let slug = localStorage.getItem('active_restaurant_slug') || urlSlug;
@@ -24,7 +24,7 @@ export const useFormatPrice = () => {
     let isMounted = true;
 
     RestaurantCurrencyService.getCurrency(slug).then((fetchedCurrency) => {
-      if (isMounted) {
+      if (isMounted && fetchedCurrency) {
         currencyCache[slug] = fetchedCurrency;
         setCurrency(fetchedCurrency);
       }
@@ -42,6 +42,11 @@ export const useFormatPrice = () => {
 
       if (isNaN(numericPrice) || numericPrice <= 0) {
         return freeText;
+      }
+
+      // If currency hasn't loaded yet, return just the formatted number or a placeholder
+      if (!currency) {
+        return numericPrice.toFixed(2);
       }
 
       return new Intl.NumberFormat(locale, {
