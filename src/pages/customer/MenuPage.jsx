@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Search, X, ChevronRight, AlertCircle, RotateCcw, UtensilsCrossed, Image as ImageIcon } from 'lucide-react';
+import { Search, X, ChevronRight, AlertCircle, RotateCcw, UtensilsCrossed, Store, QrCode, ShieldAlert, WifiOff, Image as ImageIcon } from 'lucide-react';
 import '../../Customer.css';
 import StickyBottomBar from '../../components/StickyBottomBar';
 import EmptyState from '../../components/common/EmptyState';
@@ -10,6 +10,11 @@ import { getImageUrl } from '../../utils/getImageUrl';
 import { useFormatPrice } from '../../contexts/useFormatPrice';
 import HeroHeader from '../../components/HeroHeader';
 import ActiveOrderBanner from '../../components/ActiveOrderBanner';
+import Invalid_or_missing_table_scan_token from '../../assets/images/Invalid_or_missing_table_scan_token.png';
+import restaurant_not_found from '../../assets/images/restaurant_not_found.png';
+import restaurant_unavailable_for_ordering from '../../assets/images/restaurant_unavailable_for_ordering.png';
+import Table_is_currently_unavailable from '../../assets/images/Table_is_currently_unavailable.png';
+import table_not_found from '../../assets/images/table_not_found.png';
 
 export default function MenuPage() {
   const { restaurantSlug, tableSlug } = useParams();
@@ -78,14 +83,110 @@ export default function MenuPage() {
   const cartTotal = cartItems.reduce((total, item) => total + item.unitPrice * item.quantity, 0);
   const totalItemCount = flatItems.length;
 
+  const getErrorDetails = (message) => {
+    const msg = message?.toLowerCase() || '';
+
+    if (msg.includes('restaurant') && msg.includes('unavailable')) {
+      return {
+        title: 'Restaurant Unavailable',
+        type: 'restaurant_unavailable',
+      };
+    }
+    if (msg.includes('table not found')) {
+      return {
+        title: 'Table Not Found',
+        type: 'table_not_found',
+      };
+    }
+    if (msg.includes('table is currently unavailable')) {
+      return {
+        title: 'Table Unavailable',
+        type: 'table_unavailable',
+      };
+    }
+    if (msg.includes('token') || msg.includes('scan token')) {
+      return {
+        title: 'Invalid QR Session',
+        type: 'invalid_token',
+      };
+    }
+    if (msg.includes('missing')) {
+      return {
+        title: 'Missing Context',
+        type: 'missing_context',
+      };
+    }
+
+    // Default fallback error
+    return {
+      title: 'Failed to Load Menu',
+      type: 'generic_error',
+    };
+  };
+
+  // Helper to render imported images based on error type
+  const renderErrorIllustration = (type) => {
+    const baseClass = "w-40 h-40 sm:w-48 sm:h-48 mb-6 object-cover";
+    
+    switch (type) {
+      case 'restaurant_unavailable':
+        return (
+          <img 
+            src={restaurant_unavailable_for_ordering} 
+            alt="Restaurant Unavailable" 
+            className={baseClass} 
+          />
+        );
+      case 'table_not_found':
+        return (
+          <img 
+            src={table_not_found} 
+            alt="Table Not Found" 
+            className={baseClass} 
+          />
+        );
+      case 'table_unavailable':
+        return (
+          <img 
+            src={Table_is_currently_unavailable} 
+            alt="Table Unavailable" 
+            className={baseClass} 
+          />
+        );
+      case 'invalid_token':
+        return (
+          <img 
+            src={Invalid_or_missing_table_scan_token} 
+            alt="Invalid QR Session" 
+            className={baseClass} 
+          />
+        );
+      case 'missing_context':
+        return (
+          <img 
+            src={restaurant_not_found} 
+            alt="Missing Context" 
+            className={baseClass} 
+          />
+        );
+      default:
+        return (
+          <img 
+            src={restaurant_not_found} 
+            alt="Failed to Load Menu" 
+            className={baseClass} 
+          />
+        );
+    }
+  };
+
   return (
     <div className="min-h-screen pb-28 bg-paper text-ink font-sans transition-colors duration-200">
       {/* 1. HERO HEADER */}
       <HeroHeader />
 
-      {/* 2. ACTIVE ORDER BANNER */}
-      <ActiveOrderBanner />
 
+      
       {/* 3. LOADING SKELETON STATE */}
       {loading ? (
         <div className="animate-pulse">
@@ -120,44 +221,53 @@ export default function MenuPage() {
           </div>
         </div>
       ) : error ? (
-        /* 4. ERROR STATE */
-        <div className="py-12 px-6 max-w-2xl mx-auto">
-          <EmptyState
-            icon={AlertCircle}
-            title="Failed to Load Menu"
-            description={error}
-            action={
-              <button
-                onClick={fetchData}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-rust text-paper text-sm font-medium hover:opacity-90 transition-opacity"
-              >
-                <RotateCcw className="w-4 h-4" /> Try Again
-              </button>
-            }
-          />
-        </div>
+        /* 4. DYNAMIC ERROR STATE WITH CUSTOM IMAGES */
+      (() => {
+  const { title, type } = getErrorDetails(error);
+  return (
+    <div className="flex flex-col items-center justify-center text-center px-6 py-20 my-auto w-full min-h-[calc(100vh-150px)]">
+      {renderErrorIllustration(type)}
+      
+      <p className="text-sm font-semibold text-ink mb-2">{error}</p>
+      <p className="text-sm text-ink-soft max-w-xs mb-4">
+        {title}
+      </p>
+      
+      <button
+        onClick={fetchData}
+        className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-rust hover:opacity-80 transition-opacity"
+      >
+        <RotateCcw className="w-3.5 h-3.5" /> Try Again
+      </button>
+    </div>
+  );
+})()
       ) : totalItemCount === 0 ? (
         /* 5. GLOBAL EMPTY MENU STATE (0 Items Across All Categories) */
-        <div className="py-16 px-6 max-w-2xl mx-auto">
-          <EmptyState
-            icon={UtensilsCrossed}
-            title="Menu Currently Unavailable"
-            description="There are no items currently available on the menu. Please check back shortly or speak with your server."
-            action={
-              <button
-                onClick={fetchData}
-                className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-rust hover:opacity-80 transition-opacity"
-              >
-                <RotateCcw className="w-3.5 h-3.5" /> Refresh Menu
-              </button>
-            }
+        <div className="py-16 px-6 max-w-2xl mx-auto flex flex-col items-center text-center">
+          <img
+            src={restaurant_not_found}
+            alt="Menu Currently Unavailable"
+            className="w-40 h-40 sm:w-48 sm:h-48 mb-6 object-cover rounded-xl shadow-sm"
           />
+          
+          <h3 className="text-xl font-semibold text-ink mb-2">Menu Currently Unavailable</h3>
+          <p className="text-sm text-ink-soft max-w-xs mb-6">
+            There are no items currently available on the menu. Please check back shortly or speak with your server.
+          </p>
+          
+          <button
+            onClick={fetchData}
+            className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-rust hover:opacity-80 transition-opacity"
+          >
+            <RotateCcw className="w-3.5 h-3.5" /> Refresh Menu
+          </button>
         </div>
       ) : (
         /* 6. LIST / CONTENT DISPLAY STATE */
         <>
-          {/* SEARCH */}
-          <div className="px-4 pt-3 max-w-2xl mx-auto relative z-10">
+    {/* 2. SEARCH BAR */}
+          <div className="px-4 -mt-5 relative z-10">
             <div className="flex items-center px-4 py-3 rounded-xl shadow-sm bg-paper border border-hairline">
               <Search className="w-4 h-4 mr-3 shrink-0 text-sage" />
               <input
@@ -168,15 +278,15 @@ export default function MenuPage() {
                 className="w-full bg-transparent outline-none text-sm text-ink placeholder:text-ink-soft"
               />
               {query && (
-                <button onClick={() => setQuery('')} className="ml-2 shrink-0 text-sage hover:text-ink">
+                <button onClick={() => setQuery('')} aria-label="Clear search" className="ml-2 shrink-0 text-sage hover:text-ink">
                   <X className="w-4 h-4" />
                 </button>
               )}
             </div>
           </div>
 
-          {/* CATEGORY NAV (Displays Non-Empty Categories Only) */}
-          <div className="sticky top-0 z-20 pt-5 pb-3 bg-paper">
+          {/* 3. CATEGORY NAV (Displays Non-Empty Categories Only) */}
+          <div className="sticky top-0 z-20 pt-5 bg-paper">
             <div className="flex overflow-x-auto space-x-6 px-5 no-scrollbar border-b border-hairline">
               <button
                 key="all"
@@ -211,6 +321,13 @@ export default function MenuPage() {
               })}
             </div>
           </div>
+
+      {/* 4. ACTIVE ORDER BANNER - Now positioned right after the category navigation */}
+      {!loading && !error && totalItemCount > 0 && (
+        <div className="max-w-2xl mx-auto px-5 pt-3">
+          <ActiveOrderBanner />
+        </div>
+      )}
 
           {/* MENU LIST & FILTER/SEARCH EMPTY STATE */}
           <div className="px-5 py-4 max-w-2xl mx-auto">

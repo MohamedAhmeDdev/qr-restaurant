@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ShoppingBag, X, ArrowRight } from 'lucide-react';
+import { ShoppingBag, ArrowRight } from 'lucide-react';
 import guestApi from '../services/guestApi';
 
 export default function ActiveOrderBanner() {
@@ -25,18 +25,18 @@ export default function ActiveOrderBanner() {
   if (isDismissed || !activeOrder) return null;
 
   return (
-    <div className="sticky top-0 z-30 px-4 pt-4 max-w-2xl mx-auto w-full animate-fade-down">
-      <div className="bg-forest/10 border border-forest/20 rounded-2xl p-4 flex items-center justify-between gap-3 shadow-sm backdrop-blur-md">
+    <div className="mx-5 my-1.5 max-w-2xl mx-auto animate-fade-up">
+      <div className="bg-forest text-paper border border-forest/30 rounded-2xl p-3.5 flex items-center justify-between gap-3 shadow-md">
         <div className="flex items-center gap-3 flex-1 min-w-0">
-          <div className="w-10 h-10 rounded-full bg-forest/20 flex items-center justify-center shrink-0">
-            <ShoppingBag className="w-5 h-5 text-forest" />
+          <div className="w-9 h-9 rounded-full bg-paper/20 flex items-center justify-center shrink-0">
+            <ShoppingBag className="w-4 h-4 text-paper" />
           </div>
           <div className="min-w-0">
-            <p className="text-sm font-bold text-forest truncate">
-              You have an active order!
+            <p className="text-xs font-bold text-paper truncate">
+              Active Order #{activeOrder.order_number}
             </p>
-            <p className="text-xs text-forest/80 truncate">
-              Order #{activeOrder.order_number} is currently being prepared.
+            <p className="text-[11px] text-paper/80 truncate">
+              Tap to track live kitchen progress
             </p>
           </div>
         </div>
@@ -44,7 +44,7 @@ export default function ActiveOrderBanner() {
         <div className="flex items-center gap-2 shrink-0">
           <Link
             to={`/${restaurantSlug}/${tableSlug}/track`}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-forest text-paper text-xs font-semibold rounded-xl hover:bg-forest/90 transition-colors whitespace-nowrap"
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-paper text-forest text-xs font-bold rounded-xl hover:bg-paper/90 transition-colors whitespace-nowrap shadow-sm"
           >
             Track <ArrowRight className="w-3.5 h-3.5" />
           </Link>

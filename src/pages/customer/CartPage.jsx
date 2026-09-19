@@ -7,12 +7,14 @@ import { useCart } from '../../contexts/CartContext';
 import guestApi from '../../services/guestApi';
 import { getImageUrl } from '../../utils/getImageUrl';
 import HeroHeader from '../../components/HeroHeader';
+import { useFormatPrice } from '../../contexts/useFormatPrice';
 
 export default function CartPage() {
   const navigate = useNavigate();
   const { cartItems, removeItem, clearCart } = useCart();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { restaurantSlug, tableSlug } = useParams();
+      const { formatPrice, currency } = useFormatPrice();
 
   const subtotal = useMemo(() => {
     return cartItems.reduce((acc, item) => acc + item.unitPrice * item.quantity, 0);
@@ -57,29 +59,72 @@ export default function CartPage() {
       {/* 1. HERO HEADER */}
       <HeroHeader />
 
-      {/* 2. PAGE TITLE */}
-      <div className="px-5 pt-4 max-w-2xl mx-auto flex items-center justify-between">
-        <h1 className="font-serif text-2xl font-bold text-ink">Your Order</h1>
-        {cartCount > 0 && (
-          <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-forest/10 text-forest border border-forest/20">
-            {cartCount} {cartCount === 1 ? 'Item' : 'Items'}
-          </span>
-        )}
-      </div>
+      {/* 2. PAGE TITLE - Only shown when cart has items */}
+      {cartItems.length > 0 && (
+        <div className="px-5 pt-4 max-w-2xl mx-auto flex items-center justify-between">
+          <h1 className="font-serif text-2xl font-bold text-ink">Your Order</h1>
+          {cartCount > 0 && (
+            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-forest/10 text-forest border border-forest/20">
+              {cartCount} {cartCount === 1 ? 'Item' : 'Items'}
+            </span>
+          )}
+        </div>
+      )}
 
       {/* 3. MAIN CONTENT */}
       <div className="px-5 pt-4 max-w-2xl mx-auto">
         {cartItems.length === 0 ? (
-          <div className="text-center py-16 animate-fade-up">
-            <div className="w-16 h-16 rounded-full bg-hairline/60 flex items-center justify-center mx-auto mb-4 text-sage">
-              <ShoppingBag className="w-8 h-8 text-ink-soft/60" />
-            </div>
+          <div className="text-center py-16 animate-fade-up flex flex-col items-center">
+            {/* Custom Illustration: Empty Shopping Bag */}
+            <svg
+              viewBox="0 0 240 240"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-40 h-40 sm:w-48 sm:h-48 mb-6 text-ink-soft/40"
+            >
+              {/* Bag Body */}
+              <path 
+                d="M60 80 L60 190 Q60 210 80 210 L160 210 Q180 210 180 190 L180 80 L60 80" 
+                fill="currentColor" 
+                className="text-ink-soft/10" 
+              />
+              <path 
+                d="M60 80 L60 190 Q60 210 80 210 L160 210 Q180 210 180 190 L180 80 L60 80" 
+                stroke="currentColor" 
+                strokeWidth="4" 
+              />
+              
+              {/* Bag Handles */}
+              <path 
+                d="M90 80 V60 Q90 40 120 40 Q150 40 150 60 V80" 
+                stroke="currentColor" 
+                strokeWidth="4" 
+                strokeLinecap="round"
+              />
+              
+              {/* Decorative "Empty" lines inside bag */}
+              <path 
+                d="M90 140 L150 140" 
+                stroke="currentColor" 
+                strokeWidth="3" 
+                strokeLinecap="round" 
+                className="text-ink-soft/20" 
+              />
+              <path 
+                d="M90 170 L150 170" 
+                stroke="currentColor" 
+                strokeWidth="3" 
+                strokeLinecap="round" 
+                className="text-ink-soft/20" 
+              />
+            </svg>
+
             <h2 className="font-serif text-2xl font-bold text-ink mb-2">Your cart is empty</h2>
             <p className="text-sm text-ink-soft mb-6 max-w-xs mx-auto">
               Looks like you haven't added any delicious items to your order yet.
             </p>
             <button
-              onClick={() => navigate(`/${restaurantSlug}/${tableSlug}`)}
+            onClick={() => navigate(-1)}
               className="px-6 py-3 rounded-2xl bg-forest text-paper font-serif font-semibold text-sm hover:bg-forest/90 active:scale-95 transition-all shadow-md"
             >
               Browse Menu
@@ -90,7 +135,7 @@ export default function CartPage() {
             {cartItems.map((item, idx) => (
               <div
                 key={item.cartItemId}
-                className="bg-paper/80 backdrop-blur-sm border border-hairline/80 rounded-2xl p-4 animate-fade-up flex flex-col gap-3 shadow-sm"
+                className="bg-paper/85 backdrop-blur-sm border border-hairline/80 rounded-2xl p-4 animate-fade-up flex flex-col gap-3 shadow-sm"
                 style={{ animationDelay: `${idx * 0.05}s` }}
               >
                 <div className="flex gap-3.5">
@@ -128,9 +173,7 @@ export default function CartPage() {
                         {item.modifiers.map((mod, i) => (
                           <p key={i} className="text-xs text-ink-soft flex items-center gap-1">
                             <span className="text-sage">•</span> {mod.modifier_option_name}
-                            {mod.price > 0 && (
-                              <span className="text-brass font-medium">(+${mod.price.toFixed(2)})</span>
-                            )}
+                              <span className="text-brass font-medium">{formatPrice(mod.price)}</span>
                           </p>
                         ))}
                       </div>
@@ -152,7 +195,7 @@ export default function CartPage() {
                     <Pencil className="w-3.5 h-3.5 text-brass" /> Edit
                   </Link>
                   <span className="font-serif font-bold text-base text-brass tabular-nums">
-                    ${(item.unitPrice * item.quantity).toFixed(2)}
+                    {formatPrice(item.unitPrice * item.quantity)}
                   </span>
                 </div>
               </div>
@@ -161,15 +204,15 @@ export default function CartPage() {
         )}
 
         {cartItems.length > 0 && (
-          <div className="bg-paper/80 backdrop-blur-sm rounded-2xl border border-hairline/80 p-5 space-y-3 mb-8 shadow-sm">
+          <div className="bg-paper/85 backdrop-blur-sm rounded-2xl border border-hairline/80 p-5 space-y-3 mb-8 shadow-sm">
             <h3 className="font-serif font-bold text-lg text-ink mb-2">Order Summary</h3>
             <div className="flex items-center justify-between text-sm text-ink-soft">
               <span>Subtotal</span>
-              <span className="font-medium text-ink tabular-nums">${subtotal.toFixed(2)}</span>
+              <span className="font-medium text-ink tabular-nums">{formatPrice(subtotal)}</span>
             </div>
             <div className="pt-3 border-t border-hairline/80 flex items-center justify-between text-base font-bold text-ink">
               <span className="font-serif text-lg">Total</span>
-              <span className="font-serif text-xl text-brass tabular-nums">${subtotal.toFixed(2)}</span>
+              <span className="font-serif text-xl text-brass tabular-nums">{formatPrice(subtotal)}</span>
             </div>
           </div>
         )}

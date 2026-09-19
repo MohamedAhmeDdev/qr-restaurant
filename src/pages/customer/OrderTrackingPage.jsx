@@ -4,6 +4,7 @@ import { Utensils, Check, ChefHat, Sparkles, AlertCircle, ShoppingBag } from 'lu
 import '../../Customer.css';
 import guestApi from '../../services/guestApi';
 import HeroHeader from '../../components/HeroHeader';
+import { useFormatPrice } from '../../contexts/useFormatPrice';
 
 const STAGES = [
   { id: 'pending', label: 'Received', icon: Sparkles, desc: 'Sent to the kitchen' },
@@ -17,6 +18,7 @@ export default function OrderTrackingPage() {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { formatPrice } = useFormatPrice();
 
   const fetchOrder = async (isInitialCall = false) => {
     if (isInitialCall) setLoading(true);
@@ -116,12 +118,25 @@ export default function OrderTrackingPage() {
             Try Again
           </button>
         </div>
-      ) : order === 0 ?  (
+      ) : !order ? (
         /* 3. NO ACTIVE ORDER STATE */
         <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center text-ink">
-          <div className="w-12 h-12 rounded-full bg-hairline/60 text-ink-soft flex items-center justify-center mb-3">
-            <ShoppingBag className="w-6 h-6 text-ink-soft/60" />
-          </div>
+          <svg
+            viewBox="0 0 240 240"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            className="w-40 h-40 sm:w-48 sm:h-48 mb-6 text-ink-soft/40"
+          >
+            <rect x="40" y="160" width="160" height="20" rx="10" fill="currentColor" className="text-ink-soft/10" />
+            <rect x="40" y="160" width="160" height="20" rx="10" stroke="currentColor" strokeWidth="3" />
+            <path d="M70 160 L70 60 Q70 50 80 50 L160 50 Q170 50 170 60 L170 160" fill="currentColor" className="text-ink-soft/10" />
+            <path d="M70 160 L70 60 Q70 50 80 50 L160 50 Q170 50 170 60 L170 160" stroke="currentColor" strokeWidth="3" />
+            <path d="M90 80 L150 80" stroke="currentColor" strokeWidth="3" strokeLinecap="round" className="text-ink-soft/20" />
+            <path d="M90 100 L150 100" stroke="currentColor" strokeWidth="3" strokeLinecap="round" className="text-ink-soft/20" />
+            <path d="M90 120 L130 120" stroke="currentColor" strokeWidth="3" strokeLinecap="round" className="text-ink-soft/20" />
+            <path d="M70 160 L80 155 L90 160 L100 155 L110 160 L120 155 L130 160 L140 155 L150 160 L160 155 L170 160" stroke="currentColor" strokeWidth="2" />
+          </svg>
+
           <h2 className="font-serif text-2xl font-bold mb-2 text-ink">No Active Order</h2>
           <p className="text-sm text-ink-soft mb-6 max-w-xs">
             You don't have an active order being prepared at this table right now.
@@ -144,7 +159,7 @@ export default function OrderTrackingPage() {
               Live Status
             </span>
             <h1 className="font-serif text-3xl sm:text-4xl font-bold leading-tight text-ink">
-              Track Order #{order.order_number}
+              Track Order #{order?.order_number}
             </h1>
             <p className="text-xs sm:text-sm text-ink-soft font-medium mt-1">
               Real-time updates directly from our kitchen
@@ -156,7 +171,7 @@ export default function OrderTrackingPage() {
             <div className="bg-paper/80 backdrop-blur-sm rounded-3xl p-6 animate-fade-up border border-hairline/80 shadow-sm">
               <div className="flex items-center justify-between mb-6 pb-4 border-b border-hairline/80">
                 <h2 className="font-serif font-bold text-lg text-ink">Order Progress</h2>
-                {order.table?.name && (
+                {order?.table?.name && (
                   <div className="flex items-center gap-1.5 text-xs font-semibold text-sage">
                     <Utensils className="w-3.5 h-3.5 text-forest" />
                     <span className="text-ink">{order.table.name}</span>
@@ -212,24 +227,52 @@ export default function OrderTrackingPage() {
               </div>
             </div>
 
-            {/* Receipt Summary Card */}
-            <div className="bg-paper/80 backdrop-blur-sm rounded-2xl p-5 space-y-3 border border-hairline/80 shadow-sm">
+            {/* Receipt Summary Card (Updated with Modifiers & Notes) */}
+            <div className="bg-paper/80 backdrop-blur-sm rounded-2xl p-5 space-y-4 border border-hairline/80 shadow-sm">
               <h3 className="font-serif font-bold text-lg text-ink mb-2">Receipt & Items</h3>
-              {Array.isArray(order.items) &&
+              
+              {Array.isArray(order?.items) &&
                 order.items.map((item) => (
-                  <div key={item.id || item.item_name} className="flex justify-between text-sm text-ink-soft">
-                    <span>
-                      {item.quantity}x {item.item_name}
-                    </span>
-                    <span className="font-medium text-ink tabular-nums">
-                      ${parseFloat(item.subtotal || 0).toFixed(2)}
-                    </span>
+                  <div key={item.id} className="space-y-2">
+                    {/* Main Item Row */}
+                    <div className="flex justify-between text-sm">
+                      <span className="font-medium text-ink">
+                        {item.quantity}x {item.item_name}
+                      </span>
+                      <span className="font-medium text-ink tabular-nums">
+                        {formatPrice(item.subtotal)}
+                      </span>
+                    </div>
+                    
+                    {/* Modifiers List */}
+                    {Array.isArray(item.modifiers) && item.modifiers.length > 0 && (
+                      <div className="pl-4 space-y-1">
+                        {item.modifiers.map((mod, idx) => (
+                          <p key={idx} className="text-xs text-ink-soft flex items-center gap-1.5">
+                            <span className="text-sage">•</span> 
+                            <span>{mod.modifier_option_name}</span>
+                            {mod.unit_price > 0 && (
+                              <span className="text-brass font-medium">{formatPrice(mod.unit_price)}</span>
+                            )}
+                          </p>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Special Instructions */}
+                    {item.special_instructions && (
+                      <p className="text-xs italic text-sage bg-hairline/30 p-2 rounded-xl border border-hairline/60 mt-1">
+                        "{item.special_instructions}"
+                      </p>
+                    )}
                   </div>
                 ))}
-              <div className="pt-3 border-t border-hairline/80 flex items-center justify-between text-base font-bold text-ink">
+              
+              {/* Total Row */}
+              <div className="pt-4 border-t border-hairline/80 flex items-center justify-between text-base font-bold text-ink">
                 <span className="font-serif text-lg">Total Paid</span>
                 <span className="font-serif text-xl text-brass tabular-nums">
-                  ${parseFloat(order.total_amount || 0).toFixed(2)}
+                  {formatPrice(order?.total_amount)}
                 </span>
               </div>
             </div>

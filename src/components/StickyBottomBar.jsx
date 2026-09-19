@@ -7,6 +7,7 @@ import {
   Check, 
   CheckCircle2
 } from 'lucide-react';
+import { useFormatPrice } from '../contexts/useFormatPrice';
 
 export default function StickyBottomBar({
   type = 'menu', // 'menu' | 'item' | 'checkout' (used in CartPage)
@@ -32,6 +33,8 @@ export default function StickyBottomBar({
   icon: CustomIcon
 }) {
   const { restaurantSlug, tableSlug } = useParams();
+      const { currency } = useFormatPrice();
+  
 
   if (!visible) return null;
 
@@ -91,7 +94,7 @@ export default function StickyBottomBar({
                 </div>
 
                 <span className={`font-serif font-bold text-base sm:text-lg tabular-nums ${!isDisabled ? 'text-[var(--paper)]' : 'text-current opacity-70'}`}>
-                  ${amount.toFixed(2)}
+                   {currency} {amount}
                 </span>
               </div>
 

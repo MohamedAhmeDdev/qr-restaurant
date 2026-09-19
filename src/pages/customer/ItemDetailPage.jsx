@@ -7,11 +7,14 @@ import StickyBottomBar from '../../components/StickyBottomBar';
 import { useCart } from '../../contexts/CartContext';
 import guestApi from '../../services/guestApi';
 import { getImageUrl } from '../../utils/getImageUrl';
+import { useFormatPrice } from '../../contexts/useFormatPrice';
 
 export default function ItemDetailPage() {
   const { itemId } = useParams();
   const navigate = useNavigate();
   const { addItem } = useCart();
+    const { formatPrice } = useFormatPrice();
+
 
   const [item, setItem] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -35,7 +38,7 @@ export default function ItemDetailPage() {
         const initialOptions = {};
         if (Array.isArray(data?.modifier_groups)) {
           data.modifier_groups.forEach((mod) => {
-            if (mod.is_required && mod.max_selections === 1 && mod.options?.length > 0) {
+            if (mod.is_required && mod.max_select === 1 && mod.options?.length > 0) {
               initialOptions[mod.id] = [mod.options[0].id];
             }
           });
@@ -85,7 +88,7 @@ export default function ItemDetailPage() {
     return (item.modifier_groups || []).every((mod) => {
       if (!mod.is_required) return true;
       const selected = selectedOptions[mod.id] || [];
-      return selected.length >= (mod.min_selections || 1);
+      return selected.length >= (mod.min_select || 1);
     });
   }, [item, selectedOptions]);
 
@@ -162,24 +165,84 @@ export default function ItemDetailPage() {
       ) : error ? (
         /* 2. ERROR STATE */
         <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
-          <div className="w-12 h-12 rounded-full bg-rust/10 text-rust flex items-center justify-center mb-3">
-            <AlertCircle className="w-6 h-6" />
-          </div>
-          <h2 className="font-serif text-2xl font-bold mb-2 text-ink">Failed to Load Item</h2>
-          <p className="text-sm text-ink-soft mb-6 max-w-xs">{error}</p>
+          {/* Custom Illustration: Unavailable Item */}
+          <svg
+            viewBox="0 0 240 240"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            className="w-40 h-40 sm:w-48 sm:h-48 mb-6 text-ink-soft/40"
+          >
+            {/* Plate Base */}
+            <ellipse cx="120" cy="170" rx="80" ry="18" fill="currentColor" className="text-ink-soft/10" />
+            <ellipse cx="120" cy="170" rx="60" ry="12" fill="none" stroke="currentColor" strokeWidth="3" />
+            
+            {/* Crossed Fork and Knife */}
+            <path 
+              d="M70 190 L170 90" 
+              stroke="currentColor" 
+              strokeWidth="4" 
+              strokeLinecap="round" 
+              className="text-ink-soft/30" 
+            />
+            <path 
+              d="M170 190 L70 90" 
+              stroke="currentColor" 
+              strokeWidth="4" 
+              strokeLinecap="round" 
+              className="text-ink-soft/30" 
+            />
+            
+            {/* "No" Symbol Overlay */}
+            <circle cx="120" cy="130" r="50" fill="none" stroke="currentColor" strokeWidth="4" className="text-rust/40" />
+            <path d="M90 160 L150 100" stroke="currentColor" strokeWidth="4" strokeLinecap="round" className="text-rust/40" />
+          </svg>
+
+          <h2 className="font-serif text-2xl font-bold mb-2 text-ink">Item Unavailable</h2>
+          <p className="text-sm text-ink-soft mb-6 max-w-xs">
+            This menu item is currently unavailable or has been removed from the menu.
+          </p>
           <button
             onClick={() => navigate(-1)}
             className="px-6 py-2.5 rounded-full bg-forest text-paper font-semibold text-sm active:scale-95 transition-all shadow-md hover:bg-forest/90"
           >
-            Go Back
+            Back to Menu
           </button>
         </div>
-      ) : !item ? (
+      ) : item === 0 ? (
         /* 3. EMPTY / UNAVAILABLE STATE */
         <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
-          <div className="w-12 h-12 rounded-full bg-hairline text-ink-soft flex items-center justify-center mb-3">
-            <UtensilsCrossed className="w-6 h-6" />
-          </div>
+          {/* Custom Illustration: Unavailable Item */}
+          <svg
+            viewBox="0 0 240 240"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            className="w-40 h-40 sm:w-48 sm:h-48 mb-6 text-ink-soft/40"
+          >
+            {/* Plate Base */}
+            <ellipse cx="120" cy="170" rx="80" ry="18" fill="currentColor" className="text-ink-soft/10" />
+            <ellipse cx="120" cy="170" rx="60" ry="12" fill="none" stroke="currentColor" strokeWidth="3" />
+            
+            {/* Crossed Fork and Knife */}
+            <path 
+              d="M70 190 L170 90" 
+              stroke="currentColor" 
+              strokeWidth="4" 
+              strokeLinecap="round" 
+              className="text-ink-soft/30" 
+            />
+            <path 
+              d="M170 190 L70 90" 
+              stroke="currentColor" 
+              strokeWidth="4" 
+              strokeLinecap="round" 
+              className="text-ink-soft/30" 
+            />
+            
+            {/* "No" Symbol Overlay */}
+            <circle cx="120" cy="130" r="50" fill="none" stroke="currentColor" strokeWidth="4" className="text-rust/40" />
+            <path d="M90 160 L150 100" stroke="currentColor" strokeWidth="4" strokeLinecap="round" className="text-rust/40" />
+          </svg>
+
           <h2 className="font-serif text-2xl font-bold mb-2 text-ink">Item Unavailable</h2>
           <p className="text-sm text-ink-soft mb-6 max-w-xs">
             This menu item is currently unavailable or has been removed from the menu.
@@ -211,8 +274,8 @@ export default function ItemDetailPage() {
           <div className="px-5 pt-6 relative z-10 max-w-2xl mx-auto animate-fade-up">
             <div className="flex items-start justify-between gap-4 mb-3">
               <h1 className="font-serif text-3xl sm:text-4xl font-semibold leading-tight text-ink">{item.name}</h1>
-              <span className="font-serif font-bold text-2xl sm:text-3xl shrink-0 text-brass pt-0.5">
-                ${(item.price || 0).toFixed(2)}
+              <span className="font-serif font-bold text-xl shrink-0 text-brass pt-0.5">
+                {formatPrice(item.price)}
               </span>
             </div>
             {item.description && (
@@ -284,7 +347,7 @@ export default function ItemDetailPage() {
                             <span className="text-sm font-medium text-ink">{opt.name}</span>
                           </div>
                           <span className={`text-xs font-semibold ${isSelected ? 'text-forest' : 'text-brass'}`}>
-                            {opt.price > 0 ? `+$${opt.price.toFixed(2)}` : 'Free'}
+                            {formatPrice(opt.price)}
                           </span>
                         </button>
                       );
