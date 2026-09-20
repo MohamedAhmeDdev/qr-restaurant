@@ -16,8 +16,10 @@ import toast from 'react-hot-toast';
 import { useFormatPrice } from '../../../contexts/useFormatPrice';
 import StatsCard from '../../../components/cards/StatsCard';
 import { useRoleBasePath } from '../../../utils/useRoleBasePath';
+import { useAuth } from '../../../contexts/AuthContext';
 
 export default function ModifierGroups() {
+  const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const basePath = useRoleBasePath();
 
@@ -440,6 +442,7 @@ const handleConfirmAction = async () => {
                         </button> */}
                       </>
                     ) : (
+                       user?.role == 'Cashier' && (
                       <>
                         <button
                           type="button"
@@ -468,6 +471,7 @@ const handleConfirmAction = async () => {
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </>
+                       )
                     )}
                   </div>
                 </div>

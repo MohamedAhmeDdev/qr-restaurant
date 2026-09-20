@@ -14,8 +14,10 @@ import ConfirmationModal from '../../../components/common/ConfirmationModal';
 import api from '../../../services/api';
 import Pagination from '../../../components/common/Pagination';
 import { useRoleBasePath } from '../../../utils/useRoleBasePath';
+import { useAuth } from '../../../contexts/AuthContext';
 
 export default function CategoryPage() {
+  const { user } = useAuth();
    const basePath = useRoleBasePath();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -302,6 +304,8 @@ const toggleStatus = async (category) => {
               <Trash2 className="w-4 h-4" />
             </button> */}
               </>
+            ) : user?.role === 'cashier' || 'waiter' ? (
+            <span className="text-xs text-gray-400 italic">No actions available</span>
             ) : (
               <>
                 <button

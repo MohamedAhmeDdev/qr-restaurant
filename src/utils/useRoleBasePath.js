@@ -8,7 +8,7 @@ export const useRoleBasePath = () => {
     case 'manager':
       return '/manager';
     case 'restaurant_admin':
-      return '/restaurant';
+      return '';
     case 'super_admin':
       return '/organizations';
     case 'cashier':

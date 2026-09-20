@@ -14,11 +14,13 @@ import ConfirmationModal from '../../../components/common/ConfirmationModal';
 import api from '../../../services/api';
 import toast from 'react-hot-toast';
 import { useRoleBasePath } from '../../../utils/useRoleBasePath';
+import { useAuth } from '../../../contexts/AuthContext';
 
 export default function TableList() {
   const navigate = useNavigate();
    const basePath = useRoleBasePath();
   const [searchParams, setSearchParams] = useSearchParams();
+    const { user } = useAuth();
 
   // URL-driven state
   const currentPage = Number(searchParams.get('page')) || 1;
@@ -424,6 +426,7 @@ export default function TableList() {
                             </button> */}
                           </>
                         ) : (
+                              user?.role == 'Cashier' && (
                           <>
                             <Link to={`${basePath}/table/edit/${table.id}`} onClick={(e) => e.stopPropagation()}>
                               <button
@@ -441,6 +444,7 @@ export default function TableList() {
                               <Trash2 className="w-4 h-4" />
                             </button>
                           </>
+                           )
                         )}
                       </div>
                     </div>
@@ -492,6 +496,7 @@ export default function TableList() {
                     </div>
 
                     {/* Footer Actions */}
+                     {user?.role == 'Cashier' && (
                     <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2 mt-auto">
                       <button
                         onClick={(e) => handleRegenerateQr(e, table.id)}
@@ -520,6 +525,7 @@ export default function TableList() {
                         Download
                       </button>
                     </div>
+                     )}
 
                   </div>
                 </div>
