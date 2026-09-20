@@ -26,20 +26,20 @@ import api from '../../../services/api';
 import { getImageUrl } from '../../../utils/getImageUrl';
 
 const navigation = [
-  { name: 'Dashboard', href: '/cashier/dashboard', icon: LayoutDashboard },
-  { name: 'Staff', href: '/cashier/staff', icon: Users },
-  { name: 'QR Codes & Tables', href: '/cashier/table', icon: QrCode },
-  { name: 'Categories', href: '/cashier/categories', icon: Tag },
-  { name: 'Modifiers', href: '/cashier/modifier-groups', icon: Layers },
-  { name: 'Menus', href: '/cashier/menu-items', icon: UtensilsCrossed },
-  { name: 'Live Orders', href: '/cashier/orders', icon: ShoppingCart },
-  { name: 'Sales', href: '/cashier/sales', icon: BarChart3 },
-  { name: 'Settings', href: '/cashier/settings', icon: Settings },
+  { name: 'Dashboard', href: '/manager/dashboard', icon: LayoutDashboard },
+  { name: 'Staff', href: '/manager/staff', icon: Users },
+  { name: 'QR Codes & Tables', href: '/manager/table', icon: QrCode },
+  { name: 'Categories', href: '/manager/categories', icon: Tag },
+  { name: 'Modifiers', href: '/manager/modifier-groups', icon: Layers },
+  { name: 'Menus', href: '/manager/menu-items', icon: UtensilsCrossed },
+  { name: 'Live Orders', href: '/manager/orders', icon: ShoppingCart },
+  { name: 'Sales', href: '/manager/sales', icon: BarChart3 },
+  { name: 'Settings', href: '/manager/settings', icon: Settings },
 ];
 
 const COLLAPSED_WIDTH = 72;
 
-export default function CashierSidebar({ mobileOpen, setMobileOpen, collapsed, setCollapsed }) {
+export default function ManagerSidebar({ mobileOpen, setMobileOpen, collapsed, setCollapsed }) {
   const location = useLocation();
   const navigate = useNavigate();
   const { logout } = useAuth();

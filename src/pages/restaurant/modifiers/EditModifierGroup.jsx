@@ -5,9 +5,11 @@ import ModifierGroupForm from '../../../components/forms/ModifierGroupsForm';
 import toast from 'react-hot-toast';
 import api from '../../../services/api';
 import LoadingScreen from '../../../components/common/LoadingScreen';
+import { useRoleBasePath } from '../../../utils/useRoleBasePath';
 
 export default function EditModifierGroup() {
   const navigate = useNavigate();
+   const basePath = useRoleBasePath();
   const { id } = useParams();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -103,7 +105,7 @@ options: [{ name: '', price: '0.00', is_available: false }],
   };
 
   const handleCancel = () => {
-    navigate('/modifier-groups');
+    navigate(`${basePath}/modifier-groups`);
   };
 
     if (isLoading) {

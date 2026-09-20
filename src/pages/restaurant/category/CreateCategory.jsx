@@ -4,9 +4,11 @@ import { ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../../services/api';
 import CategoryForm from '../../../components/forms/CategoryForm';
+import { useRoleBasePath } from '../../../utils/useRoleBasePath';
 
 export default function CreateCategory() {
   const navigate = useNavigate();
+  const basePath = useRoleBasePath();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
   
@@ -56,7 +58,7 @@ export default function CreateCategory() {
   };
 
   const handleCancel = () => {
-    navigate('/categories');
+     navigate(`${basePath}/categories`);
   };
 
   return (

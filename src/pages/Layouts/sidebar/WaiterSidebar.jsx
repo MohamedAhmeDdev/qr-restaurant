@@ -26,20 +26,20 @@ import api from '../../../services/api';
 import { getImageUrl } from '../../../utils/getImageUrl';
 
 const navigation = [
-  { name: 'Dashboard', href: '/cashier/dashboard', icon: LayoutDashboard },
-  { name: 'Staff', href: '/cashier/staff', icon: Users },
-  { name: 'QR Codes & Tables', href: '/cashier/table', icon: QrCode },
-  { name: 'Categories', href: '/cashier/categories', icon: Tag },
-  { name: 'Modifiers', href: '/cashier/modifier-groups', icon: Layers },
-  { name: 'Menus', href: '/cashier/menu-items', icon: UtensilsCrossed },
-  { name: 'Live Orders', href: '/cashier/orders', icon: ShoppingCart },
-  { name: 'Sales', href: '/cashier/sales', icon: BarChart3 },
-  { name: 'Settings', href: '/cashier/settings', icon: Settings },
+  { name: 'Dashboard', href: '/waiter/dashboard', icon: LayoutDashboard },
+  { name: 'Staff', href: '/waiter/staff', icon: Users },
+  { name: 'QR Codes & Tables', href: '/waiter/table', icon: QrCode },
+  { name: 'Categories', href: '/waiter/categories', icon: Tag },
+  { name: 'Modifiers', href: '/waiter/modifier-groups', icon: Layers },
+  { name: 'Menus', href: '/waiter/menu-items', icon: UtensilsCrossed },
+  { name: 'Live Orders', href: '/waiter/orders', icon: ShoppingCart },
+  { name: 'Sales', href: '/waiter/sales', icon: BarChart3 },
+  { name: 'Settings', href: '/waiter/settings', icon: Settings },
 ];
 
 const COLLAPSED_WIDTH = 72;
 
-export default function CashierSidebar({ mobileOpen, setMobileOpen, collapsed, setCollapsed }) {
+export default function WaiterSidebar({ mobileOpen, setMobileOpen, collapsed, setCollapsed }) {
   const location = useLocation();
   const navigate = useNavigate();
   const { logout } = useAuth();

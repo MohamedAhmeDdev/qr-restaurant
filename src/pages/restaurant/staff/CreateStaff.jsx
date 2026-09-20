@@ -4,9 +4,11 @@ import { ArrowLeft } from 'lucide-react';
 import StaffForm from '../../../components/forms/StaffForm';
 import toast from 'react-hot-toast';
 import api from '../../../services/api';
+import { useRoleBasePath } from '../../../utils/useRoleBasePath';
 
 export default function CreateStaff() {
   const navigate = useNavigate();
+   const basePath = useRoleBasePath();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
   
@@ -73,7 +75,7 @@ export default function CreateStaff() {
   };
 
   const handleCancel = () => {
-    navigate('/staff');
+     navigate(`${basePath}/staff`);
   };
 
   return (

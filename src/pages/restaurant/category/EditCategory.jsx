@@ -5,9 +5,11 @@ import CategoryForm from '../../../components/forms/CategoryForm';
 import toast from 'react-hot-toast';
 import api from '../../../services/api';
 import LoadingScreen from '../../../components/common/LoadingScreen';
+import { useRoleBasePath } from '../../../utils/useRoleBasePath';
 
 export default function EditCategory() {
   const navigate = useNavigate();
+   const basePath = useRoleBasePath();
   const { id } = useParams();
   
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -83,7 +85,7 @@ export default function EditCategory() {
   };
 
   const handleCancel = () => {
-    navigate('/categories');
+    navigate(`${basePath}/categories`);
   };
  if (isLoading) {
     return <LoadingScreen label="Loading category details..." />;

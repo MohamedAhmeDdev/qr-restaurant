@@ -4,9 +4,11 @@ import { ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../../services/api';
 import TableForm from '../../../components/forms/TableForm';
+import { useRoleBasePath } from '../../../utils/useRoleBasePath';
 
 export default function CreateTable() {
   const navigate = useNavigate();
+   const basePath = useRoleBasePath();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
   
@@ -54,7 +56,7 @@ export default function CreateTable() {
   };
 
   const handleCancel = () => {
-    navigate('/table');
+    navigate(`${basePath}/table`);
   };
 
   return (

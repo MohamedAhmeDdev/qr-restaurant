@@ -17,8 +17,10 @@ import ConfirmationModal from '../../../components/common/ConfirmationModal';
 import api from '../../../services/api';
 import RoleService from '../../../services/Roles';
 import { formatDate } from '../../../utils/formatDate';
+import { useRoleBasePath } from '../../../utils/useRoleBasePath';
 
 export default function StaffPage() {
+   const basePath = useRoleBasePath();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -299,10 +301,10 @@ export default function StaffPage() {
               </button> */}
               </>
             ) : (
-              staff.role?.name !== 'manager' && (
+              staff.role?.name !== 'Manager' && (
                 <>
                   <Link
-                    to={`/staff/edit/${staff.id}`}
+                    to={`${basePath}/staff/edit/${staff.id}`}
                     className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg text-gray-500 hover:text-blue-600 transition-colors inline-block"
                     title="Edit"
                   >
@@ -337,7 +339,7 @@ export default function StaffPage() {
           </p>
         </div>
         <Link
-          to="/staff/create"
+          to={`${basePath}/staff/create`} 
           className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-lg text-sm font-medium transition-all shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 active:scale-[0.98]"
         >
           <UserPlus className="w-4 h-4" /> Add Staff

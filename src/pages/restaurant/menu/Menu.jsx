@@ -22,9 +22,11 @@ import Table from '../../../components/common/Table';
 import CategoriesService from '../../../services/categories';
 import { useFormatPrice } from '../../../contexts/useFormatPrice';
 import StatsCard from '../../../components/cards/StatsCard';
+import { useRoleBasePath } from '../../../utils/useRoleBasePath';
 
 export default function MenuTable() {
   const [searchParams, setSearchParams] = useSearchParams();
+     const basePath = useRoleBasePath();
   const {formatPrice} = useFormatPrice();
 
   // URL-driven state
@@ -402,14 +404,14 @@ const toggleStatus = async (item) => {
                   <Power className="w-4 h-4" />
                 </button>
                 <Link
-                  to={`/menu-items-details/${item.id}`}
+                  to={`${basePath}/menu-items-details/${item.id}`}
                   className="p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg text-gray-500 hover:text-green-600 transition-colors inline-block"
                   title="View"
                 >
                   <Eye className="w-4 h-4" />
                 </Link>
                 <Link
-                  to={`/menu-items/edit/${item.id}`}
+                  to={`${basePath}/menu-items/edit/${item.id}`}
                   className="p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg text-gray-500 hover:text-blue-600 transition-colors inline-block"
                   title="Edit"
                 >
@@ -445,7 +447,7 @@ const toggleStatus = async (item) => {
         </div>
 
         <Link
-          to="/menu-items/create"
+          to={`${basePath}/menu-items/create`}
           className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white rounded-xl text-sm font-semibold transition-all duration-200 shadow-lg shadow-orange-500/20 hover:shadow-orange-500/35 active:scale-[0.98]"
         >
           <UtensilsCrossed className="w-4 h-4" />

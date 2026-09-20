@@ -4,9 +4,11 @@ import { ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../../services/api';
 import ModifierGroupForm from '../../../components/forms/ModifierGroupsForm';
+import { useRoleBasePath } from '../../../utils/useRoleBasePath';
 
 export default function CreateModifierGroup() {
   const navigate = useNavigate();
+     const basePath = useRoleBasePath();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
 
@@ -67,7 +69,7 @@ export default function CreateModifierGroup() {
   };
 
   const handleCancel = () => {
-    navigate('/modifier-groups');
+    navigate(`${basePath}/modifier-groups`);
   };
 
   return (

@@ -3,7 +3,7 @@ import { Navigate } from 'react-router-dom';
 
 import Layout from '../Layout';
 import { ProtectedRoute } from '../../../utils/ProtectedRoute';
-import CashierSidebar from '../sidebar/CashierSidebar';
+import WaiterSidebar from '../sidebar/WaiterSidebar';
 
 
 // Lazy load all other components
@@ -29,12 +29,12 @@ const OrderDetails = lazy(() => import('../../restaurant/orders/OrderDetails'));
 const Sales = lazy(() => import('../../restaurant/sales/Sales'));
 const SettingsPage = lazy(() => import('../../settings/Layout/SettingsPage'));
 
-export const CashierRoutes = {
-  path: '/cashier',
-  element: <ProtectedRoute allowedRoles={['cashier']} />,
+export const WaiterRoutes = {
+  path: '/waiter',
+  element: <ProtectedRoute allowedRoles={['waiter']} />,
   children: [
     {
-      element: <Layout SidebarComponent={CashierSidebar} />,
+      element: <Layout SidebarComponent={WaiterSidebar} />,
       children: [
         { index: true, element: <Navigate to="dashboard" replace /> },
         { path: 'dashboard', element: <DashboardPage /> },
