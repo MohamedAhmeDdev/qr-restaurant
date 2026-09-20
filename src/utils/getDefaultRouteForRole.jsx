@@ -10,7 +10,7 @@ export const getDefaultRouteForRole = (role) => {
     case 'manager':
       return '/manager/dashboard';
     case 'cashier':
-      return '/cashier/restaurant';
+      return '/cashier/dashboard';
     case 'waiter':
       return '/waiter/restaurant';
     default:

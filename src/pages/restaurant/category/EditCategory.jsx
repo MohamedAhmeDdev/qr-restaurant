@@ -76,7 +76,7 @@ export default function EditCategory() {
 
       const response = await api.put(`/categories/${id}`, payload);
       toast.success(response?.data?.message);
-      navigate('/categories');
+      navigate(`${basePath}/categories`);
     } catch (err) {
       toast.error(err.response?.data?.message);
     } finally {

@@ -13,7 +13,7 @@ export default function EditStaff() {
   const { id } = useParams();
   
   const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
+   const [isLoading, setIsLoading] = useState(true);
   const [errors, setErrors] = useState({});
   
   const [formData, setFormData] = useState({
@@ -40,11 +40,11 @@ const fetchStaff = useCallback(async () => {
     });
   } catch (err) {
     toast.error(err.response?.data?.message);
-    navigate('/staff');
+    navigate(`${basePath}/staff`);
   }finally {
       setIsLoading(false);
     }
-}, [id, navigate]);
+}, [id, navigate,basePath]);
 
   useEffect(() => {
     fetchStaff();
@@ -63,8 +63,8 @@ const fetchStaff = useCallback(async () => {
     newErrors.email = 'Invalid email format';
   }
 
-  if (!formData.role?.trim()) {
-    newErrors.role = 'Role is required';
+  if (!formData.role_id) {
+    newErrors.role_id = 'Role is required';
   }
 
   if (!formData.status?.trim()) {
@@ -97,7 +97,7 @@ const fetchStaff = useCallback(async () => {
 
       const response = await api.put(`/staff/${id}`, payload);
       toast.success(response?.data?.message);
-      navigate('/staff');
+       navigate(`${basePath}/staff`);
     } catch (err) {
       toast.error(err.response?.data?.message);
     } finally {

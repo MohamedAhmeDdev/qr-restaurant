@@ -27,7 +27,6 @@ import { getImageUrl } from '../../../utils/getImageUrl';
 
 const navigation = [
   { name: 'Dashboard', href: '/cashier/dashboard', icon: LayoutDashboard },
-  { name: 'Staff', href: '/cashier/staff', icon: Users },
   { name: 'QR Codes & Tables', href: '/cashier/table', icon: QrCode },
   { name: 'Categories', href: '/cashier/categories', icon: Tag },
   { name: 'Modifiers', href: '/cashier/modifier-groups', icon: Layers },

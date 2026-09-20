@@ -60,7 +60,7 @@ export default function CreateModifierGroup() {
 
       const response = await api.post('/modifier-groups', payload);
       toast.success(response?.data?.message);
-      navigate('/modifier-groups');
+       navigate(`${basePath}/modifier-group`);
     } catch (err) {
       toast.error(err.response?.data?.message);
     } finally {

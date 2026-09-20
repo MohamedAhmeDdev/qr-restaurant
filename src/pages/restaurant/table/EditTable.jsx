@@ -74,7 +74,7 @@ export default function EditTable() {
 
       const response = await api.put(`/tables/${id}`, payload);
       toast.success(response?.data?.message);
-      navigate('/table');
+      navigate(`${basePath}/table`);
     } catch (err) {
       toast.error(err.response?.data?.message);
     } finally {

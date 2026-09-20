@@ -96,7 +96,7 @@ options: [{ name: '', price: '0.00', is_available: false }],
 
       const response = await api.put(`/modifier-groups/${id}`, payload);
       toast.success(response?.data?.message);
-      navigate('/modifier-groups');
+      navigate(`${basePath}/modifier-groups`);
     } catch (err) {
       toast.error(err.response?.data?.message);
     } finally {

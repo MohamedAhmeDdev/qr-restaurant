@@ -15,7 +15,7 @@ export default function CreateStaff() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    role: '',
+    role_id: '',
     status: '',
     shift_type: '',
   });
@@ -33,8 +33,8 @@ export default function CreateStaff() {
     newErrors.email = 'Invalid email format';
   }
 
-  if (!formData.role?.trim()) {
-    newErrors.role = 'Role is required';
+  if (!formData.role_id) {
+    newErrors.role_id = 'Role is required';
   }
 
   if (!formData.status?.trim()) {
@@ -59,14 +59,14 @@ export default function CreateStaff() {
       const payload = {
         name: formData.name.trim(),
         email: formData.email.trim(),
-        role: formData.role,
+        role_id: formData.role_id,
         status: formData.status,
         shift_type: formData.shift_type
       };
 
       const response = await api.post('/staff', payload);
       toast.success(response?.data?.message);
-      navigate('/staff');
+       navigate(`${basePath}/staff`);
     } catch (err) {
       toast.error(err.response?.data?.message);
     } finally {
@@ -81,7 +81,7 @@ export default function CreateStaff() {
   return (
     <div className="p-1 sm:p-4 max-w-3xl mx-auto space-y-6 bg-gray-50 dark:bg-slate-950 min-h-screen">
      
-        {/* Header */}
+    
         <div className="mb-8 flex items-center gap-4">
           <button 
             onClick={handleCancel}
