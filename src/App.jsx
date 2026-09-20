@@ -8,7 +8,9 @@ import { AuthProvider } from './contexts/AuthContext';
 import { AdminRoutes } from './pages/Layouts/routes/AdminRoutes';
 import { SuperAdminRoutes } from './pages/Layouts/routes/SuperAdminRoutes';
 import { CashierRoutes } from './pages/Layouts/routes/CashierRoutes';
-import { StaffRoutes } from './pages/Layouts/routes/StaffRoutes';
+import { ManagerRoutes } from './pages/Layouts/routes/ManagerRoutes';
+import { WaiterRoutes } from './pages/Layouts/routes/WaiterRoutes';
+
 
 // Public Customer Pages
 import MenuPage from './pages/customer/MenuPage';
@@ -25,6 +27,7 @@ import { RestaurantProvider } from './contexts/RestaurantContext';
 import RestoreOrganizations from './pages/authentication/RestoreOrganizations';
 import { CartProvider } from './contexts/CartContext';
 
+
 const router = createBrowserRouter([
   // 1. PUBLIC STAFF AUTHENTICATION ROUTES (No login required)
   { path: '/login', element: <Login /> },
@@ -36,8 +39,9 @@ const router = createBrowserRouter([
   // 2. PROTECTED ADMIN & STAFF MODULES (Auth Guards handle these internally)
   SuperAdminRoutes,
   AdminRoutes,
+  ManagerRoutes,
   CashierRoutes,
-  StaffRoutes,
+  WaiterRoutes,
 
   // 3. 100% PUBLIC TENANT CUSTOMER ROUTES (No login check)
   {

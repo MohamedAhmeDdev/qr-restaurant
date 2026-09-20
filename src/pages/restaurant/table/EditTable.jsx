@@ -5,9 +5,11 @@ import TableForm from '../../../components/forms/TableForm';
 import toast from 'react-hot-toast';
 import api from '../../../services/api';
 import LoadingScreen from '../../../components/common/LoadingScreen';
+import { useRoleBasePath } from '../../../utils/useRoleBasePath';
 
 export default function EditTable() {
   const navigate = useNavigate();
+   const basePath = useRoleBasePath();
   const { id } = useParams();
   
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -72,7 +74,7 @@ export default function EditTable() {
 
       const response = await api.put(`/tables/${id}`, payload);
       toast.success(response?.data?.message);
-      navigate('/table');
+      navigate(`${basePath}/table`);
     } catch (err) {
       toast.error(err.response?.data?.message);
     } finally {
@@ -81,7 +83,7 @@ export default function EditTable() {
   };
 
   const handleCancel = () => {
-    navigate('/table');
+    navigate(`${basePath}/table`);
   };
 
     if (isLoading) {

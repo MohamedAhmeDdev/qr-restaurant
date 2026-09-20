@@ -17,6 +17,7 @@ import { formatTime } from '../../../utils/formatTime';
 import api from '../../../services/api';
 import toast from 'react-hot-toast';
 import { useFormatPrice } from '../../../contexts/useFormatPrice';
+import { useRoleBasePath } from '../../../utils/useRoleBasePath';
 
 const DateInputButton = forwardRef(({ value, onClick, label }, ref) => (
   <button
@@ -32,6 +33,7 @@ const DateInputButton = forwardRef(({ value, onClick, label }, ref) => (
 ));
 
 export default function Orders() {
+  const basePath = useRoleBasePath();
   const [searchParams, setSearchParams] = useSearchParams();
   const { formatPrice, currency } = useFormatPrice();
 
@@ -411,7 +413,7 @@ const fetchOrders = useCallback(async () => {
                     </div>
 
                     <Link 
-                      to={`/orders-details/${order.id}`}
+                      to={`${basePath}/orders-details/${order.id}`}
                       className="p-2 text-gray-400 hover:text-gray-700 dark:hover:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors shrink-0"
                       title="View Order Details"
                     >

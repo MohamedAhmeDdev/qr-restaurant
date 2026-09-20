@@ -13,10 +13,14 @@ import StatusBadge from '../../../components/common/StatusBadge';
 import ConfirmationModal from '../../../components/common/ConfirmationModal';
 import api from '../../../services/api';
 import toast from 'react-hot-toast';
+import { useRoleBasePath } from '../../../utils/useRoleBasePath';
+import { useAuth } from '../../../contexts/AuthContext';
 
 export default function TableList() {
   const navigate = useNavigate();
+   const basePath = useRoleBasePath();
   const [searchParams, setSearchParams] = useSearchParams();
+    const { user } = useAuth();
 
   // URL-driven state
   const currentPage = Number(searchParams.get('page')) || 1;
@@ -252,7 +256,7 @@ export default function TableList() {
           </div>
         </div>
         <button
-          onClick={() => navigate('/table/create')}
+          onClick={() => navigate(`${basePath}/table/create`)}
           className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-xl text-sm font-medium transition-all duration-200 shadow-lg shadow-orange-500/20 hover:shadow-orange-500/30 active:scale-[0.98]"
         >
           <QrCode className="w-4 h-4" /> Add New Table
@@ -422,8 +426,9 @@ export default function TableList() {
                             </button> */}
                           </>
                         ) : (
+                              user?.role == 'Cashier' && (
                           <>
-                            <Link to={`/table/edit/${table.id}`} onClick={(e) => e.stopPropagation()}>
+                            <Link to={`${basePath}/table/edit/${table.id}`} onClick={(e) => e.stopPropagation()}>
                               <button
                                 className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg text-gray-500 hover:text-blue-600 transition-colors inline-block"
                                 title="Edit"
@@ -439,6 +444,7 @@ export default function TableList() {
                               <Trash2 className="w-4 h-4" />
                             </button>
                           </>
+                           )
                         )}
                       </div>
                     </div>
@@ -490,6 +496,7 @@ export default function TableList() {
                     </div>
 
                     {/* Footer Actions */}
+                     {user?.role == 'Cashier' && (
                     <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2 mt-auto">
                       <button
                         onClick={(e) => handleRegenerateQr(e, table.id)}
@@ -518,6 +525,7 @@ export default function TableList() {
                         Download
                       </button>
                     </div>
+                     )}
 
                   </div>
                 </div>

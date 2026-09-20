@@ -12,6 +12,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   ChevronDown,
+  Users,
   Layers,
   Tag
 } from 'lucide-react';
@@ -19,19 +20,20 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { useRestaurant } from '../../../contexts/RestaurantContext';
 
 const navigation = [
-  { name: 'Dashboard', href: '/cashier/dashboard', icon: LayoutDashboard },
-  { name: 'QR Codes & Tables', href: '/cashier/table', icon: QrCode },
-  { name: 'Categories', href: '/cashier/categories', icon: Tag },
-  { name: 'Modifiers', href: '/cashier/modifier-groups', icon: Layers },
-  { name: 'Menus', href: '/cashier/menu-items', icon: UtensilsCrossed },
-  { name: 'Live Orders', href: '/cashier/orders', icon: ShoppingCart },
-  { name: 'Sales', href: '/cashier/sales', icon: BarChart3 },
-  { name: 'Settings', href: '/cashier/settings', icon: Settings },
+  { name: 'Dashboard', href: '/manager/dashboard', icon: LayoutDashboard },
+  { name: 'Staff', href: '/manager/staff', icon: Users },
+  { name: 'QR Codes & Tables', href: '/manager/table', icon: QrCode },
+  { name: 'Categories', href: '/manager/categories', icon: Tag },
+  { name: 'Modifiers', href: '/manager/modifier-groups', icon: Layers },
+  { name: 'Menus', href: '/manager/menu-items', icon: UtensilsCrossed },
+  { name: 'Live Orders', href: '/manager/orders', icon: ShoppingCart },
+  { name: 'Sales', href: '/manager/sales', icon: BarChart3 },
+  { name: 'Settings', href: '/manager/settings', icon: Settings },
 ];
 
 const COLLAPSED_WIDTH = 72;
 
-export default function CashierSidebar({ mobileOpen, setMobileOpen, collapsed, setCollapsed }) {
+export default function ManagerSidebar({ mobileOpen, setMobileOpen, collapsed, setCollapsed }) {
   const location = useLocation();
   const navigate = useNavigate();
   const { logout } = useAuth();
@@ -133,11 +135,11 @@ export default function CashierSidebar({ mobileOpen, setMobileOpen, collapsed, s
             }`}
           >
             <span className="text-sm font-bold text-slate-900 dark:text-white truncate leading-none">
-              {activeRestaurant?.name || 'Select Restaurant'}
+              {activeRestaurant?.name}
             </span>
           </div>
 
-          {/* Sidebar Collapse / Mobile Close Controls */}
+          {/* Controls */}
           <div className="flex items-center shrink-0">
             <button
               onClick={() => setMobileOpen(false)}
@@ -164,11 +166,10 @@ export default function CashierSidebar({ mobileOpen, setMobileOpen, collapsed, s
           </div>
         </div>
 
-        {/* NAVIGATION LINKS */}
+               {/* NAVIGATION LINKS */}
         <nav
-          className={`flex-1 py-4 space-y-1.5 overflow-y-auto overflow-x-hidden scrollbar-none ${
-            collapsed ? 'lg:px-2' : 'px-3'
-          }`}
+          className={`flex-1 py-4 space-y-1.5 overflow-y-auto overflow-x-hidden scrollbar-none ${collapsed ? 'lg:px-2' : 'px-3'
+            }`}
         >
           {navigation.map((item, index) => {
             const isActive = item.href
@@ -202,28 +203,24 @@ export default function CashierSidebar({ mobileOpen, setMobileOpen, collapsed, s
 
                     <div className="flex-shrink-0 flex items-center justify-center">
                       <item.icon
-                        className={`w-5 h-5 transition-colors duration-200 ${
-                          isSubItemActive || isPopoverOpen
+                        className={`w-5 h-5 transition-colors duration-200 ${isSubItemActive || isPopoverOpen
                             ? 'text-orange-600 dark:text-orange-400'
                             : 'text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200'
-                        }`}
+                          }`}
                       />
                     </div>
 
                     <span
-                      className={`flex-1 text-left text-sm whitespace-nowrap transition-all duration-200 ${
-                        collapsed ? 'lg:hidden' : 'ml-3'
-                      }`}
+                      className={`flex-1 text-left text-sm whitespace-nowrap transition-all duration-200 ${collapsed ? 'lg:hidden' : 'ml-3'
+                        }`}
                     >
                       {item.name}
                     </span>
 
                     <ChevronDown
-                      className={`w-4 h-4 transition-transform duration-200 ${
-                        collapsed ? 'hidden' : ''
-                      } ${isInlineOpen ? 'rotate-180' : ''} ${
-                        isSubItemActive ? 'text-orange-500' : 'text-slate-400'
-                      }`}
+                      className={`w-4 h-4 transition-transform duration-200 ${collapsed ? 'hidden' : ''
+                        } ${isInlineOpen ? 'rotate-180' : ''} ${isSubItemActive ? 'text-orange-500' : 'text-slate-400'
+                        }`}
                     />
                   </button>
 
@@ -253,11 +250,10 @@ export default function CashierSidebar({ mobileOpen, setMobileOpen, collapsed, s
                               `}
                             >
                               <subItem.icon
-                                className={`w-4 h-4 mr-2.5 transition-colors duration-200 ${
-                                  isSubActive
+                                className={`w-4 h-4 mr-2.5 transition-colors duration-200 ${isSubActive
                                     ? 'text-orange-500'
                                     : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300'
-                                }`}
+                                  }`}
                               />
                               {subItem.name}
                             </NavLink>
@@ -292,18 +288,16 @@ export default function CashierSidebar({ mobileOpen, setMobileOpen, collapsed, s
 
                 <div className="flex-shrink-0 flex items-center justify-center">
                   <item.icon
-                    className={`w-5 h-5 transition-colors duration-200 ${
-                      isActive
+                    className={`w-5 h-5 transition-colors duration-200 ${isActive
                         ? 'text-orange-600 dark:text-orange-400'
                         : 'text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200'
-                    }`}
+                      }`}
                   />
                 </div>
 
                 <span
-                  className={`text-sm whitespace-nowrap transition-all duration-200 ${
-                    collapsed ? 'lg:hidden' : 'ml-3'
-                  }`}
+                  className={`text-sm whitespace-nowrap transition-all duration-200 ${collapsed ? 'lg:hidden' : 'ml-3'
+                    }`}
                 >
                   {item.name}
                 </span>
@@ -314,9 +308,8 @@ export default function CashierSidebar({ mobileOpen, setMobileOpen, collapsed, s
 
         {/* FOOTER - LOGOUT */}
         <div
-          className={`p-3 border-t border-slate-200 dark:border-slate-800 transition-colors duration-200 ${
-            collapsed ? 'lg:justify-center lg:p-2' : ''
-          }`}
+          className={`p-3 border-t border-slate-200 dark:border-slate-800 transition-colors duration-200 ${collapsed ? 'lg:justify-center lg:p-2' : ''
+            }`}
         >
           <button
             onClick={handleLogout}
@@ -329,9 +322,8 @@ export default function CashierSidebar({ mobileOpen, setMobileOpen, collapsed, s
           >
             <LogOut className="w-5 h-5 flex-shrink-0 text-slate-400 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors duration-200" />
             <span
-              className={`whitespace-nowrap transition-all duration-200 ${
-                collapsed ? 'lg:hidden' : ''
-              }`}
+              className={`whitespace-nowrap transition-all duration-200 ${collapsed ? 'lg:hidden' : ''
+                }`}
             >
               Sign Out
             </span>
@@ -400,9 +392,8 @@ export default function CashierSidebar({ mobileOpen, setMobileOpen, collapsed, s
                     `}
                   >
                     <subItem.icon
-                      className={`w-3.5 h-3.5 shrink-0 transition-colors duration-200 ${
-                        isSubActive ? 'text-orange-500' : 'text-slate-400'
-                      }`}
+                      className={`w-3.5 h-3.5 shrink-0 transition-colors duration-200 ${isSubActive ? 'text-orange-500' : 'text-slate-400'
+                        }`}
                     />
                     <span className="truncate">{subItem.name}</span>
                   </NavLink>

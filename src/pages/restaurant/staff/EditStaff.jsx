@@ -5,13 +5,15 @@ import StaffForm from '../../../components/forms/StaffForm';
 import toast from 'react-hot-toast';
 import api from '../../../services/api';
 import LoadingScreen from '../../../components/common/LoadingScreen';
+import { useRoleBasePath } from '../../../utils/useRoleBasePath';
 
 export default function EditStaff() {
   const navigate = useNavigate();
+   const basePath = useRoleBasePath();
   const { id } = useParams();
   
   const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
+   const [isLoading, setIsLoading] = useState(true);
   const [errors, setErrors] = useState({});
   
   const [formData, setFormData] = useState({
@@ -38,11 +40,11 @@ const fetchStaff = useCallback(async () => {
     });
   } catch (err) {
     toast.error(err.response?.data?.message);
-    navigate('/staff');
+    navigate(`${basePath}/staff`);
   }finally {
       setIsLoading(false);
     }
-}, [id, navigate]);
+}, [id, navigate,basePath]);
 
   useEffect(() => {
     fetchStaff();
@@ -61,8 +63,8 @@ const fetchStaff = useCallback(async () => {
     newErrors.email = 'Invalid email format';
   }
 
-  if (!formData.role?.trim()) {
-    newErrors.role = 'Role is required';
+  if (!formData.role_id) {
+    newErrors.role_id = 'Role is required';
   }
 
   if (!formData.status?.trim()) {
@@ -95,7 +97,7 @@ const fetchStaff = useCallback(async () => {
 
       const response = await api.put(`/staff/${id}`, payload);
       toast.success(response?.data?.message);
-      navigate('/staff');
+       navigate(`${basePath}/staff`);
     } catch (err) {
       toast.error(err.response?.data?.message);
     } finally {
@@ -104,8 +106,9 @@ const fetchStaff = useCallback(async () => {
   };
 
   const handleCancel = () => {
-    navigate('/staff');
+    navigate(`${basePath}/staff`);
   };
+
 
   if (isLoading) {
     return <LoadingScreen label="Loading staff details..." />;
@@ -117,7 +120,7 @@ const fetchStaff = useCallback(async () => {
         {/* Header */}
         <div className="mb-8 flex items-center gap-4">
           <button 
-            onClick={handleCancel}
+                onClick={handleCancel}
             className="p-2.5 rounded-xl border border-gray-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-gray-50 dark:hover:bg-slate-800/80 text-gray-600 dark:text-slate-300 shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
           >
             <ArrowLeft className="w-5 h-5" />

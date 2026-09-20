@@ -9,7 +9,6 @@ export const RestaurantCurrencyService = {
   async getCurrency(slug) {
     try {
       const response = await guestApi.get(`/guest/restaurant/${slug}/currency`);
-            console.log(response);
       return response.data?.data?.currency;
 
       

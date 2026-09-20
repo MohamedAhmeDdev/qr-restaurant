@@ -4,9 +4,11 @@ import { ArrowLeft, Sparkles } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../../services/api';
 import MenuForm from '../../../components/forms/MenuForm';
+import { useRoleBasePath } from '../../../utils/useRoleBasePath';
 
 export default function CreateMenu() {
   const navigate = useNavigate();
+    const basePath = useRoleBasePath();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
   const [imagePreview, setImagePreview] = useState(null); 
@@ -67,19 +69,22 @@ const [formData, setFormData] = useState({
       });
 
       toast.success(response?.data?.message);
-      navigate('/menu-items');
+       navigate(`${basePath}/menu-items`);
     } catch (err) {
       toast.error(err.response?.data?.message);
     } finally {
       setIsSubmitting(false);
     }
   };
+  const handleCancel = () => {
+    navigate(`${basePath}/menu-items`);
+  };
 
   return (
     <div className="p-1 md:p-4 max-w-4xl mx-auto min-h-screen space-y-6 bg-gray-50/50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 transition-colors duration-200">
       <div className="flex items-center gap-4 pb-2 border-b border-gray-200/60 dark:border-slate-800">
         <button
-          onClick={() => navigate('/menu-items')}
+          onClick={handleCancel}
           className="p-2.5 rounded-xl border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-600 dark:text-slate-300 shadow-sm transition-all active:scale-95"
           title="Back to Menu Items"
         >
@@ -102,7 +107,7 @@ const [formData, setFormData] = useState({
         imagePreview={imagePreview}
         setImagePreview={setImagePreview}
         onSubmit={handleSubmit}
-        onCancel={() => navigate('/menu-items')}
+         onCancel={handleCancel}
         isSubmitting={isSubmitting}
         submitButtonText="Create Menu Item"
       />

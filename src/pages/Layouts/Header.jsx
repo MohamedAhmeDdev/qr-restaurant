@@ -26,17 +26,6 @@ export default function Header({ setMobileOpen }) {
       </div>
 
       <div className="flex items-center justify-end gap-2 sm:gap-4 flex-1">
-        <button
-          onClick={toggleTheme}
-          className="p-2 text-gray-500 dark:text-slate-400 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800 focus:outline-none transition-colors duration-200"
-          aria-label="Toggle Dark Mode"
-        >
-          {theme === 'light' ? (
-            <Moon className="w-5 h-5" />
-          ) : (
-            <Sun className="w-5 h-5 text-orange-400" />
-          )}
-        </button>
 
 
 

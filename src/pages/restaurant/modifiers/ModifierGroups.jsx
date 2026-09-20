@@ -15,9 +15,13 @@ import api from '../../../services/api';
 import toast from 'react-hot-toast';
 import { useFormatPrice } from '../../../contexts/useFormatPrice';
 import StatsCard from '../../../components/cards/StatsCard';
+import { useRoleBasePath } from '../../../utils/useRoleBasePath';
+import { useAuth } from '../../../contexts/AuthContext';
 
 export default function ModifierGroups() {
+  const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
+  const basePath = useRoleBasePath();
 
   // URL-driven state
   const currentPage = Number(searchParams.get('page')) || 1;
@@ -253,7 +257,7 @@ const handleConfirmAction = async () => {
         </div>
 
         <Link
-          to="/modifier-groups/create"
+          to={`${basePath}/modifier-groups/create`}
           className="flex items-center gap-2 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-xl text-sm font-semibold transition-all shadow-lg shadow-orange-500/20 hover:shadow-orange-500/30 active:scale-95"
         >
           <PlusCircle className="w-4 h-4" />
@@ -322,7 +326,7 @@ const handleConfirmAction = async () => {
             description={isFiltered ? 'Try adjusting your search terms.' : 'Create your first group to start adding options to menu items.'}
             action={!isFiltered && (
               <Link
-                to="/modifier-groups/create"
+                to={`${basePath}/modifier-groups/create`}
                 className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-orange-600 hover:bg-orange-700 rounded-lg transition-colors"
               >
                 <PlusCircle className="w-4 h-4" /> Create Group
@@ -438,6 +442,7 @@ const handleConfirmAction = async () => {
                         </button> */}
                       </>
                     ) : (
+                       user?.role == 'Cashier' && (
                       <>
                         <button
                           type="button"
@@ -451,7 +456,7 @@ const handleConfirmAction = async () => {
                           <Power className="w-4 h-4" />
                         </button>
                         <Link
-                          to={`/modifier-groups/edit/${group.id}`}
+                          to={`${basePath}/modifier-groups/edit/${group.id}`}
                           className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg text-gray-500 hover:text-blue-600 transition-colors inline-block"
                           title="Edit"
                         >
@@ -466,6 +471,7 @@ const handleConfirmAction = async () => {
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </>
+                       )
                     )}
                   </div>
                 </div>
