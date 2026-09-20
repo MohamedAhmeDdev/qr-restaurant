@@ -89,37 +89,18 @@ export default function TableForm({
         {/* Divider */}
         <hr className="border-gray-100 dark:border-slate-800" />
 
-        {/* Status & Settings */}
+        {/* Settings */}
         <div>
           <label className="block text-sm font-semibold text-gray-800 dark:text-slate-200 mb-2">
-            Status & Settings
+            Settings
           </label>
           <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5 mb-4">
-            Control table availability and current status
+            Control table availability
           </p>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Table Status - Dropdown */}
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
-                Table Status
-              </label>
-              <select
-                value={formData.status}
-                onChange={(e) => handleChange('status', e.target.value)}
-                              className="w-full px-4 py-2.5 rounded-xl border border-gray-300/80 dark:border-slate-700 bg-white dark:bg-slate-800/80 focus:ring-4 focus:ring-orange-500/15 focus:border-orange-500 outline-none text-gray-900 dark:text-white appearance-none cursor-pointer transition-all text-sm shadow-sm"
-                              >
-                <option value="">Select Status</option>
-                <option value="available">Available</option>
-                <option value="occupied">Occupied</option>
-                <option value="reserved">Reserved</option>
-                <option value="cleaning">Cleaning</option>
-              </select>
-              {errors.status && <p className="text-xs text-red-500 mt-1">{Array.isArray(errors.status) ? errors.status[0] : errors.status}</p>}
-            </div>
-
             {/* Active Status - Toggle Card */}
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 md:col-span-2">
               <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
                 Active Status
               </label>

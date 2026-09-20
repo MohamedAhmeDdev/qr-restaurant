@@ -19,13 +19,13 @@ import toast from 'react-hot-toast';
 
 import api from '../../../services/api';
 import { getImageUrl } from '../../../utils/getImageUrl';
-import StatusBadge from '../../../components/StatusBadge';
+import StatusBadge from '../../../components/common/StatusBadge';
 import { useFormatPrice } from '../../../contexts/useFormatPrice';
 
 export default function MenuItemsDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
-const formatPrice = useFormatPrice();
+const {formatPrice} = useFormatPrice();
   const [item, setItem] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -276,7 +276,6 @@ if (error) {
                 </div>
               ) : (
                 <div className="text-center py-10 border-2 border-dashed border-slate-200 dark:border-slate-800/80 rounded-xl bg-slate-50/50 dark:bg-slate-900/30">
-                  <Sparkles className="w-8 h-8 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
                   <p className="text-sm font-medium text-slate-500 dark:text-slate-400">No customizations or add-ons attached.</p>
                 </div>
               )}

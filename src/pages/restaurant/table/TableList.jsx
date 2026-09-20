@@ -1,65 +1,95 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Search, Users, Trash2,
-  AlertCircle, QrCode, PlusCircle, RefreshCw, Download,
-  Edit, Hash, Calendar, Activity
+  AlertCircle, QrCode, RefreshCw, Download,
+  Edit, Hash, Calendar, Activity, Loader2
 } from 'lucide-react';
 import StatsCard from '../../../components/cards/StatsCard';
-import Toolbar from '../../../components/Toolbar';
+import Toolbar from '../../../components/common/Toolbar';
 import Pagination from '../../../components/common/Pagination';
 import EmptyState from '../../../components/common/EmptyState';
-import StatusBadge from '../../../components/StatusBadge';
+import StatusBadge from '../../../components/common/StatusBadge';
 import ConfirmationModal from '../../../components/common/ConfirmationModal';
 import api from '../../../services/api';
 import toast from 'react-hot-toast';
 
 export default function TableList() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // URL-driven state
+  const currentPage = Number(searchParams.get('page')) || 1;
+  const searchQuery = searchParams.get('search') || '';
+  const statusFilter = searchParams.get('status') || 'all';
 
   // Primary Data & UI States
   const [tables, setTables] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // Track which table is currently regenerating its QR code
+  const [generatingQrId, setGeneratingQrId] = useState(null);
 
-  // Filters & Pagination State
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [paginationMeta, setPaginationMeta] = useState({ total: 0, lastPage: 1 });
+      const [stats, setStats] = useState({
+        total: 0,
+        active: 0,
+        inactive: 0,
+        trash: 0
+      });
 
-  // Per-item Action Loading State
-  const [actionLoadingId, setActionLoadingId] = useState(null);
+  // Pagination State
+  const [lastPage, setLastPage] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
 
-  // Confirmation Modal State
-  const [deleteModalState, setDeleteModalState] = useState({
+  // Unified Confirmation Modal State
+  const [confirmModal, setConfirmModal] = useState({
     isOpen: false,
-    tableId: null,
-    tableName: '',
-    isDeleting: false
+    table: null,
+    action: null, // 'trash' | 'restore' | 'forceDelete'
+    isProcessing: false
   });
+
+  // URL update helper
+  const updateUrlParams = useCallback((newPage, newSearch, newStatus) => {
+    const params = new URLSearchParams();
+    if (newPage > 1) params.set('page', String(newPage));
+    if (newSearch) params.set('search', newSearch);
+    if (newStatus && newStatus !== 'all') params.set('status', newStatus);
+    setSearchParams(params, { replace: true });
+  }, [setSearchParams]);
 
   // Fetch Tables Data from API
   const fetchTables = useCallback(async () => {
     setLoading(true);
     setError(null);
+
+    const params = {
+      page: currentPage,
+      per_page: 15,
+    };
+
+    if (statusFilter === 'trash') {
+      params.only_trashed = 1;
+    } else if (statusFilter !== 'all') {
+      params.status = statusFilter; 
+    }
+
+    if (searchQuery.trim() !== '') {
+      params.search = searchQuery.trim();
+    }
+
     try {
-      const params = {
-        page: currentPage,
-        per_page: 15,
-      };
-
-      if (searchQuery) params.search = searchQuery;
-      if (statusFilter !== 'all') params.status = statusFilter;
-
       const response = await api.get('/tables', { params });
+     const responseData = response.data;
 
-      const paginatedData = response.data.data;
-      setTables(paginatedData.data || []);
-      setPaginationMeta({
-        total: paginatedData.total || 0,
-        lastPage: paginatedData.last_page || 1
-      });
+      setTables(responseData.data.data);
+      setStats(responseData.stats); 
+
+      const pagination = responseData.data;
+
+      setLastPage(pagination?.last_page || 1);
+      setTotalItems(pagination?.total || 0);
 
     } catch (err) {
       setError(err.response?.data?.message);
@@ -73,13 +103,17 @@ export default function TableList() {
   }, [fetchTables]);
 
   const handleSearchChange = (query) => {
-    setSearchQuery(query);
-    setCurrentPage(1);
+    updateUrlParams(1, query, statusFilter);
   };
 
-  const handleFilterChange = (status) => {
-    setStatusFilter(status);
-    setCurrentPage(1);
+  const handleStatusFilterChange = (selectedStatus) => {
+    updateUrlParams(1, searchQuery, selectedStatus || 'all');
+  };
+
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= lastPage) {
+      updateUrlParams(newPage, searchQuery, statusFilter);
+    }
   };
 
   // Direct client-side download without extra API request
@@ -104,70 +138,103 @@ export default function TableList() {
     window.URL.revokeObjectURL(url);
   };
 
-  // Regenerate QR with Toast feedback
+  // Regenerate QR with status state and Toast feedback
   const handleRegenerateQr = async (e, tableId) => {
     e.stopPropagation();
-    setActionLoadingId(tableId);
 
+    setGeneratingQrId(tableId);
     try {
       const response = await api.post(`/tables/${tableId}/regenerate-qr`);
-
       setTables(prev => prev.map(table =>
         table.id === tableId ? response.data.data : table
       ));
-
       toast.success(response.data.message);
     } catch (err) {
       toast.error(err.response?.data?.message);
     } finally {
-      setActionLoadingId(null);
+      setGeneratingQrId(null);
     }
   };
 
-  // Open Modal
-  const openDeleteModal = (e, table) => {
-    e.stopPropagation();
-    setDeleteModalState({
-      isOpen: true,
-      tableId: table.id,
-      tableName: table.name,
-      isDeleting: false
-    });
+  // --- UNIFIED CONFIRMATION MODAL HANDLERS ---
+  const openConfirmModal = (table, action) => {
+    setConfirmModal({ isOpen: true, table, action, isProcessing: false });
   };
 
-  // Close Modal
-  const closeDeleteModal = () => {
-    if (deleteModalState.isDeleting) return;
-    setDeleteModalState({
-      isOpen: false,
-      tableId: null,
-      tableName: '',
-      isDeleting: false
-    });
+  const closeConfirmModal = () => {
+    if (!confirmModal.isProcessing) {
+      setConfirmModal({ isOpen: false, table: null, action: null, isProcessing: false });
+    }
   };
 
-  // Confirm Delete Handler
-  const handleConfirmDelete = async () => {
-    const { tableId } = deleteModalState;
-    if (!tableId) return;
+  const handleConfirmAction = async () => {
+    const { table, action } = confirmModal;
+    if (!table || !action) return;
 
-    setDeleteModalState(prev => ({ ...prev, isDeleting: true }));
-    setActionLoadingId(tableId);
+    setConfirmModal(prev => ({ ...prev, isProcessing: true }));
 
     try {
-      const response = await api.delete(`/tables/${tableId}`);
-      toast.success(response.data?.message);
-      closeDeleteModal();
-      await fetchTables();
+      if (action === 'trash') {
+        const response = await api.delete(`/tables/${table.id}`);
+        toast.success(response?.data?.message);
+
+        // Optimistic state updates
+        setTables(prevList => {
+          if (statusFilter === 'all') {
+            return prevList.map(item =>
+              item.id === table.id ? { ...item, deleted_at: new Date().toISOString() } : item
+            );
+          }
+          return prevList.filter(item => item.id !== table.id);
+        });
+
+        setStats(prevStats => ({
+          ...prevStats,
+          trash: (prevStats.trash || 0) + 1,
+          active: table.is_active ? Math.max(0, (prevStats.active || 0) - 1) : prevStats.active,
+          inactive: !table.is_active ? Math.max(0, (prevStats.inactive || 0) - 1) : prevStats.inactive
+        }));
+
+      } else if (action === 'restore') {
+        const response = await api.patch(`/tables/${table.id}/restore`);
+        toast.success(response?.data?.message);
+
+        // Optimistic state updates
+        setTables(prevList => {
+          if (statusFilter === 'trash') {
+            return prevList.filter(item => item.id !== table.id);
+          }
+          return prevList.map(item =>
+            item.id === table.id ? { ...item, deleted_at: null } : item
+          );
+        });
+
+        setStats(prevStats => ({
+          ...prevStats,
+          trash: Math.max(0, (prevStats.trash || 0) - 1),
+          active: table.is_active ? (prevStats.active || 0) + 1 : prevStats.active,
+          inactive: !table.is_active ? (prevStats.inactive || 0) + 1 : prevStats.inactive
+        }));
+
+      } else if (action === 'forceDelete') {
+        const response = await api.delete(`/tables/${table.id}/force`);
+        toast.success(response?.data?.message);
+
+        // Optimistic state updates
+        setTables(prevList => prevList.filter(item => item.id !== table.id));
+        setStats(prevStats => ({
+          ...prevStats,
+          total: Math.max(0, (prevStats.total || 0) - 1),
+          trash: Math.max(0, (prevStats.trash || 0) - 1)
+        }));
+      }
+      closeConfirmModal();
     } catch (err) {
       toast.error(err.response?.data?.message);
-      setDeleteModalState(prev => ({ ...prev, isDeleting: false }));
-    } finally {
-      setActionLoadingId(null);
+      setConfirmModal(prev => ({ ...prev, isProcessing: false }));
     }
   };
-
-  const statusFilters = ['all', 'available', 'occupied', 'reserved', 'cleaning'];
+  const isFiltered = Boolean(searchQuery || statusFilter !== 'all');
 
   return (
     <div className="p-1 sm:p-4 space-y-6 bg-gray-50 dark:bg-slate-950 min-h-screen text-gray-900 dark:text-slate-100 transition-colors duration-200">
@@ -193,27 +260,34 @@ export default function TableList() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-2 gap-4">
-        <StatsCard
-          label="Total"
-          value={loading ? '...' : paginationMeta.total}
-          valueColor="text-orange-600 dark:text-orange-400"
-        />
-        <StatsCard
-          label="Active"
-          value={loading ? '...' : tables.filter(t => t.is_active).length}
-          valueColor="text-blue-600 dark:text-blue-400"
-        />
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <StatsCard label="Total Tables" value={loading && stats.total === 0 ? '...' : stats.total} />
+        <StatsCard label="Active Tables" value={loading && stats.active === 0 ? '...' : stats.active} />
+        <StatsCard label="Inactive Tables" value={loading && stats.inactive === 0 ? '...' : stats.inactive} />
+        <StatsCard label="Trash" value={loading && stats.trash === 0 ? '...' : stats.trash} />
       </div>
 
+
+     
       {/* Search & Filter Toolbar */}
       <Toolbar
-        filters={statusFilters}
-        activeFilter={statusFilter}
-        onFilterChange={handleFilterChange}
         searchQuery={searchQuery}
         onSearchChange={handleSearchChange}
         searchPlaceholder="Search by name or slug..."
+        dropdowns={[
+          {
+            id: 'status-filter',
+            placeholder: 'Status...',
+            value: statusFilter,
+            onChange: handleStatusFilterChange,
+            options: [
+              { label: 'All Statuses', value: 'all' },
+              { label: 'Active', value: 'active' },
+              { label: 'Inactive', value: 'inactive' },
+              { label: 'Trash', value: 'trash' },
+            ],
+          },
+        ]}
       />
 
       {/* 1. LOADING SKELETON STATE */}
@@ -227,6 +301,7 @@ export default function TableList() {
               <div className="w-40 h-40 rounded-xl bg-slate-200 dark:bg-slate-800 shrink-0" />
               <div className="flex-1 space-y-3 py-1">
                 <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-1/3" />
+                <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-1/3" />
                 <div className="h-6 bg-slate-200 dark:bg-slate-800 rounded w-2/3" />
                 <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-1/2" />
                 <div className="h-8 bg-slate-200 dark:bg-slate-800 rounded-lg w-full mt-4" />
@@ -236,7 +311,7 @@ export default function TableList() {
         </div>
       ) : error ? (
         /* 2. ERROR STATE */
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-12">
+        <div className="p-12">
           <EmptyState
             icon={AlertCircle}
             title={error}
@@ -244,52 +319,28 @@ export default function TableList() {
         </div>
       ) : tables.length === 0 ? (
         /* 3. EMPTY STATE */
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-12">
+        <div className="p-12">
           <EmptyState
-            icon={searchQuery || statusFilter !== 'all' ? Search : QrCode}
-            title={
-              searchQuery || statusFilter !== 'all'
-                ? 'No matching tables found'
-                : 'No floor plan tables configured'
-            }
+            icon={isFiltered ? Search : QrCode}
+            title={isFiltered ? 'No matching tables found' : 'No floor plan tables configured'}
             description={
-              searchQuery || statusFilter !== 'all'
+              isFiltered
                 ? 'No table records match your current search criteria or status filter.'
                 : 'Start designing your layout by registering dining and seating tables.'
-            }
-            action={
-              searchQuery || statusFilter !== 'all' ? (
-                <button
-                  onClick={() => {
-                    setSearchQuery('');
-                    setStatusFilter('all');
-                  }}
-                  className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors duration-200"
-                >
-                  Clear search filters
-                </button>
-              ) : (
-                <button
-                  onClick={() => navigate('/table/create')}
-                  className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-white bg-orange-500 hover:bg-orange-600 rounded-lg transition-colors duration-200"
-                >
-                  <PlusCircle className="w-3.5 h-3.5" /> Create First Table
-                </button>
-              )
             }
           />
         </div>
       ) : (
-        /* 4. LIST/GRID DISPLAY STATE - IMPROVED CARD UI */
+        /* 4. LIST/GRID DISPLAY STATE */
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 gap-5">
           {tables.map((table) => {
-            const isActionBusy = actionLoadingId === table.id;
+            const isTrashed = Boolean(table.deleted_at);
+            const isGenerating = generatingQrId === table.id;
 
             return (
               <div
                 key={table.id}
-                className={`group relative bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800  hover:border-orange-500/30 dark:hover:border-orange-500/30 transition-all duration-300 overflow-hidden ${isActionBusy ? 'opacity-60 pointer-events-none' : ''
-                  }`}
+                className="group relative bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-orange-500/30 dark:hover:border-orange-500/30 transition-all duration-300 overflow-hidden"
               >
                 <div className="flex flex-col sm:flex-row h-full">
 
@@ -297,16 +348,30 @@ export default function TableList() {
                   <div className="sm:w-48 shrink-0 bg-slate-50 dark:bg-slate-800/30 border-b sm:border-b-0 sm:border-r border-slate-100 dark:border-slate-800 p-4 flex flex-col items-center justify-center gap-3 relative">
                     {table.qr_code ? (
                       <>
-                        <div
-                          className="w-32 h-32 rounded-lg bg-white p-2 shadow-sm flex items-center justify-center overflow-hidden [&>svg]:w-full [&>svg]:h-full"
-                          dangerouslySetInnerHTML={{ __html: table.qr_code }}
-                        />
+                        <div className="w-32 h-32 rounded-lg bg-white p-2 shadow-sm flex items-center justify-center overflow-hidden relative [&>svg]:w-full [&>svg]:h-full">
+                          <div dangerouslySetInnerHTML={{ __html: table.qr_code }} className="w-full h-full flex items-center justify-center" />
+                          {isGenerating && (
+                            <div className="absolute inset-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-[1px] flex flex-col items-center justify-center gap-1.5 transition-all">
+                              <Loader2 className="w-6 h-6 text-orange-500 animate-spin" />
+                              <span className="text-[10px] font-semibold text-orange-600 dark:text-orange-400">Generating...</span>
+                            </div>
+                          )}
+                        </div>
                         <span className="text-[10px] uppercase tracking-wider text-slate-400 font-medium">QR code</span>
                       </>
                     ) : (
-                      <div className="w-32 h-32 rounded-lg border-2 border-dashed border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 flex flex-col items-center justify-center gap-2">
-                        <QrCode className="w-8 h-8 text-slate-300 dark:text-slate-600" />
-                        <span className="text-[10px] text-slate-400 font-medium">No QR</span>
+                      <div className="w-32 h-32 rounded-lg border-2 border-dashed border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 flex flex-col items-center justify-center gap-2 relative">
+                        {isGenerating ? (
+                          <div className="flex flex-col items-center justify-center gap-1.5">
+                            <Loader2 className="w-6 h-6 text-orange-500 animate-spin" />
+                            <span className="text-[10px] font-semibold text-orange-600 dark:text-orange-400">Generating...</span>
+                          </div>
+                        ) : (
+                          <>
+                            <QrCode className="w-8 h-8 text-slate-300 dark:text-slate-600" />
+                            <span className="text-[10px] text-slate-400 font-medium">No QR</span>
+                          </>
+                        )}
                       </div>
                     )}
                   </div>
@@ -318,12 +383,17 @@ export default function TableList() {
                     <div className="flex items-start justify-between gap-3 mb-3">
                       <div className="min-w-0">
                         <div className="flex items-center gap-1.5">
+                          <span className="text-sm text-slate-400">ID:</span>
+                          <h3 className="font-bold text-md text-slate-900 dark:text-slate-100 truncate pr-2">
+                            {table.id}
+                          </h3>
+                        </div>
+                        <div className="flex items-center gap-1.5">
                           <span className="text-sm text-slate-400">Name:</span>
                           <h3 className="font-bold text-md text-slate-900 dark:text-slate-100 truncate pr-2">
                             {table.name}
                           </h3>
                         </div>
-
                         <div className="flex items-center gap-1.5">
                           <span className="text-xs text-slate-400">Slug:</span>
                           <p className="text-xs text-slate-400 dark:text-slate-500 font-mono truncate flex items-center gap-1">
@@ -334,38 +404,58 @@ export default function TableList() {
 
                       {/* Quick Actions */}
                       <div className="flex items-center gap-1 shrink-0">
-                        <Link to={`/table/edit/${table.id}`} onClick={(e) => e.stopPropagation()}>
-                          <button
-                          className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg text-gray-500 hover:text-blue-600 transition-colors inline-block"
-              title="Edit"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </button>
-                        </Link>
-                        <button
-                          onClick={(e) => openDeleteModal(e, table)}
-              className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-gray-500 hover:text-red-600 transition-colors cursor-pointer"
-                          title="Remove"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Badges Row with Labels */}
-                    <div className="flex flex-wrap items-center gap-4 mb-4">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-xs  text-slate-400">Table:</span>
-                        <StatusBadge status={table.is_active ? 'active' : 'inactive'} size="sm" />
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-sm  text-slate-400">Status:</span>
-                        <StatusBadge status={table.status} size="sm" />
+                        {isTrashed ? (
+                          <>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); openConfirmModal(table, 'restore'); }}
+                              className="p-2 rounded-lg text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-950/30 transition-colors"
+                              title="Restore"
+                            >
+                              <RefreshCw className="w-4 h-4" />
+                            </button>
+                            {/* <button
+                              onClick={(e) => { e.stopPropagation(); openConfirmModal(table, 'forceDelete'); }}
+                              className="p-2 rounded-lg text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors cursor-pointer"
+                              title="Permanently Delete"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button> */}
+                          </>
+                        ) : (
+                          <>
+                            <Link to={`/table/edit/${table.id}`} onClick={(e) => e.stopPropagation()}>
+                              <button
+                                className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg text-gray-500 hover:text-blue-600 transition-colors inline-block"
+                                title="Edit"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </button>
+                            </Link>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); openConfirmModal(table, 'trash'); }}
+                              className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-gray-500 hover:text-red-600 transition-colors cursor-pointer"
+                              title="Remove"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </>
+                        )}
                       </div>
                     </div>
 
                     {/* Metadata Grid */}
                     <div className="grid grid-cols-2 gap-y-3 gap-x-4 mb-4">
+                      <div className="flex items-center gap-2">
+                        <div className="p-1.5 rounded-md bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
+                          <Activity className="w-3.5 h-3.5" />
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-[10px] text-slate-400 uppercase font-medium">Table</span>
+                          <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">
+                            <StatusBadge status={table.is_active ? 'active' : 'inactive'} />
+                          </span>
+                        </div>
+                      </div>
                       <div className="flex items-center gap-2">
                         <div className="p-1.5 rounded-md bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
                           <Users className="w-3.5 h-3.5" />
@@ -403,16 +493,26 @@ export default function TableList() {
                     <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2 mt-auto">
                       <button
                         onClick={(e) => handleRegenerateQr(e, table.id)}
-                        disabled={isActionBusy}
-                        className="flex-1 py-2 px-3 text-xs font-medium bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                        disabled={isGenerating || generatingQrId !== null}
+                        className="flex-1 py-2 px-3 text-xs font-medium bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        <RefreshCw className={`w-3.5 h-3.5 ${isActionBusy ? 'animate-spin' : ''}`} />
-                        Regenerate QR
+                        {isGenerating ? (
+                          <>
+                            <Loader2 className="w-3.5 h-3.5 animate-spin text-orange-500" />
+                            <span>Generating...</span>
+                          </>
+                        ) : (
+                          <>
+                            <RefreshCw className="w-3.5 h-3.5" />
+                            <span>Regenerate QR</span>
+                          </>
+                        )}
                       </button>
 
                       <button
                         onClick={(e) => handleDownloadQr(e, table)}
-                        className="flex-1 py-2 px-3 text-xs font-medium bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors flex items-center justify-center gap-2 shadow-sm shadow-orange-500/20"
+                        disabled={isGenerating}
+                        className="flex-1 py-2 px-3 text-xs font-medium bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors flex items-center justify-center gap-2 shadow-sm shadow-orange-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <Download className="w-3.5 h-3.5" />
                         Download
@@ -432,24 +532,44 @@ export default function TableList() {
         <div className="flex justify-center">
           <Pagination
             currentPage={currentPage}
-            totalPages={paginationMeta.lastPage}
-            totalRecords={paginationMeta.total}
-            onPageChange={setCurrentPage}
+            totalPages={lastPage}
+            totalRecords={totalItems}
+            onPageChange={handlePageChange}
             maxVisible={5}
           />
         </div>
       )}
 
-      {/* Confirmation Modal */}
+      {/* Unified Confirmation Modal */}
       <ConfirmationModal
-        isOpen={deleteModalState.isOpen}
-        onClose={closeDeleteModal}
-        onConfirm={handleConfirmDelete}
-        title="Delete Table"
-        message={`Are you sure you want to delete "${deleteModalState.tableName}"? This action cannot be undone.`}
-        isLoading={deleteModalState.isDeleting}
-        confirmText="Delete Table"
-        cancelText="Cancel"
+        isOpen={confirmModal.isOpen}
+        onClose={closeConfirmModal}
+        onConfirm={handleConfirmAction}
+        title={
+          confirmModal.action === 'trash' ? 'Move Table to Trash' :
+          confirmModal.action === 'restore' ? 'Restore Table' :
+          'Permanently Delete Table'
+        }
+        message={
+          confirmModal.action === 'trash' ? (
+            <>Are you sure you want to move <span className="font-bold text-slate-900 dark:text-slate-200">"{confirmModal.table?.name}"</span> to the trash? This action can be restored later.</>
+          ) : confirmModal.action === 'restore' ? (
+            <>Are you sure you want to restore <span className="font-bold text-slate-900 dark:text-slate-200">"{confirmModal.table?.name}"</span>? It will be available again.</>
+          ) : (
+            <>Are you sure you want to <span className="font-bold text-rose-600">permanently delete</span> <span className="font-bold text-slate-900 dark:text-slate-200">"{confirmModal.table?.name}"</span>?<br /><span className="text-sm text-slate-500 mt-2 block">This action cannot be undone and will permanently destroy it from the database.</span></>
+          )
+        }
+        isLoading={confirmModal.isProcessing}
+        confirmText={
+          confirmModal.action === 'trash' ? 'Move to Trash' :
+          confirmModal.action === 'restore' ? 'Restore' :
+          'Permanently Delete'
+        }
+        confirmClassName={
+          confirmModal.action === 'forceDelete' 
+            ? 'bg-rose-600 hover:bg-rose-700 text-white' 
+            : 'bg-orange-600 hover:bg-orange-700 text-white'
+        }
       />
     </div>
   );

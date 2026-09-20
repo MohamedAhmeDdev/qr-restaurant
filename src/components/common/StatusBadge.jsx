@@ -76,6 +76,27 @@ const STATUS_CONFIGS = {
     color: 'rose',
     icon: XCircle,
   },
+
+  preparing: {
+    label: 'Preparing',
+    color: 'blue',
+    icon: Clock,
+  },
+  ready: {
+    label: 'Ready',
+    color: 'emerald',
+    icon: CheckCircle2,
+  },
+  served: {
+    label: 'Served',
+    color: 'emerald',
+    icon: CheckCircle2,
+  },
+  cancelled: {
+    label: 'Cancelled',
+    color: 'rose',
+    icon: XCircle,
+  },
 };
 
 // Tailwind Theme Mapping
@@ -159,9 +180,8 @@ export default function StatusBadge({
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full font-medium border capitalize transition-colors duration-150 ${theme.bg} ${theme.text} ${theme.border} ${SIZE_CLASSES[size]} ${className}`}
+      className={`inline-flex items-center gap-1.5 rounded-full border capitalize transition-colors duration-150 ${theme.bg} ${theme.text} ${theme.border} ${SIZE_CLASSES[size]} ${className}`}
     >
-      {showIcon && Icon && <Icon className={ICON_SIZES[size]} />}
       <span>{finalLabel}</span>
     </span>
   );

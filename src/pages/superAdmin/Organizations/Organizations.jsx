@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Building2 } from 'lucide-react';
 import StatsCard from '../../../components/cards/StatsCard';
-import Toolbar from '../../../components/Toolbar';
-import StatusBadge from '../../../components/StatusBadge';
-import Table from '../../../components/Table';
+import Toolbar from '../../../components/common/Toolbar';
+import StatusBadge from '../../../components/common/StatusBadge';
+import Table from '../../../components/common/Table';
 import api from '../../../services/api';
 
 export default function Organizations() {
@@ -72,7 +72,6 @@ export default function Organizations() {
         <StatsCard
           label="Active Tenants"
           value={loading ? '...' : tenants.filter((t) => t.is_active).length}
-          valueColor="text-emerald-600 dark:text-emerald-400"
         />
         <StatsCard
           label="Total Restaurants"

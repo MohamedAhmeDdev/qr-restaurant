@@ -47,3 +47,27 @@
   --sage: #8A967E;
   --hairline: #2E3630;
 } */
+
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  
+  .print\:block,
+  .print\:block * {
+    visibility: visible;
+  }
+
+  .print\:block {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 80mm;
+  }
+
+  @page {
+    size: 80mm auto;
+    margin: 0;
+  }
+}

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { AlertTriangle, Trash2, X, Loader2 } from 'lucide-react';
+import { AlertTriangle, Trash2, X, Loader2, RotateCcw } from 'lucide-react';
 
 export default function ConfirmationModal({
   isOpen,
@@ -8,10 +8,12 @@ export default function ConfirmationModal({
   title = "Delete Item",
   message,
   isLoading = false,
+  loadingText,
   confirmText = "Delete",
   cancelText = "Cancel",
+  confirmClassName,
+  variant = "danger", // "danger" | "warning" | "info"
 }) {
-  
 
   // Handle ESC key press
   useEffect(() => {
@@ -26,6 +28,13 @@ export default function ConfirmationModal({
 
   if (!isOpen) return null;
 
+  // Resolve loading state text dynamically
+  const displayLoadingText = loadingText || `${confirmText}...`;
+
+
+  // Fallback class for action button if confirmClassName is not provided
+  const defaultConfirmClass = "bg-red-600 hover:bg-red-700 text-white";
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
       {/* MODAL CONTAINER */}
@@ -34,7 +43,7 @@ export default function ConfirmationModal({
         {/* HEADER */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-slate-800">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-full bg-red-100 dark:bg-red-950/40 text-red-600 dark:text-red-400">
+            <div className="p-2 rounded-full">
               <AlertTriangle className="w-5 h-5" />
             </div>
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{title}</h2>
@@ -58,6 +67,7 @@ export default function ConfirmationModal({
         {/* FOOTER */}
         <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-900">
           <button
+            type="button"
             onClick={onClose}
             disabled={isLoading}
             className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-800 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -65,20 +75,18 @@ export default function ConfirmationModal({
             {cancelText}
           </button>
           <button
+            type="button"
             onClick={onConfirm}
             disabled={isLoading}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${confirmClassName || defaultConfirmClass}`}
           >
             {isLoading ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                Deleting...
+                {displayLoadingText}
               </>
             ) : (
-              <>
-                <Trash2 className="w-4 h-4" />
-                {confirmText}
-              </>
+              confirmText
             )}
           </button>
         </div>

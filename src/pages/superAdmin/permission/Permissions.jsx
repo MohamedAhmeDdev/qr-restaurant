@@ -11,7 +11,7 @@ import {
   RotateCcw
 } from 'lucide-react';
 import StatsCard from '../../../components/cards/StatsCard';
-import Toolbar from '../../../components/Toolbar';
+import Toolbar from '../../../components/common/Toolbar';
 import EmptyState from '../../../components/common/EmptyState';
 
 import api from '../../../services/api';
@@ -225,13 +225,10 @@ export default function PermissionsPage() {
         <StatsCard
           label="Total Scopes"
           value={loading ? '...' : totalCount}
-          icon={<KeyRound className="w-4 h-4 text-slate-400" />}
         />
         <StatsCard
           label="Active Categories"
           value={loading || groupsLoading ? '...' : groups.length}
-          valueColor="text-emerald-600 dark:text-emerald-400"
-          icon={<ShieldCheck className="w-4 h-4 text-emerald-400" />}
         />
       </div>
 

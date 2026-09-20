@@ -4,7 +4,7 @@ import { ArrowLeft } from 'lucide-react';
 import TableForm from '../../../components/forms/TableForm';
 import toast from 'react-hot-toast';
 import api from '../../../services/api';
-import LoadingScreen from '../../../components/LoadingScreen';
+import LoadingScreen from '../../../components/common/LoadingScreen';
 
 export default function EditTable() {
   const navigate = useNavigate();
@@ -18,7 +18,6 @@ export default function EditTable() {
     name: '',
     table_number: '',
     capacity: '',
-    status: '',
     is_active: '',
   });
 
@@ -32,7 +31,6 @@ export default function EditTable() {
         name: data.name,
         table_number: data.table_number,
         capacity: data.capacity,
-        status: data.status,
         is_active: data.is_active !== undefined ? String(data.is_active) : '',
       });
     } catch (err) {
@@ -54,7 +52,6 @@ export default function EditTable() {
     if (!formData.capacity) newErrors.capacity = 'Capacity is required';
     else if (formData.capacity < 1) newErrors.capacity = 'Capacity must be at least 1';
     else if (formData.capacity > 20) newErrors.capacity = 'Capacity cannot exceed 20';
-    if (!formData.status) newErrors.status = 'Status is required';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -70,7 +67,6 @@ export default function EditTable() {
         name: formData.name.trim(),
         table_number: parseInt(formData.table_number),
         capacity: parseInt(formData.capacity),
-        status: formData.status,
         is_active: formData.is_active === 'true'
       };
 

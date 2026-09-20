@@ -1,382 +1,387 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import {
-  ArrowLeft, Plus, Minus, Check, ChefHat,
-  ShoppingCart, Info, Utensils, Flame, Sparkles
-} from 'lucide-react';
+import { ArrowLeft, Plus, Minus, Check, Info, ImagesIcon} from 'lucide-react';
 import '../../Customer.css';
 import StickyBottomBar from '../../components/StickyBottomBar';
 
-// --- MOCK DATA ---
-const MENU_ITEMS = [
-  {
-    id: '2',
-    name: 'Gourmet Chicken Burger',
-    description: 'Crispy seasoned chicken breast, artisan coleslaw, dill pickles, and house spicy mayo served on a toasted brioche bun with hand-cut truffle fries.',
-    price: 14.00,
-    image: 'https://images.unsplash.com/photo-1606755962773-d324e0a13086?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
-    prepTime: '15-20 mins',
-    calories: '850 kcal',
-    popular: true,
-    modifiers: [
-      {
-        id: 'size',
-        type: 'single',
-        required: true,
-        title: 'Choose Your Size',
-        display: 'segmented',
-        options: [
-          { id: 'reg', name: 'Regular', price: 0, desc: 'Standard serving' },
-          { id: 'lg', name: 'Large', price: 4.00, desc: 'Extra patty & fries' },
-          { id: 'xl', name: 'XL Combo', price: 7.50, desc: 'Drink & dessert' },
-        ]
-      },
-      {
-        id: 'addons',
-        type: 'multi',
-        required: false,
-        title: 'Boost Your Meal',
-        display: 'grid',
-        options: [
-          { id: 'bacon', name: 'Crispy Bacon', price: 2.50 },
-          { id: 'cheese', name: 'Aged Cheddar', price: 1.50 },
-          { id: 'egg', name: 'Fried Egg', price: 2.00 },
-          { id: 'avocado', name: 'Fresh Avocado', price: 3.00 },
-        ]
-      },
-      {
-        id: 'prefs',
-        type: 'multi',
-        required: false,
-        title: 'Cooking Preferences',
-        display: 'list',
-        options: [
-          { id: 'no_slaw', name: 'No Coleslaw', price: 0 },
-          { id: 'no_pickle', name: 'No Pickles', price: 0 },
-          { id: 'extra_sauce', name: 'Extra Spicy Mayo', price: 0 },
-          { id: 'well_done', name: 'Well Done Patty', price: 0 },
-        ]
-      }
-    ]
-  },
-  {
-    id: '1',
-    name: 'Bruschetta al Pomodoro',
-    description: 'Toasted ciabatta, fresh vine tomatoes, garlic, basil, and extra virgin olive oil drizzle.',
-    price: 8.50,
-    image: 'https://images.unsplash.com/photo-1572695157366-5e585ab2b69f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
-    prepTime: '10 mins',
-    modifiers: []
-  }
-];
+import { useCart } from '../../contexts/CartContext';
+import guestApi from '../../services/guestApi';
+import { getImageUrl } from '../../utils/getImageUrl';
+import { useFormatPrice } from '../../contexts/useFormatPrice';
 
 export default function ItemDetailPage() {
   const { itemId } = useParams();
   const navigate = useNavigate();
+  const { addItem } = useCart();
+    const { formatPrice } = useFormatPrice();
 
-  const item = useMemo(() =>
-    MENU_ITEMS.find(i => i.id === itemId) || MENU_ITEMS[0],
-    [itemId]);
 
-  // --- STATE ---
+  const [item, setItem] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [selectedOptions, setSelectedOptions] = useState({});
   const [specialNotes, setSpecialNotes] = useState('');
   const [isAdding, setIsAdding] = useState(false);
-  const [addedSuccess, setAddedSuccess] = useState(false);
 
   useEffect(() => {
-    const initialOptions = {};
-    item.modifiers.forEach(mod => {
-      if (mod.type === 'single' && mod.required && mod.options.length > 0) {
-        initialOptions[mod.id] = [mod.options[0].id];
-      }
-    });
-    setSelectedOptions(initialOptions);
-  }, [item]);
+    const runFetch = async () => {
+      try {
+        setLoading(true);
+        setError(null);
 
-  // --- LOGIC ---
-  const toggleOption = (modifier, optionId) => {
-    setSelectedOptions(prev => {
-      const currentSelected = prev[modifier.id] || [];
-      if (modifier.type === 'single') {
-        return { ...prev, [modifier.id]: [optionId] };
+        const res = await guestApi.get(`/menu/items/${itemId}`);
+        const data = res.data?.data;
+
+        setItem(data);
+
+        const initialOptions = {};
+        if (Array.isArray(data?.modifier_groups)) {
+          data.modifier_groups.forEach((mod) => {
+            if (mod.is_required && mod.max_select === 1 && mod.options?.length > 0) {
+              initialOptions[mod.id] = [mod.options[0].id];
+            }
+          });
+        }
+        setSelectedOptions(initialOptions);
+      } catch (err) {
+        console.error('Failed to fetch item:', err);
+        setError(err.response?.data?.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    runFetch();
+  }, [itemId]);
+
+  const toggleOption = (mod, optionId) => {
+    setSelectedOptions((prev) => {
+      const current = prev[mod.id] || [];
+      if (mod.max_selections === 1) {
+        return { ...prev, [mod.id]: [optionId] };
       } else {
-        if (currentSelected.includes(optionId)) {
-          return { ...prev, [modifier.id]: currentSelected.filter(id => id !== optionId) };
+        if (current.includes(optionId)) {
+          return { ...prev, [mod.id]: current.filter((id) => id !== optionId) };
         } else {
-          return { ...prev, [modifier.id]: [...currentSelected, optionId] };
+          return { ...prev, [mod.id]: [...current, optionId] };
         }
       }
     });
   };
 
   const finalPrice = useMemo(() => {
-    let unitPrice = item.price;
-    item.modifiers.forEach(mod => {
+    if (!item) return 0;
+    let unitPrice = item.price || 0;
+    (item.modifier_groups || []).forEach((mod) => {
       const selectedIds = selectedOptions[mod.id] || [];
-      selectedIds.forEach(optId => {
-        const opt = mod.options.find(o => o.id === optId);
-        if (opt) unitPrice += opt.price;
+      selectedIds.forEach((optId) => {
+        const opt = mod.options?.find((o) => o.id === optId);
+        if (opt) unitPrice += opt.price || 0;
       });
     });
     return unitPrice * quantity;
   }, [item, selectedOptions, quantity]);
 
   const isReadyToAdd = useMemo(() => {
-    return item.modifiers.every(mod => {
-      if (!mod.required) return true;
+    if (!item) return false;
+    return (item.modifier_groups || []).every((mod) => {
+      if (!mod.is_required) return true;
       const selected = selectedOptions[mod.id] || [];
-      return selected.length > 0;
+      return selected.length >= (mod.min_select || 1);
     });
   }, [item, selectedOptions]);
 
   const handleAddToCart = () => {
-    if (!isReadyToAdd || isAdding) return;
+    if (!isReadyToAdd || isAdding || !item) return;
     setIsAdding(true);
-    setTimeout(() => {
+
+    const modifiersPayload = [];
+    (item.modifier_groups || []).forEach((mod) => {
+      const selectedIds = selectedOptions[mod.id] || [];
+      selectedIds.forEach((optId) => {
+        const opt = mod.options?.find((o) => o.id === optId);
+        if (opt) {
+          modifiersPayload.push({
+            modifier_group_id: mod.id, // <-- ENSURE THIS IS HERE
+            modifier_group_name: mod.name,
+            modifier_option_name: opt.name,
+            option_id: opt.id,
+            price: opt.price,
+          });
+        }
+      });
+    });
+
+    addItem({
+      menu_item_id: item.id,
+      name: item.name,
+      image_url: item.image_url,
+      quantity,
+      unitPrice: finalPrice / quantity,
+      special_instructions: specialNotes,
+      modifiers: modifiersPayload,
+    });
+
+  setTimeout(() => {
       setIsAdding(false);
-      setAddedSuccess(true);
-      setTimeout(() => navigate(-1), 900);
+      // Navigation removed here so it stays on the page!
     }, 600);
-  };
-
-  // --- RENDER MODIFIER GROUPS ---
-  const renderModifier = (mod) => {
-    const selectedIds = selectedOptions[mod.id] || [];
-
-    // SEGMENTED SIZE CARDS
-    if (mod.display === 'segmented') {
-      return (
-        <div className="grid grid-cols-3 gap-3">
-          {mod.options.map((opt) => {
-            const isSelected = selectedIds.includes(opt.id);
-            return (
-              <button
-                key={opt.id}
-                type="button"
-                onClick={() => toggleOption(mod, opt.id)}
-                className={`relative py-3.5 px-3 rounded-2xl flex flex-col items-center justify-center text-center transition-all duration-200 border ${isSelected
-                    ? 'border-forest bg-forest/5 shadow-sm ring-1 ring-forest/20'
-                    : 'border-hairline bg-white/60 hover:bg-white hover:border-ink-soft/40'
-                  }`}
-              >
-                <div className={`w-4 h-4 rounded-full mb-2 flex items-center justify-center border transition-colors ${isSelected ? 'border-forest bg-forest' : 'border-hairline bg-white'
-                  }`}>
-                  {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-paper" />}
-                </div>
-                <span className="font-serif font-semibold text-sm leading-tight text-ink">{opt.name}</span>
-                <span className="text-[11px] mt-1 font-medium text-ink-soft">
-                  {opt.price > 0 ? `+$${opt.price.toFixed(2)}` : 'Included'}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      );
-    }
-
-    // GRID ADD-ONS
-    if (mod.display === 'grid') {
-      return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-          {mod.options.map((opt) => {
-            const isSelected = selectedIds.includes(opt.id);
-            return (
-              <button
-                key={opt.id}
-                type="button"
-                onClick={() => toggleOption(mod, opt.id)}
-                className={`flex items-center justify-between p-3.5 rounded-2xl border transition-all duration-200 text-left ${isSelected
-                    ? 'border-forest bg-forest/5 shadow-sm'
-                    : 'border-hairline bg-white/80 hover:bg-white'
-                  }`}
-              >
-                <div className="flex items-center gap-3">
-                  <div className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 border transition-all ${isSelected ? 'border-forest bg-forest' : 'border-hairline bg-white'
-                    }`}>
-                    {isSelected && <Check className="w-3.5 h-3.5 text-paper" strokeWidth={3} />}
-                  </div>
-                  <span className="font-serif font-medium text-sm text-ink">{opt.name}</span>
-                </div>
-                <span className={`text-xs font-semibold ${isSelected ? 'text-forest' : 'text-brass'}`}>
-                  +${opt.price.toFixed(2)}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      );
-    }
-
-    // LIST PREFERENCES
-    return (
-      <div className="space-y-2">
-        {mod.options.map((opt) => {
-          const isSelected = selectedIds.includes(opt.id);
-          return (
-            <button
-              key={opt.id}
-              type="button"
-              onClick={() => toggleOption(mod, opt.id)}
-              className={`w-full flex items-center gap-3 p-3.5 rounded-2xl border transition-all duration-200 text-left ${isSelected
-                  ? 'border-forest bg-forest/5'
-                  : 'border-hairline bg-white/80 hover:bg-white'
-                }`}
-            >
-              <div className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 border transition-all ${isSelected ? 'border-forest bg-forest' : 'border-hairline bg-white'
-                }`}>
-                {isSelected && <Check className="w-3.5 h-3.5 text-paper" strokeWidth={3} />}
-              </div>
-              <span className="text-sm font-medium text-ink">{opt.name}</span>
-            </button>
-          );
-        })}
-      </div>
-    );
   };
 
   return (
     <div className="menu-root min-h-screen pb-36 bg-paper text-ink relative">
 
-      {/* FLOATING GLASS HEADER */}
       <div className="fixed top-0 left-0 right-0 z-40 px-5 py-4 flex items-center justify-between pointer-events-none">
         <button
-          type="button"
           onClick={() => navigate(-1)}
-          aria-label="Go Back"
-          className="pointer-events-auto w-10 h-10 rounded-full flex items-center justify-center shadow-md bg-white/80 backdrop-blur-md text-[var(--ink)] hover:scale-105 active:scale-95 transition-all duration-200 border border-white/40 cursor-pointer"
+          aria-label="Go back"
+          className="pointer-events-auto w-10 h-10 rounded-full flex items-center justify-center shadow-lg bg-paper/80 backdrop-blur-md text-ink hover:scale-105 active:scale-95 transition-all border border-hairline"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
       </div>
+      {/* 1. LOADING SKELETON STATE */}
+      {loading ? (
+        <div className="animate-pulse">
+          <div className="w-full h-[40vh] sm:h-[46vh] bg-hairline/60" />
+          <div className="px-5 pt-6 max-w-2xl mx-auto space-y-6">
+            <div className="flex justify-between items-start gap-4">
+              <div className="h-8 bg-hairline/60 rounded-lg w-2/3" />
+              <div className="h-8 bg-hairline/60 rounded-lg w-20" />
+            </div>
+            <div className="space-y-2">
+              <div className="h-4 bg-hairline/60 rounded w-full" />
+              <div className="h-4 bg-hairline/60 rounded w-4/5" />
+            </div>
+            <div className="h-16 rounded-2xl bg-paper/80 border border-hairline" />
+            <div className="space-y-4 pt-4">
+              <div className="h-6 bg-hairline/60 rounded w-1/3" />
+              <div className="h-12 bg-hairline/60 rounded-2xl" />
+              <div className="h-12 bg-hairline/60 rounded-2xl" />
+            </div>
+          </div>
+        </div>
+      ) : error ? (
+        /* 2. ERROR STATE */
+        <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
+          {/* Custom Illustration: Unavailable Item */}
+          <svg
+            viewBox="0 0 240 240"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            className="w-40 h-40 sm:w-48 sm:h-48 mb-6 text-ink-soft/40"
+          >
+            {/* Plate Base */}
+            <ellipse cx="120" cy="170" rx="80" ry="18" fill="currentColor" className="text-ink-soft/10" />
+            <ellipse cx="120" cy="170" rx="60" ry="12" fill="none" stroke="currentColor" strokeWidth="3" />
+            
+            {/* Crossed Fork and Knife */}
+            <path 
+              d="M70 190 L170 90" 
+              stroke="currentColor" 
+              strokeWidth="4" 
+              strokeLinecap="round" 
+              className="text-ink-soft/30" 
+            />
+            <path 
+              d="M170 190 L70 90" 
+              stroke="currentColor" 
+              strokeWidth="4" 
+              strokeLinecap="round" 
+              className="text-ink-soft/30" 
+            />
+            
+            {/* "No" Symbol Overlay */}
+            <circle cx="120" cy="130" r="50" fill="none" stroke="currentColor" strokeWidth="4" className="text-rust/40" />
+            <path d="M90 160 L150 100" stroke="currentColor" strokeWidth="4" strokeLinecap="round" className="text-rust/40" />
+          </svg>
 
-      {/* HERO IMAGE CONTAINER */}
-      <div className="relative w-full h-[40vh] sm:h-[46vh] shrink-0 overflow-hidden bg-forest/10">
-        <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-transparent to-black/60" />
-      </div>
+          <h2 className="font-serif text-2xl font-bold mb-2 text-ink">Item Unavailable</h2>
+          <p className="text-sm text-ink-soft mb-6 max-w-xs">
+            This menu item is currently unavailable or has been removed from the menu.
+          </p>
+          <button
+            onClick={() => navigate(-1)}
+            className="px-6 py-2.5 rounded-full bg-forest text-paper font-semibold text-sm active:scale-95 transition-all shadow-md hover:bg-forest/90"
+          >
+            Back to Menu
+          </button>
+        </div>
+      ) : item === 0 ? (
+        /* 3. EMPTY / UNAVAILABLE STATE */
+        <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
+          {/* Custom Illustration: Unavailable Item */}
+          <svg
+            viewBox="0 0 240 240"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            className="w-40 h-40 sm:w-48 sm:h-48 mb-6 text-ink-soft/40"
+          >
+            {/* Plate Base */}
+            <ellipse cx="120" cy="170" rx="80" ry="18" fill="currentColor" className="text-ink-soft/10" />
+            <ellipse cx="120" cy="170" rx="60" ry="12" fill="none" stroke="currentColor" strokeWidth="3" />
+            
+            {/* Crossed Fork and Knife */}
+            <path 
+              d="M70 190 L170 90" 
+              stroke="currentColor" 
+              strokeWidth="4" 
+              strokeLinecap="round" 
+              className="text-ink-soft/30" 
+            />
+            <path 
+              d="M170 190 L70 90" 
+              stroke="currentColor" 
+              strokeWidth="4" 
+              strokeLinecap="round" 
+              className="text-ink-soft/30" 
+            />
+            
+            {/* "No" Symbol Overlay */}
+            <circle cx="120" cy="130" r="50" fill="none" stroke="currentColor" strokeWidth="4" className="text-rust/40" />
+            <path d="M90 160 L150 100" stroke="currentColor" strokeWidth="4" strokeLinecap="round" className="text-rust/40" />
+          </svg>
 
-      {/* MAIN CONTENT AREA */}
-      <div className="px-5 pt-6 relative z-10 max-w-2xl mx-auto animate-fade-up">
-
-        {/* HEADER & PRICE */}
-        <div className="flex items-start justify-between gap-4 mb-2">
-          <div>
-            {item.popular && (
-              <span className="inline-flex items-center gap-1 text-[10px] font-sans font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-rust/10 text-rust mb-2">
-                Popular Item
-              </span>
+          <h2 className="font-serif text-2xl font-bold mb-2 text-ink">Item Unavailable</h2>
+          <p className="text-sm text-ink-soft mb-6 max-w-xs">
+            This menu item is currently unavailable or has been removed from the menu.
+          </p>
+          <button
+            onClick={() => navigate(-1)}
+            className="px-6 py-2.5 rounded-full bg-forest text-paper font-semibold text-sm active:scale-95 transition-all shadow-md hover:bg-forest/90"
+          >
+            Back to Menu
+          </button>
+        </div>
+      ) : (
+        /* 4. ITEM DETAILS & MODIFIERS DISPLAY STATE */
+        <>
+          {/* Hero Banner */}
+          <div className="relative w-full h-[40vh] sm:h-[46vh] shrink-0 overflow-hidden bg-forest/5">
+            {item.image_url ? (
+              <img src={getImageUrl(item.image_url)} alt={item.name} className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex flex-col items-center justify-center text-forest/40">
+                <ImagesIcon className="w-10 h-10 mb-2" />
+                <span className="text-xs font-medium">No image available</span>
+              </div>
             )}
-            <h1 className="font-serif text-3xl sm:text-4xl font-semibold leading-tight text-ink">{item.name}</h1>
+            <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/70" />
           </div>
-          <span className="font-serif font-bold text-2xl sm:text-3xl shrink-0 text-brass pt-1">
-            ${item.price.toFixed(2)}
-          </span>
-        </div>
 
-        {/* DESCRIPTION */}
-        <p className="text-[15px] leading-relaxed pb-6 text-ink-soft font-normal">
-          {item.description}
-        </p>
+          {/* Details Body */}
+          <div className="px-5 pt-6 relative z-10 max-w-2xl mx-auto animate-fade-up">
+              <h1 className="mb-1.5 font-serif text-xl sm:text-3xl font-semibold leading-tight text-ink">{item.name}</h1>
 
-        {/* IN-PAGE QUANTITY SELECTOR BAR */}
-        <div className="flex items-center justify-between py-4 px-5 mb-6 rounded-2xl bg-white border border-hairline shadow-sm">
-          <span className="font-serif font-semibold text-base text-ink">Quantity</span>
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => setQuantity(Math.max(1, quantity - 1))}
-              disabled={quantity <= 1}
-              className={`w-9 h-9 rounded-full flex items-center justify-center border transition-all active:scale-90 ${quantity <= 1
-                  ? 'border-hairline text-hairline cursor-not-allowed'
-                  : 'border-hairline text-ink hover:bg-paper cursor-pointer'
-                }`}
-            >
-              <Minus className="w-4 h-4" />
-            </button>
+               <p className="mb-1.5 font-serif font-bold text-xl shrink-0 text-brass pt-0.5">
+                {formatPrice(item.price)}
+              </p>
+            {item.description && (
+              <p className="text-[15px] leading-relaxed pb-6 text-ink-soft font-normal">{item.description}</p>
+            )}
 
-            <span className="font-serif font-bold text-lg w-6 text-center tabular-nums text-ink">
-              {quantity}
-            </span>
+            
 
-            <button
-              type="button"
-              onClick={() => setQuantity(quantity + 1)}
-              className="w-9 h-9 rounded-full flex items-center justify-center bg-forest text-paper transition-all active:scale-90 shadow-sm cursor-pointer"
-            >
-              <Plus className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-
-        <div className="border-t border-hairline my-6" />
-
-        {/* MODIFIERS LIST */}
-        <div className="space-y-8 mt-6">
-          {item.modifiers.length === 0 ? (
-            <div className="text-center py-10 rounded-3xl border border-hairline">
-              <Utensils className="w-7 h-7 mx-auto mb-2 text-sage/60" />
-              <p className="font-serif italic text-ink-soft">This item is crafted as described with no standard add-ons.</p>
+            {/* Quantity Selector */}
+            <div className="flex items-center justify-between py-2 px-5 mb-6 rounded-md bg-paper/80 border border-hairline/80 backdrop-blur-sm">
+              <span className="font-serif font-semibold text-base text-ink">Quantity</span>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  className="w-9 h-9 rounded-full flex items-center justify-center border border-hairline text-ink bg-paper hover:bg-hairline/30 active:scale-90 transition-all"
+                >
+                  <Minus className="w-4 h-4" />
+                </button>
+                <span className="font-serif font-bold text-lg w-6 text-center tabular-nums text-ink">{quantity}</span>
+                <button
+                  type="button"
+                  onClick={() => setQuantity(quantity + 1)}
+                  className="w-9 h-9 rounded-full flex items-center justify-center bg-forest text-paper active:scale-90 shadow-sm hover:bg-forest/90 transition-all"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
             </div>
-          ) : (
-            item.modifiers.map((mod, idx) => (
-              <div key={mod.id} className="animate-fade-up" style={{ animationDelay: `${0.1 + idx * 0.08}s` }}>
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-serif text-xl font-semibold flex items-center gap-2 text-ink">
-                    {mod.title}
-                    {mod.required ? (
-                      <span className="text-[10px] font-sans font-bold uppercase tracking-wider px-2 py-0.5 rounded-md text-rust bg-rust/10 border border-rust/20">
-                        Required
-                      </span>
-                    ) : (
-                      <span className="text-xs font-normal text-sage font-sans">(Optional)</span>
-                    )}
-                  </h3>
+
+            <div className="border-t border-hairline/80 my-6" />
+
+            {/* Modifiers List */}
+<div className="space-y-8 mt-6">
+              {(item.modifier_groups || []).map((mod, idx) => (
+                <div key={mod.id} className="animate-fade-up" style={{ animationDelay: `${0.1 + idx * 0.08}s` }}>
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="font-serif text-xl font-semibold flex items-center gap-2 text-ink">
+                      {mod.name}
+                      {mod.is_required ? (
+                        <span className="text-[10px] font-sans font-bold uppercase tracking-wider px-2 py-1 rounded-md text-rust bg-rust/10 border border-rust/20">
+                          Required
+                        </span>
+                      ) : (
+                        <span className="text-xs font-normal text-sage font-sans">(Optional)</span>
+                      )}
+                    </h3>
+                  </div>
+                  <div className="space-y-2.5">
+                    {(mod.options || []).map((opt) => {
+                      const isSelected = (selectedOptions[mod.id] || []).includes(opt.id);
+                      return (
+                        <div
+                          key={opt.id}
+                          className="w-full flex items-center justify-between py-2 px-1 text-left"
+                        >
+                          <div className="flex items-center gap-3.5">
+                            <button
+                              type="button"
+                              onClick={() => toggleOption(mod, opt.id)}
+                              className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 border transition-all cursor-pointer ${
+                                isSelected ? 'border-forest bg-forest text-paper' : 'border-hairline/80 bg-paper hover:border-forest'
+                              }`}
+                            >
+                              {isSelected && <Check className="w-3.5 h-3.5" strokeWidth={3} />}
+                            </button>
+                            <span className="text-sm font-medium text-ink">{opt.name}</span>
+                          </div>
+                          <span className="text-xs font-semibold text-brass">
+                            {formatPrice(opt.price)}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-                {renderModifier(mod)}
-              </div>
-            ))
-          )}
+              ))}
 
-          {/* SPECIAL INSTRUCTIONS */}
-          <div className="animate-fade-up" style={{ animationDelay: '0.35s' }}>
-            <h3 className="font-serif text-xl font-semibold mb-3 flex items-center gap-2 text-[var(--ink)]">
-              Special Requests
-              <Info className="w-4 h-4 text-[var(--ink-soft)]" />
-            </h3>
-
-            <div className="relative">
-              <textarea
-                value={specialNotes}
-                onChange={(e) => setSpecialNotes(e.target.value)}
-                placeholder="E.g. allergies, extra crispy fries, dressing on the side..."
-                maxLength={200}
-                className="w-full p-4 text-[15px] rounded-2xl outline-none resize-none h-28 border border-[var(--hairline)] bg-[var(--paper)]/60 text-[var(--ink)] placeholder-[var(--ink-soft)]/60 focus:bg-white focus:border-[var(--forest)] focus:ring-1 focus:ring-[var(--forest)]/20 transition-all duration-200 custom-scrollbar shadow-inner"
-              />
-              <div className="text-right text-xs mt-1 font-medium text-[var(--ink-soft)]">
-                {specialNotes.length}/200
+              {/* Special Instructions */}
+              <div className="animate-fade-up" style={{ animationDelay: '0.35s' }}>
+                <h3 className="font-serif text-xl font-semibold mb-3 flex items-center gap-2 text-ink">
+                  Special Requests <Info className="w-4 h-4 text-ink-soft" />
+                </h3>
+                <textarea
+                  value={specialNotes}
+                  onChange={(e) => setSpecialNotes(e.target.value)}
+                  placeholder="Allergies, extra crispy, etc..."
+                  maxLength={200}
+                  className="w-full p-4 text-[15px] rounded-2xl outline-none resize-none h-28 border border-hairline/80 bg-paper/60 text-ink placeholder:text-ink-soft/60 focus:bg-paper focus:border-forest focus:ring-2 focus:ring-forest/15 transition-all duration-200"
+                />
               </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* STICKY BOTTOM BAR */}
-      <StickyBottomBar
-        type="item"
-        visible={true}
-        count={quantity}
-        amount={finalPrice}
-        isDisabled={!isReadyToAdd}
-        isLoading={isAdding}
-        isSuccess={addedSuccess}
-        onAction={handleAddToCart}
-        actionLabel="Add to Order"
-        disabledLabel="Select Size"
-        successMessage="Added to Order"
-        loadingMessage="Adding..."
-      />
+          <StickyBottomBar
+            type="item"
+            visible={true}
+            count={quantity}
+            amount={finalPrice}
+            isDisabled={!isReadyToAdd}
+            isLoading={isAdding}
+            onAction={handleAddToCart}
+            actionLabel="Add to Order"
+            disabledLabel="Select Required Options"
+          />
+        </>
+      )}
     </div>
   );
 }

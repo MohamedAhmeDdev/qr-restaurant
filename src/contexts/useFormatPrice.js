@@ -1,25 +1,63 @@
-// src/hooks/useFormatPrice.js
-import { useCallback } from 'react';
-import { useRestaurant } from '../contexts/RestaurantContext';
-import { formatPrice } from '../utils/formatters';
+import { useState, useEffect, useCallback } from 'react';
+import { useParams } from 'react-router-dom';
+import RestaurantCurrencyService from '../services/RestaurantCurrencyService';
 
-/**
- * Custom hook to format prices automatically using the active restaurant's currency.
- * 
- * @returns {function(number|string, Object=): string}
- */
-export const useFormatPrice = () => {
-  const { activeRestaurant } = useRestaurant();
+// Module-level cache to prevent duplicate requests across components
+const currencyCache = {};
 
-  const format = useCallback(
+export const useFormatPrice = (defaultCurrency = '') => {
+  const { restaurantSlug: urlSlug } = useParams();
+  // Changed initial state from 'KES' to an empty string (or your preferred fallback)
+  const [currency, setCurrency] = useState(defaultCurrency);
+
+  useEffect(() => {
+    let slug = localStorage.getItem('active_restaurant_slug') || urlSlug;
+
+    if (!slug) return;
+
+    // Use cached currency if available
+    if (currencyCache[slug]) {
+      setCurrency(currencyCache[slug]);
+      return;
+    }
+
+    let isMounted = true;
+
+    RestaurantCurrencyService.getCurrency(slug).then((fetchedCurrency) => {
+      if (isMounted && fetchedCurrency) {
+        currencyCache[slug] = fetchedCurrency;
+        setCurrency(fetchedCurrency);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [urlSlug]);
+
+  const formatPrice = useCallback(
     (price, options = {}) => {
-      return formatPrice(price, {
-        currency: activeRestaurant?.currency || 'USD',
-        ...options,
-      });
+      const { freeText = 'Free', locale = undefined } = options;
+      const numericPrice = parseFloat(price);
+
+      if (isNaN(numericPrice) || numericPrice <= 0) {
+        return freeText;
+      }
+
+      // If currency hasn't loaded yet, return just the formatted number or a placeholder
+      if (!currency) {
+        return numericPrice.toFixed(2);
+      }
+
+      return new Intl.NumberFormat(locale, {
+        style: 'currency',
+        currency: currency,
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(numericPrice);
     },
-    [activeRestaurant?.currency]
+    [currency]
   );
 
-  return format;
+  return { formatPrice, currency };
 };

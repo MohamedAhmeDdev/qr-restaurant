@@ -6,8 +6,8 @@ import {
   CheckCircle, XCircle
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import Toolbar from '../../../components/Toolbar';
-import StatusBadge from '../../../components/StatusBadge';
+import Toolbar from '../../../components/common/Toolbar';
+import StatusBadge from '../../../components/common/StatusBadge';
 import EmptyState from '../../../components/common/EmptyState';
 import api from '../../../services/api';
 import { formatDate } from '../../../utils/formatDate';

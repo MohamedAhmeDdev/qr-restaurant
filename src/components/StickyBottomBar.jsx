@@ -1,16 +1,16 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { 
   ShoppingCart, 
   ShoppingBag, 
-  Smartphone, 
   ArrowRight, 
   Check, 
   CheckCircle2
 } from 'lucide-react';
+import { useFormatPrice } from '../contexts/useFormatPrice';
 
 export default function StickyBottomBar({
-  type = 'menu', // 'menu' | 'item' | 'cart' | 'checkout'
+  type = 'menu', // 'menu' | 'item' | 'checkout' (used in CartPage)
   visible = true,
   
   // Counts & Amounts
@@ -32,16 +32,19 @@ export default function StickyBottomBar({
   // Custom Icon override
   icon: CustomIcon
 }) {
+  const { restaurantSlug, tableSlug } = useParams();
+      const { currency } = useFormatPrice();
+  
+
   if (!visible) return null;
 
   // Render left icon based on type or custom override
   const renderIcon = () => {
     if (CustomIcon) return <CustomIcon className="w-5 h-5 text-[var(--brass-soft)]" />;
+    
     switch (type) {
-      case 'checkout':
-        return <Smartphone className={`w-5 h-5 ${!isDisabled ? 'text-[var(--brass-soft)]' : 'text-current opacity-50'}`} />;
-      case 'cart':
-        return <ShoppingBag className="w-5 h-5 text-[var(--brass-soft)]" />;
+      case 'checkout': // Used in CartPage for "Place Order"
+        return <ShoppingBag className={`w-5 h-5 ${!isDisabled ? 'text-[var(--brass-soft)]' : 'text-current opacity-50'}`} />;
       case 'menu':
       case 'item':
       default:
@@ -68,11 +71,7 @@ export default function StickyBottomBar({
           {isSuccess ? (
             /* SUCCESS DISPLAY */
             <div className="w-full py-1 flex items-center justify-center gap-2">
-              {type === 'checkout' ? (
-                <CheckCircle2 className="w-5 h-5 text-[var(--paper)] stroke-[3]" />
-              ) : (
-                <Check className="w-5 h-5 text-[var(--paper)] stroke-[3]" />
-              )}
+              <CheckCircle2 className="w-5 h-5 text-[var(--paper)] stroke-[3]" />
               <span className="text-sm sm:text-base">{successMessage}</span>
             </div>
           ) : isLoading ? (
@@ -95,30 +94,18 @@ export default function StickyBottomBar({
                 </div>
 
                 <span className={`font-serif font-bold text-base sm:text-lg tabular-nums ${!isDisabled ? 'text-[var(--paper)]' : 'text-current opacity-70'}`}>
-                  ${amount.toFixed(2)}
+                   {currency} {amount}
                 </span>
               </div>
 
-              {/* RIGHT SIDE: Link (Menu/Cart) OR Action Button (Item/Checkout) */}
+              {/* RIGHT SIDE: Link (Menu) OR Action Button (Item/Checkout) */}
               {type === 'menu' && (
-                <Link
-                  to="/cart"
+                <Link 
+                  to={`/${restaurantSlug}/${tableSlug}/cart`}
                   className="group font-serif font-semibold text-sm sm:text-base text-[var(--brass-soft)] hover:text-white transition-all flex items-center gap-1.5 py-1 px-2.5 -mr-2 rounded-xl hover:bg-white/10"
                 >
                   <span className="underline underline-offset-4 decoration-[var(--brass-soft)]/50 group-hover:decoration-white">
                     View Order
-                  </span>
-                  <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-                </Link>
-              )}
-
-              {type === 'cart' && (
-                <Link
-                  to="/checkout"
-                  className="group font-serif font-semibold text-sm sm:text-base text-[var(--brass-soft)] hover:text-white transition-all flex items-center gap-1.5 py-1 px-2.5 -mr-2 rounded-xl hover:bg-white/10"
-                >
-                  <span className="underline underline-offset-4 decoration-[var(--brass-soft)]/50 group-hover:decoration-white">
-                    Checkout
                   </span>
                   <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                 </Link>
@@ -141,7 +128,6 @@ export default function StickyBottomBar({
             </>
           )}
         </div>
-
       </div>
     </div>
   );

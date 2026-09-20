@@ -2,122 +2,241 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
   Trash2, Layers, AlertCircle,
   PlusCircle, Search,
-  Edit, CheckCircle2, XCircle
+  Edit, RefreshCw,
+  Power
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import Toolbar from '../../../components/Toolbar';
+import { Link, useSearchParams } from 'react-router-dom';
+import Toolbar from '../../../components/common/Toolbar';
 import Pagination from '../../../components/common/Pagination';
 import ConfirmationModal from '../../../components/common/ConfirmationModal';
 import EmptyState from '../../../components/common/EmptyState';
-import StatusBadge from '../../../components/StatusBadge';
+import StatusBadge from '../../../components/common/StatusBadge';
 import api from '../../../services/api';
 import toast from 'react-hot-toast';
 import { useFormatPrice } from '../../../contexts/useFormatPrice';
+import StatsCard from '../../../components/cards/StatsCard';
 
 export default function ModifierGroups() {
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // URL-driven state
+  const currentPage = Number(searchParams.get('page')) || 1;
+  const searchQuery = searchParams.get('search') || '';
+  const statusFilter = searchParams.get('status') || 'all';
+
   const [groups, setGroups] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pagination, setPagination] = useState({
-    currentPage: 1,
-    lastPage: 1,
-    total: 0,
-    from: 0,
-    to: 0,
-  });
-  const formatPrice = useFormatPrice();
+
+     const [stats, setStats] = useState({
+        total: 0,
+        active: 0,
+        inactive: 0,
+        trash: 0
+      });
+  
+  // Pagination State
+  const [lastPage, setLastPage] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  
+  const {formatPrice} = useFormatPrice();
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Delete Modal State
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [groupToDelete, setGroupToDelete] = useState(null);
-  const [isDeleting, setIsDeleting] = useState(false);
+  // Unified Confirmation Modal State
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    group: null,
+    action: null, // 'trash' | 'restore' | 'forceDelete'
+    isProcessing: false
+  });
+
+  // URL update helper
+  const updateUrlParams = useCallback((newPage, newSearch, newStatus) => {
+    const params = new URLSearchParams();
+    if (newPage > 1) params.set('page', String(newPage));
+    if (newSearch) params.set('search', newSearch);
+    if (newStatus && newStatus !== 'all') params.set('status', newStatus);
+    setSearchParams(params, { replace: true });
+  }, [setSearchParams]);
 
   // Fetch Modifier Groups from Backend API
-  const fetchModifierGroups = useCallback(async (page = 1) => {
+  const fetchModifierGroups = useCallback(async () => {
     setLoading(true);
     setError(null);
+
+    const params = {
+      page: currentPage,
+      per_page: 15,
+    };
+
+    if (statusFilter === 'trash') {
+      params.only_trashed = 1;
+    } else if (statusFilter !== 'all') {
+      params.status = statusFilter;
+    }
+
+    if (searchQuery.trim() !== '') {
+      params.search = searchQuery.trim();
+    }
+
     try {
-      const response = await api.get('/modifier-groups', {
-        params: {
-          search: searchQuery || undefined,
-          page: page,
-          per_page: 15,
-        },
-      });
+      const response = await api.get('/modifier-groups', { params });
+      const responseData = response.data;
 
-      const responseData = response.data?.data || {};
+      setGroups(responseData.data.data);
+      setStats(responseData.stats);
 
-      if (Array.isArray(responseData)) {
-        setGroups(responseData);
-        setPagination({
-          currentPage: 1,
-          lastPage: 1,
-          total: responseData.length,
-          from: 1,
-          to: responseData.length
-        });
-      } else {
-        setGroups(responseData.data || []);
-        setPagination({
-          currentPage: responseData.current_page || 1,
-          lastPage: responseData.last_page || 1,
-          total: responseData.total || 0,
-          from: responseData.from || 0,
-          to: responseData.to || 0,
-        });
-      }
+      const pagination = responseData.data;
+      setLastPage(pagination?.last_page || 1);
+      setTotalItems(pagination?.total || 0);
+
     } catch (err) {
       setError(err.response?.data?.message);
     } finally {
       setLoading(false);
     }
-  }, [searchQuery]);
-
-  const handleSearchChange = (query) => {
-    setSearchQuery(query);
-    setCurrentPage(1);
-  };
+  }, [currentPage, searchQuery, statusFilter]);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchModifierGroups(currentPage);
-    }, 300);
+    fetchModifierGroups();
+  }, [fetchModifierGroups]);
 
-    return () => clearTimeout(timer);
-  }, [fetchModifierGroups, currentPage]);
+  const handleSearchChange = (query) => {
+    updateUrlParams(1, query, statusFilter);
+  };
 
   const handlePageChange = (newPage) => {
-    if (newPage >= 1 && newPage <= pagination.lastPage && newPage !== currentPage) {
-      setCurrentPage(newPage);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (newPage >= 1 && newPage <= lastPage) {
+      updateUrlParams(newPage, searchQuery, statusFilter);
     }
   };
 
-  // Open Confirmation Modal
-  const handleOpenDeleteModal = (group) => {
-    setGroupToDelete(group);
-    setIsDeleteModalOpen(true);
+  const handleStatusFilterChange = (selectedStatus) => {
+    const statusMap = {
+      'All Statuses': 'all',
+      'All': 'all',
+      'Active': 'active',
+      'Inactive': 'inactive',
+      'Trash': 'trash',
+    };
+    const mappedStatus = statusMap[selectedStatus] || selectedStatus || 'all';
+    updateUrlParams(1, searchQuery, mappedStatus);
   };
 
-  // Perform Delete Action
-  const handleConfirmDelete = async () => {
-    if (!groupToDelete) return;
-    setIsDeleting(true);
-    try {
-      const response = await api.delete(`/modifier-groups/${groupToDelete.id}`);
+  const currentActiveFilterLabel = {
+    'all': 'All',
+    'active': 'Active',
+    'inactive': 'Inactive',
+    'trash': 'Trash',
+  }[statusFilter] || 'All';
+
+  const isFiltered = Boolean(searchQuery || statusFilter !== 'all');
+
+  // --- UNIFIED CONFIRMATION MODAL HANDLERS ---
+  const openConfirmModal = (group, action) => {
+    setConfirmModal({ isOpen: true, group, action, isProcessing: false });
+  };
+
+  const closeConfirmModal = () => {
+    if (!confirmModal.isProcessing) {
+      setConfirmModal({ isOpen: false, group: null, action: null, isProcessing: false });
+    }
+  };
+
+  // Toggle Active/Inactive Status Optimistically
+// Toggle Active/Inactive Status Optimistically
+const toggleActive = async (group) => {
+  const updatedStatus = !group.is_active;
+
+  // Check if item should remain in view based on current status filter
+  setGroups(prev => {
+    if (
+      (statusFilter === 'active' && !updatedStatus) ||
+      (statusFilter === 'inactive' && updatedStatus)
+    ) {
+      return prev.filter(g => g.id !== group.id);
+    }
+    return prev.map(g => g.id === group.id ? { ...g, is_active: updatedStatus } : g);
+  });
+
+  setStats(prev => ({
+    ...prev,
+    active: updatedStatus ? prev.active + 1 : Math.max(0, prev.active - 1),
+    inactive: updatedStatus ? Math.max(0, prev.inactive - 1) : prev.inactive + 1
+  }));
+
+  try {
+    const response = await api.patch(`/modifier-groups/${group.id}/toggle-active`);
+    toast.success(response.data?.message);
+  } catch (err) {
+    console.error('Failed to toggle status:', err);
+    toast.error(err.response?.data?.message);
+
+    // Rollback: Refetch list on failure to ensure accurate state and pagination sync
+    fetchModifierGroups();
+  }
+};
+
+const handleConfirmAction = async () => {
+  const { group, action } = confirmModal;
+  if (!group || !action) return;
+
+  setConfirmModal(prev => ({ ...prev, isProcessing: true }));
+
+  try {
+    if (action === 'trash') {
+      const response = await api.delete(`/modifier-groups/${group.id}`);
       toast.success(response?.data?.message);
-      setIsDeleteModalOpen(false);
-      setGroupToDelete(null);
-      fetchModifierGroups(currentPage);
-    } catch (err) {
-      toast.error(err.response?.data?.message);
-    } finally {
-      setIsDeleting(false);
+
+      // Remove item completely from current filtered view
+      setGroups(prevList => prevList.filter(item => item.id !== group.id));
+
+      setStats(prevStats => ({
+        ...prevStats,
+        trash: (prevStats.trash || 0) + 1,
+        active: group.is_active ? Math.max(0, (prevStats.active || 0) - 1) : prevStats.active,
+        inactive: !group.is_active ? Math.max(0, (prevStats.inactive || 0) - 1) : prevStats.inactive
+      }));
+
+    } else if (action === 'restore') {
+      const response = await api.patch(`/modifier-groups/${group.id}/restore`);
+      toast.success(response?.data?.message);
+
+      // Remove from trash view when restored
+      setGroups(prevList => {
+        if (statusFilter === 'trash') {
+          return prevList.filter(item => item.id !== group.id);
+        }
+        return prevList.map(item =>
+          item.id === group.id ? { ...item, deleted_at: null } : item
+        );
+      });
+
+      setStats(prevStats => ({
+        ...prevStats,
+        trash: Math.max(0, (prevStats.trash || 0) - 1),
+        active: group.is_active ? (prevStats.active || 0) + 1 : prevStats.active,
+        inactive: !group.is_active ? (prevStats.inactive || 0) + 1 : prevStats.inactive
+      }));
+
+    } else if (action === 'forceDelete') {
+      const response = await api.delete(`/modifier-groups/${group.id}/force`);
+      toast.success(response?.data?.message);
+
+      setGroups(prevList => prevList.filter(item => item.id !== group.id));
+      setStats(prevStats => ({
+        ...prevStats,
+        total: Math.max(0, (prevStats.total || 0) - 1),
+        trash: Math.max(0, (prevStats.trash || 0) - 1)
+      }));
     }
-  };
+
+    closeConfirmModal();
+  } catch (err) {
+    toast.error(err.response?.data?.message);
+    setConfirmModal(prev => ({ ...prev, isProcessing: false }));
+  }
+};
 
   return (
     <div className="p-1 sm:p-4 space-y-6 bg-gray-50 dark:bg-slate-950 min-h-screen text-gray-900 dark:text-slate-100 transition-colors duration-200">
@@ -142,12 +261,36 @@ export default function ModifierGroups() {
         </Link>
       </div>
 
+        {/* Statistics Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+        <StatsCard label="Total Groups" value={loading && stats.total === 0 ? '...' : stats.total} />
+        <StatsCard label="Active Groups" value={loading && stats.active === 0 ? '...' : stats.active} />
+        <StatsCard label="Inactive Groups" value={loading && stats.inactive === 0 ? '...' : stats.inactive} />
+        <StatsCard label="Trash" value={loading && stats.trash === 0 ? '...' : stats.trash} />
+      </div>
+
       {/* Search Toolbar */}
       <Toolbar
         searchQuery={searchQuery}
         onSearchChange={handleSearchChange}
         searchPlaceholder="Search groups or options..."
         showSearch={true}
+        dropdowns={[
+          {
+            id: 'status-filter',
+            placeholder: 'Status...',
+            value: statusFilter,
+            onChange: handleStatusFilterChange,
+            options: [
+              { label: 'All Statuses', value: 'all' },
+              { label: 'Active', value: 'active' },
+              { label: 'Inactive', value: 'inactive' },
+              { label: 'Trash', value: 'trash' },
+            ],
+          },
+        ]}
+        activeFilter={currentActiveFilterLabel}
+        onFilterChange={handleStatusFilterChange}
       />
 
       {/* Content Area */}
@@ -168,16 +311,16 @@ export default function ModifierGroups() {
           ))}
         </div>
       ) : error ? (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-8 text-center">
+        <div className="p-8 text-center">
           <EmptyState icon={AlertCircle} title={error} />
         </div>
       ) : groups.length === 0 ? (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-8 text-center">
+        <div className="p-8 text-center">
           <EmptyState
-            icon={searchQuery ? Search : Layers}
-            title={searchQuery ? 'No results found' : 'No modifier groups yet'}
-            description={searchQuery ? 'Try adjusting your search terms.' : 'Create your first group to start adding options to menu items.'}
-            action={!searchQuery && (
+            icon={isFiltered ? Search : Layers}
+            title={isFiltered ? 'No results found' : 'No modifier groups yet'}
+            description={isFiltered ? 'Try adjusting your search terms.' : 'Create your first group to start adding options to menu items.'}
+            action={!isFiltered && (
               <Link
                 to="/modifier-groups/create"
                 className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-orange-600 hover:bg-orange-700 rounded-lg transition-colors"
@@ -191,6 +334,7 @@ export default function ModifierGroups() {
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {groups.map((group) => {
+              const isTrashed = Boolean(group.deleted_at);
               return (
                 <div
                   key={group.id}
@@ -198,33 +342,30 @@ export default function ModifierGroups() {
                 >
                   {/* Card Header */}
                   <div className="p-4 space-y-2 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
-                    <div className="flex justify-between items-start gap-2 ">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-sm text-slate-400">Name:</span>
-                        <h2 className="font-bold text-base text-slate-900 dark:text-white truncate pr-2">
-                          {group.name}
-                        </h2>
+                    <div className="flex justify-between items-start gap-2">
+                      <h2 className="font-bold text-lg text-slate-900 dark:text-white truncate">
+                        {group.name}
+                      </h2>
+                      <span className="text-xs font-mono text-slate-400">ID: {group.id}</span>
+                    </div>
+
+                    <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 min-h-[1.25rem]">
+                      {group.description || 'No description provided.'}
+                    </p>
+
+                    <div className="flex flex-wrap items-center gap-2 pt-1">
+                    <div className="flex items-center gap-1">
+                      <span className="text-[10px] uppercase font-semibold text-slate-400">Modifier Group:</span>
+                      <StatusBadge status={group.is_active ? 'active' : 'inactive'} />
+                    </div>
+
+                   <div className="flex items-center gap-1">
+                      <span className="text-[10px] uppercase font-semibold text-slate-400">Selection:</span>
+                      <StatusBadge status={group.is_required ? 'Required' : 'Optional'} />
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-xs text-slate-400">Description:</span>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 min-h-[1.25rem]">
-                        {group.description}
-                      </p>
-                    </div>
-
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] uppercase font-semibold text-slate-400">Modifier Group:</span>
-                        <StatusBadge status={group.is_active ? 'active' : 'inactive'} />
-                      </div>
-
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] uppercase font-semibold text-slate-400">Status:</span>
-                        <StatusBadge status={group.is_required ? 'Required' : 'Optional'} />
-                      </div>
-
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-2 pt-1">
                       <span className="text-xs font-medium px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-md">
                         Min: {group.min_select ?? 0}
                       </span>
@@ -234,21 +375,20 @@ export default function ModifierGroups() {
                     </div>
                   </div>
 
-                  {/* Options List with Numbering */}
+                  {/* Options List */}
                   <div className="p-4 flex-grow">
                     <div className="flex justify-between items-center mb-2">
                       <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                        Options
+                        Options ({group.options?.length})
                       </span>
                     </div>
 
                     <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1 custom-scrollbar">
                       {group.options && group.options.length > 0 ? (
-                        group.options.map((option, index) => {
-                          return (
+                       group.options.map((option, index) => (
                             <div
                               key={option.id}
-                              className="flex justify-between items-center p-1.5 bg-slate-50/60 dark:bg-slate-800/40 rounded-lg"
+                              className="flex justify-between items-center p-2 bg-slate-50/60 dark:bg-slate-800/40 rounded-lg"
                             >
                               <div className="flex items-center gap-2.5 min-w-0 mr-2">
                                 <span className="flex-shrink-0 w-5 h-5 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 text-[10px] font-semibold flex items-center justify-center">
@@ -266,8 +406,8 @@ export default function ModifierGroups() {
 
                               <StatusBadge status={option.is_available ? 'Available' : 'Unavailable'} />
                             </div>
-                          );
-                        })
+                          )
+                        )
                       ) : (
                         <div className="text-center py-3 text-sm text-slate-400 italic">
                           No options added yet.
@@ -278,21 +418,55 @@ export default function ModifierGroups() {
 
                   {/* Card Footer Actions */}
                   <div className="px-4 py-2 bg-slate-50 dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-1.5">
-                    <Link
-                      to={`/modifier-groups/edit/${group.id}`}
-                     className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg text-gray-500 hover:text-blue-600 transition-colors inline-block"
-              title="Edit"
-                    >
-                      <Edit className="w-4 h-4" />
-                    </Link>
-                    <button
-                      type="button"
-                      onClick={() => handleOpenDeleteModal(group)}
-                     className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-gray-500 hover:text-red-600 transition-colors cursor-pointer"
-              title="Remove"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    {isTrashed ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => openConfirmModal(group, 'restore')}
+                          className="p-2 rounded-lg text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-950/30 transition-colors"
+                          title="Restore"
+                        >
+                         <RefreshCw className="w-4 h-4" />
+                        </button>
+                        {/* <button
+                          type="button"
+                          onClick={() => openConfirmModal(group, 'forceDelete')}
+                          className="p-2 rounded-lg text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors cursor-pointer"
+                          title="Permanently Delete"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button> */}
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => toggleActive(group)}
+                          className={`p-2 rounded-lg transition-colors ${group.is_active
+                              ? 'text-red-500 hover:bg-red-100/50 dark:text-red-400 dark:hover:bg-red-950/30'
+                              : 'text-emerald-600 hover:bg-emerald-100/50 dark:text-emerald-400 dark:hover:bg-emerald-950/30'
+                            }`}
+                          title={group.is_active ? 'Deactivate' : 'Activate'}
+                        >
+                          <Power className="w-4 h-4" />
+                        </button>
+                        <Link
+                          to={`/modifier-groups/edit/${group.id}`}
+                          className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg text-gray-500 hover:text-blue-600 transition-colors inline-block"
+                          title="Edit"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => openConfirmModal(group, 'trash')}
+                          className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-gray-500 hover:text-red-600 transition-colors cursor-pointer"
+                          title="Remove"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
               );
@@ -300,41 +474,48 @@ export default function ModifierGroups() {
           </div>
 
           <div className="flex justify-center">
- {!loading && !error &&  group.length > 0 && (
-            <Pagination
-              currentPage={currentPage}
-              totalPages={pagination.lastPage}
-              totalRecords={pagination.total}
-              onPageChange={handlePageChange}
-              maxVisible={5}
-            />
- )}
+            {!loading && !error && groups.length > 0 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={lastPage}
+                totalRecords={totalItems}
+                onPageChange={handlePageChange}
+                maxVisible={5}
+              />
+            )}
           </div>
         </>
       )}
 
       <ConfirmationModal
-        isOpen={isDeleteModalOpen}
-        onClose={() => {
-          if (!isDeleting) {
-            setIsDeleteModalOpen(false);
-            setGroupToDelete(null);
-          }
-        }}
-        onConfirm={handleConfirmDelete}
-        title="Delete Modifier Group"
-        message={
-          <>
-            Are you sure you want to delete <span className="font-bold text-slate-900 dark:text-white">"{groupToDelete?.name}"</span>?
-            <br />
-            <span className="text-sm text-slate-500 mt-2 block">
-              This action cannot be undone and will remove these options from all linked menu items.
-            </span>
-          </>
+        isOpen={confirmModal.isOpen}
+        onClose={closeConfirmModal}
+        onConfirm={handleConfirmAction}
+        title={
+          confirmModal.action === 'trash' ? 'Move Modifier Group to Trash' :
+          confirmModal.action === 'restore' ? 'Restore Modifier Group' :
+          'Permanently Delete Modifier Group'
         }
-        isLoading={isDeleting}
-        confirmText="Delete Group"
-        confirmClassName="bg-rose-600 hover:bg-rose-700 text-white"
+        message={
+          confirmModal.action === 'trash' ? (
+            <>Are you sure you want to move <span className="font-bold text-slate-900 dark:text-white">"{confirmModal.group?.name}"</span> to the trash?<br /><span className="text-sm text-slate-500 mt-2 block">This will remove these options from all linked menu items, but it can be restored later.</span></>
+          ) : confirmModal.action === 'restore' ? (
+            <>Are you sure you want to restore <span className="font-bold text-slate-900 dark:text-white">"{confirmModal.group?.name}"</span>? It will be available again.</>
+          ) : (
+            <>Are you sure you want to <span className="font-bold text-rose-600">permanently delete</span> <span className="font-bold text-slate-900 dark:text-white">"{confirmModal.group?.name}"</span>?<br /><span className="text-sm text-slate-500 mt-2 block">This action cannot be undone and will permanently destroy it from the database.</span></>
+          )
+        }
+        isLoading={confirmModal.isProcessing}
+        confirmText={
+          confirmModal.action === 'trash' ? 'Move to Trash' :
+          confirmModal.action === 'restore' ? 'Restore' :
+          'Permanently Delete'
+        }
+        confirmClassName={
+          confirmModal.action === 'forceDelete' 
+            ? 'bg-rose-600 hover:bg-rose-700 text-white' 
+            : 'bg-orange-600 hover:bg-orange-700 text-white'
+        }
       />
     </div>
   );

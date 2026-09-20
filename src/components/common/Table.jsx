@@ -1,6 +1,6 @@
 import React from 'react';
-import TableSkeleton from './skeleton/TableSkeleton';
-import EmptyState from './common/EmptyState';
+import TableSkeleton from '../skeleton/TableSkeleton';
+import EmptyState from './EmptyState';
 import { AlertCircle } from 'lucide-react';
 
 export default function Table({ 
@@ -16,7 +16,7 @@ export default function Table({
   className = ""
 }) {
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto whitespace-nowrap">
       <table className={`w-full text-left text-sm border-collapse ${className}`}>
         <thead>
           <tr className="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-800 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 transition-colors duration-200">
@@ -34,7 +34,7 @@ export default function Table({
           ) : error ? (
             /* 2. ERROR STATE INSIDE TBODY */
             <tr>
-              <td colSpan={columns.length} className="px-6 py-12">
+              <td colSpan={columns.length} className="px-4 py-6">
                 <EmptyState
                   icon={AlertCircle}
                   title={error}
@@ -44,7 +44,7 @@ export default function Table({
           ) : data.length === 0 ? (
             /* 3. EMPTY STATE INSIDE TBODY */
             <tr>
-              <td colSpan={columns.length} className="px-6 py-12">
+              <td colSpan={columns.length} className="px-4 py-6">
                 <EmptyState
                   icon={emptyIcon}
                   title={emptyTitle}

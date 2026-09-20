@@ -4,7 +4,7 @@ import { ArrowLeft, Edit3 } from 'lucide-react';
 import ModifierGroupForm from '../../../components/forms/ModifierGroupsForm';
 import toast from 'react-hot-toast';
 import api from '../../../services/api';
-import LoadingScreen from '../../../components/LoadingScreen';
+import LoadingScreen from '../../../components/common/LoadingScreen';
 
 export default function EditModifierGroup() {
   const navigate = useNavigate();

@@ -7,7 +7,7 @@ import React from 'react';
  * Usage:
  *   if (loading) return <LoadingScreen />;
  */
-export const LoadingScreen = ({ label = 'Verifying access' }) => {
+export const LoadingScreen = ({ label = 'Loading' }) => {
   return (
     <div className="flex items-center justify-center min-h-screen rounded-none bg-gray-50 dark:bg-slate-950">
       <style>{`

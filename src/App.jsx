@@ -14,8 +14,6 @@ import { StaffRoutes } from './pages/Layouts/routes/StaffRoutes';
 import MenuPage from './pages/customer/MenuPage';
 import ItemDetailPage from './pages/customer/ItemDetailPage';
 import CartPage from './pages/customer/CartPage';
-import CheckOutPage from './pages/customer/CheckOutPage';
-import OrderConfirmationPage from './pages/customer/OrderConfirmationPage'; 
 import OrderTrackingPage from './pages/customer/OrderTrackingPage';
 
 // Public Auth Pages
@@ -24,6 +22,8 @@ import ForgotPassword from './pages/authentication/ForgotPassword';
 import ResetPassword from './pages/authentication/ResetPassword';
 import Register from './pages/authentication/Register';
 import { RestaurantProvider } from './contexts/RestaurantContext';
+import RestoreOrganizations from './pages/authentication/RestoreOrganizations';
+import { CartProvider } from './contexts/CartContext';
 
 const router = createBrowserRouter([
   // 1. PUBLIC STAFF AUTHENTICATION ROUTES (No login required)
@@ -31,6 +31,7 @@ const router = createBrowserRouter([
   { path: '/forgot-password', element: <ForgotPassword /> },
   { path: '/reset-password', element: <ResetPassword /> },
   { path: '/register', element: <Register /> },
+  { path: '/organizations/restore', element: <RestoreOrganizations /> },
 
   // 2. PROTECTED ADMIN & STAFF MODULES (Auth Guards handle these internally)
   SuperAdminRoutes,
@@ -40,17 +41,14 @@ const router = createBrowserRouter([
 
   // 3. 100% PUBLIC TENANT CUSTOMER ROUTES (No login check)
   {
-    path: '/:restaurantSlug/menu/:tableSlug',
+    path: '/:restaurantSlug/:tableSlug',
     element: <Outlet />, // Public Customer Outlet
     children: [
       { index: true, element: <MenuPage /> },
       { path: 'menu', element: <MenuPage /> },
-      { path: 'table/:tableId', element: <MenuPage /> },
       { path: 'item/:itemId', element: <ItemDetailPage /> },
       { path: 'cart', element: <CartPage /> },
-      { path: 'checkout', element: <CheckOutPage /> },
-      { path: 'confirmation', element: <OrderConfirmationPage /> },
-      { path: 'track/:orderId', element: <OrderTrackingPage /> },
+      { path: 'track', element: <OrderTrackingPage /> },
     ],
   },
 
@@ -79,9 +77,11 @@ const router = createBrowserRouter([
 export default function App() {
   return (
     <AuthProvider>
+      <CartProvider>
           <RestaurantProvider>
       <RouterProvider router={router} />
           </RestaurantProvider>
+          </CartProvider>
     </AuthProvider>
   );
 }

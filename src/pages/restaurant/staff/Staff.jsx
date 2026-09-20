@@ -1,16 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
-import { 
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import {
   UserPlus, Trash2, CheckCircle, 
-  Users, AlertCircle, Mail, Search, Shield, Clock,
-  Edit, Calendar
+  Users, AlertCircle, Mail, Search,
+  Edit, Calendar, RefreshCw
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 import StatsCard from '../../../components/cards/StatsCard';
-import Toolbar from '../../../components/Toolbar';
-import StatusBadge from '../../../components/StatusBadge';
-import Table from '../../../components/Table';
+import Toolbar from '../../../components/common/Toolbar';
+import StatusBadge from '../../../components/common/StatusBadge';
+import Table from '../../../components/common/Table';
 import Pagination from '../../../components/common/Pagination';
 import ConfirmationModal from '../../../components/common/ConfirmationModal';
 
@@ -19,27 +19,54 @@ import RoleService from '../../../services/Roles';
 import { formatDate } from '../../../utils/formatDate';
 
 export default function StaffPage() {
-  // State
-  const [searchQuery, setSearchQuery] = useState('');
-  const [roleFilter, setRoleFilter] = useState('all');
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // URL-driven state
+  const currentPage = Number(searchParams.get('page')) || 1;
+  const searchQuery = searchParams.get('search') || '';
+  const statusFilter = searchParams.get('status') || 'all';
+  const roleFilter = searchParams.get('role') || 'all';
+  const shiftTypeFilter = searchParams.get('shift_type') || 'all';
+
+  // Local UI State
   const [roles, setRoles] = useState([]);
   const [staffList, setStaffList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   // Pagination State
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(15);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalRecords, setTotalRecords] = useState(0);
+  const [lastPage, setLastPage] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
 
   // Statistics State
-  const [stats, setStats] = useState({ total: 0, active: 0 });
+    const [stats, setStats] = useState({
+       total: 0,
+       active: 0,
+      suspended: 0,
+      on_leave: 0,
+       inactive: 0,
+       trash: 0
+     });
 
-  // Modal Delete State
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [staffToDelete, setStaffToDelete] = useState(null);
-  const [isDeleting, setIsDeleting] = useState(false);
+  // Unified Confirmation Modal State
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    staff: null,
+    action: null, // 'trash' | 'restore' | 'forceDelete'
+    isProcessing: false
+  });
+
+  // URL update helper
+  const updateUrlParams = useCallback((newPage, newSearch, newStatus, newRole, newShift) => {
+    const params = new URLSearchParams();
+    if (newPage > 1) params.set('page', String(newPage));
+    if (newSearch) params.set('search', newSearch);
+    if (newStatus && newStatus !== 'all') params.set('status', newStatus);
+    if (newRole && newRole !== 'all') params.set('role', newRole);
+    if (newShift && newShift !== 'all') params.set('shift_type', newShift);
+    setSearchParams(params, { replace: true });
+  }, [setSearchParams]);
 
   // Fetch dynamic roles
   useEffect(() => {
@@ -58,92 +85,156 @@ export default function StaffPage() {
   const fetchStaff = useCallback(async () => {
     setLoading(true);
     setError(null);
+
+    const params = {
+      page: currentPage,
+      per_page: 15,
+    };
+
+    if (searchQuery.trim() !== '') {
+      params.search = searchQuery.trim();
+    }
+    if (roleFilter !== 'all') {
+      params.role_id = roleFilter;
+    }
+    if (shiftTypeFilter !== 'all') {
+      params.shift_type = shiftTypeFilter;
+    }
+
+    // Standardized Status Filter Alignment
+    if (statusFilter === 'trash') {
+      params.only_trashed = 1;
+    } else if (statusFilter === 'all') {
+      params.with_trashed = 1;
+    } else {
+      params.status = statusFilter;
+    }
+
     try {
-      const response = await api.get('/staff', {
-        params: {
-          page: currentPage,
-          per_page: itemsPerPage,
-          search: searchQuery,
-          role_id: roleFilter !== 'all' ? roleFilter : undefined,
-        },
-      });
+      const response = await api.get('/staff', { params });
+      const responseData = response.data;
 
-      const { data, pagination, stats: backendStats } = response.data;
-
-      setStaffList(data || []);
-
-      if (pagination) {
-        setTotalPages(pagination.last_page || 1);
-        setTotalRecords(pagination.total || 0);
-      }
-
-      if (backendStats) {
-        setStats({
-          total: backendStats.total ?? 0,
-          active: backendStats.active ?? 0,
-        });
-      }
+      setStaffList(responseData.data);
+      
+      const pagination = responseData.pagination;
+      setLastPage(pagination?.last_page || 1);
+      setTotalItems(pagination?.total || 0);
+      setStats(responseData.stats);
     } catch (err) {
       setError(err.response?.data?.message);
     } finally {
       setLoading(false);
     }
-  }, [currentPage, itemsPerPage, searchQuery, roleFilter]);
+  }, [currentPage, searchQuery, roleFilter, statusFilter, shiftTypeFilter]);
 
   useEffect(() => {
     fetchStaff();
   }, [fetchStaff]);
 
   const handleSearchChange = (query) => {
-    setSearchQuery(query);
-    setCurrentPage(1);
+    updateUrlParams(1, query, statusFilter, roleFilter, shiftTypeFilter);
   };
 
-  const handleRoleFilterChange = (selectedRoleName) => {
-    if (selectedRoleName === 'All Roles') {
-      setRoleFilter('all');
-    } else {
-      const selected = roles.find((r) => r.name === selectedRoleName);
-      setRoleFilter(selected ? selected.id : 'all');
+  const handleRoleFilterChange = (selectedRoleId) => {
+    updateUrlParams(1, searchQuery, statusFilter, selectedRoleId || 'all', shiftTypeFilter);
+  };
+
+  const handleStatusFilterChange = (selectedStatus) => {
+    updateUrlParams(1, searchQuery, selectedStatus || 'all', roleFilter, shiftTypeFilter);
+  };
+
+  const handleShiftTypeFilterChange = (selectedShift) => {
+    updateUrlParams(1, searchQuery, statusFilter, roleFilter, selectedShift || 'all');
+  };
+
+  const isFiltered = Boolean(searchQuery || statusFilter !== 'all' || roleFilter !== 'all' || shiftTypeFilter !== 'all');
+
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= lastPage) {
+      updateUrlParams(newPage, searchQuery, statusFilter, roleFilter, shiftTypeFilter);
     }
-    setCurrentPage(1);
   };
 
-  // Open delete confirmation modal
-  const handleOpenDeleteModal = (staff) => {
-    setStaffToDelete(staff);
-    setIsDeleteModalOpen(true);
+  // --- UNIFIED CONFIRMATION MODAL HANDLERS ---
+  const openConfirmModal = (staff, action) => {
+    setConfirmModal({ isOpen: true, staff, action, isProcessing: false });
   };
 
-  // Confirm delete handler
-  const handleConfirmDelete = async () => {
-    if (!staffToDelete) return;
-    setIsDeleting(true);
+  const closeConfirmModal = () => {
+    if (!confirmModal.isProcessing) {
+      setConfirmModal({ isOpen: false, staff: null, action: null, isProcessing: false });
+    }
+  };
+
+  const handleConfirmAction = async () => {
+    const { staff, action } = confirmModal;
+    if (!staff || !action) return;
+
+    setConfirmModal(prev => ({ ...prev, isProcessing: true }));
+
     try {
-      await api.delete(`/staff/${staffToDelete.id}`);
-      toast.success('Staff member removed successfully');
-      setIsDeleteModalOpen(false);
-      setStaffToDelete(null);
-      await fetchStaff();
+      if (action === 'trash') {
+        const response = await api.delete(`/staff/${staff.id}`);
+        toast.success(response?.data?.message);
+
+        // Optimistic UI updates
+        setStaffList(prevList => {
+          if (statusFilter === 'all') {
+            return prevList.map(item =>
+              item.id === staff.id ? { ...item, deleted_at: new Date().toISOString() } : item
+            );
+          }
+          return prevList.filter(item => item.id !== staff.id);
+        });
+
+        setStats(prevStats => ({
+          ...prevStats,
+          trash: (prevStats.trash || 0) + 1,
+          [staff.status]: Math.max(0, (prevStats[staff.status] || 0) - 1)
+        }));
+
+      } else if (action === 'restore') {
+        const response = await api.patch(`/staff/${staff.id}/restore`);
+        toast.success(response?.data?.message);
+
+        // Optimistic UI updates
+        setStaffList(prevList => {
+          if (statusFilter === 'trash') {
+            return prevList.filter(item => item.id !== staff.id);
+          }
+          return prevList.map(item =>
+            item.id === staff.id ? { ...item, deleted_at: null } : item
+          );
+        });
+
+        setStats(prevStats => ({
+          ...prevStats,
+          trash: Math.max(0, (prevStats.trash || 0) - 1),
+          [staff.status]: (prevStats[staff.status] || 0) + 1
+        }));
+
+      } else if (action === 'forceDelete') {
+        const response = await api.delete(`/staff/${staff.id}/force`);
+        toast.success(response?.data?.message);
+
+        // Optimistic UI updates
+        setStaffList(prevList => prevList.filter(item => item.id !== staff.id));
+        setStats(prevStats => ({
+          ...prevStats,
+          total: Math.max(0, (prevStats.total || 0) - 1),
+          trash: Math.max(0, (prevStats.trash || 0) - 1)
+        }));
+      }
+
+      closeConfirmModal();
     } catch (err) {
-      console.error('Failed to delete staff member:', err);
-      toast.error('Failed to delete staff member');
-    } finally {
-      setIsDeleting(false);
+      toast.error(err.response?.data?.message);
+      setConfirmModal(prev => ({ ...prev, isProcessing: false }));
     }
   };
-
-  const formatShiftType = (shift) => {
-    if (!shift) return 'N/A';
-    return shift.replace('_', ' ').replace(/\b\w/g, (char) => char.toUpperCase());
-  };
-
-  const currentActiveFilterLabel =
-    roleFilter === 'all'
-      ? 'All Roles'
-      : roles.find((r) => r.id === roleFilter)?.name || 'All Roles';
 
   const columns = [
+    { label: 'ID', align: 'left' },
     { label: 'Employee', align: 'left' },
     { label: 'Roles', align: 'left' },
     { label: 'Shift Type', align: 'left' },
@@ -153,16 +244,17 @@ export default function StaffPage() {
   ];
 
   const renderRow = (staff) => {
+    const isTrashed = Boolean(staff.deleted_at);
     return (
       <tr
         key={staff.id}
         className="hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors group border-b border-gray-100 dark:border-slate-800/60 last:border-none"
       >
+        <td className="px-6 py-4 font-mono text-xs font-semibold text-gray-500 dark:text-slate-400">
+          #{staff.id}
+        </td>
         <td className="px-6 py-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 text-white flex items-center justify-center font-bold text-sm shadow-sm shrink-0">
-              {staff.name ? staff.name.split(' ').map((n) => n[0]).join('') : 'U'}
-            </div>
             <div className="min-w-0">
               <p className="font-semibold text-gray-900 dark:text-white truncate">{staff.name}</p>
               <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-slate-400 mt-0.5">
@@ -173,14 +265,14 @@ export default function StaffPage() {
             </div>
           </div>
         </td>
-        <td className="px-6 py-4 text-gray-700 dark:text-slate-300">
+        <td className="px-6 py-4 text-gray-700 dark:text-slate-300 font-medium">
           {staff.role?.name}
         </td>
         <td className="px-6 py-4 text-gray-700 dark:text-slate-300">
-          {formatShiftType(staff.shift_type)}
+          {staff.shift_type}
         </td>
         <td className="px-6 py-4 text-gray-700 dark:text-slate-300">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1  text-gray-700 dark:text-slate-300 text-xs font-medium">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-gray-700 dark:text-slate-300 text-xs font-medium">
             <Calendar className="w-3 h-3" /> {formatDate(staff.started_at)}
           </span>
         </td>
@@ -189,20 +281,43 @@ export default function StaffPage() {
         </td>
         <td className="px-6 py-4 text-right">
           <div className="flex items-center justify-end gap-1">
-            <Link
-              to={`/staff/edit/${staff.id}`}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg text-gray-500 hover:text-blue-600 transition-colors inline-block"
-              title="Edit"
-            >
-              <Edit className="w-4 h-4" />
-            </Link>
-            <button
-              onClick={() => handleOpenDeleteModal(staff)}
-              className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-gray-500 hover:text-red-600 transition-colors cursor-pointer"
-              title="Remove"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
+            {isTrashed ? (
+              <>
+                <button
+                  onClick={() => openConfirmModal(staff, 'restore')}
+                  className="p-2 rounded-lg text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-950/30 transition-colors"
+                  title="Restore"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                </button>
+                {/* <button
+                onClick={() => openConfirmModal(staff, 'forceDelete')}
+                className="p-2 rounded-lg text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors cursor-pointer"
+                title="Permanently Delete"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button> */}
+              </>
+            ) : (
+              staff.role?.name !== 'manager' && (
+                <>
+                  <Link
+                    to={`/staff/edit/${staff.id}`}
+                    className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg text-gray-500 hover:text-blue-600 transition-colors inline-block"
+                    title="Edit"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </Link>
+                  <button
+                    onClick={() => openConfirmModal(staff, 'trash')}
+                    className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-gray-500 hover:text-red-600 transition-colors cursor-pointer"
+                    title="Remove"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </>
+              )
+            )}
           </div>
         </td>
       </tr>
@@ -230,25 +345,13 @@ export default function StaffPage() {
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <StatsCard
-          label="Total Staff"
-          value={loading ? '...' : stats.total || totalRecords}
-          valueColor="text-blue-600 dark:text-blue-400"
-          icon={<Users className="w-4 h-4 text-gray-400" />}
-        />
-        <StatsCard
-          label="Active Staff"
-          value={loading ? '...' : stats.active}
-          valueColor="text-emerald-600 dark:text-emerald-400"
-          icon={<CheckCircle className="w-4 h-4 text-emerald-400" />}
-        />
-        <StatsCard
-          label="Inactive Staff"
-          value={loading ? '...' : (stats.total || totalRecords) - stats.active}
-          valueColor="text-red-600 dark:text-red-400"
-          icon={<AlertCircle className="w-4 h-4 text-red-400" />}
-        />
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <StatsCard label="Total Staff" value={loading && stats.total === 0 ? '...' : stats.total} />
+        <StatsCard label="Active Staff" value={loading && stats.active === 0 ? '...' : stats.active} />
+        <StatsCard label="Suspended" value={loading && stats.suspended === 0 ? '...' : (stats.suspended || 0)} />
+        <StatsCard label="On Leave" value={loading && stats.on_leave === 0 ? '...' : (stats.on_leave || 0)} />
+        <StatsCard label="Inactive" value={loading && stats.inactive === 0 ? '...' : stats.inactive} />
+        <StatsCard label="Trash" value={loading && stats.trash === 0 ? '...' : stats.trash} />
       </div>
 
       {/* Toolbar */}
@@ -256,9 +359,43 @@ export default function StaffPage() {
         searchQuery={searchQuery}
         onSearchChange={handleSearchChange}
         searchPlaceholder="Search by name or email..."
-        filters={['All Roles', ...roles.map((r) => r.name)]}
-        activeFilter={currentActiveFilterLabel}
-        onFilterChange={handleRoleFilterChange}
+        dropdowns={[
+          {
+            id: 'role-filter',
+            placeholder: 'Role...',
+            value: roleFilter,
+            onChange: handleRoleFilterChange,
+            options: [
+              { label: 'All Roles', value: 'all' },
+              ...roles.map((r) => ({ label: r.name, value: r.id })),
+            ],
+          },
+          {
+            id: 'shift-filter',
+            placeholder: 'Shift...',
+            value: shiftTypeFilter,
+            onChange: handleShiftTypeFilterChange,
+            options: [
+              { label: 'All Shifts', value: 'all' },
+              { label: 'Day Shift', value: 'day' },
+              { label: 'Night Shift', value: 'night' },
+            ],
+          },
+          {
+            id: 'status-filter',
+            placeholder: 'Status...',
+            value: statusFilter,
+            onChange: handleStatusFilterChange,
+            options: [
+              { label: 'All Statuses', value: 'all' },
+              { label: 'Active', value: 'active' },
+              { label: 'Suspended', value: 'suspended' },
+              { label: 'On Leave', value: 'on_leave' },
+              { label: 'Inactive', value: 'inactive' },
+              { label: 'Trash', value: 'trash' },
+            ],
+          },
+        ]}
       />
 
       {/* Staff Table & Reusable Pagination */}
@@ -270,15 +407,11 @@ export default function StaffPage() {
           loading={loading}
           error={error}
           onRetry={fetchStaff}
-          emptyIcon={searchQuery || roleFilter !== 'all' ? Search : Users}
-          emptyTitle={
-            searchQuery || roleFilter !== 'all'
-              ? 'No matching staff members'
-              : 'No staff members registered'
-          }
+          emptyIcon={isFiltered ? Search : Users}
+          emptyTitle={isFiltered ? 'No matching staff members' : 'No staff members registered'}
           emptyDescription={
-            searchQuery || roleFilter !== 'all'
-              ? 'No employees found matching standard search query or selected role.'
+            isFiltered
+              ? 'No employees found matching standard search query or selected filter.'
               : 'Get started by onboarding team members to your workspace.'
           }
         />
@@ -286,35 +419,44 @@ export default function StaffPage() {
         {!loading && !error && staffList.length > 0 && (
           <Pagination
             currentPage={currentPage}
-            totalPages={totalPages}
-            totalRecords={totalRecords}
-            onPageChange={(page) => setCurrentPage(Math.max(1, Math.min(page, totalPages)))}
+            totalPages={lastPage}
+            totalRecords={totalItems}
+            onPageChange={handlePageChange}
+            maxVisible={5}
           />
         )}
       </div>
 
-      {/* Reusable Delete Confirmation Modal */}
+      {/* Unified Confirmation Modal */}
       <ConfirmationModal
-        isOpen={isDeleteModalOpen}
-        onClose={() => {
-          if (!isDeleting) {
-            setIsDeleteModalOpen(false);
-            setStaffToDelete(null);
-          }
-        }}
-        onConfirm={handleConfirmDelete}
-        title="Remove Staff Member"
-        message={
-          <>
-            Are you sure you want to delete the{' '}
-            <span className="font-bold text-slate-900 dark:text-slate-200">
-              {staffToDelete?.name}
-            </span>{' '}
-            staff member? This action cannot be undone.
-          </>
+        isOpen={confirmModal.isOpen}
+        onClose={closeConfirmModal}
+        onConfirm={handleConfirmAction}
+        title={
+          confirmModal.action === 'trash' ? 'Move Staff to Trash' :
+          confirmModal.action === 'restore' ? 'Restore Staff Member' :
+          'Permanently Delete Staff'
         }
-        isLoading={isDeleting}
-        confirmText="Remove"
+        message={
+          confirmModal.action === 'trash' ? (
+            <>Are you sure you want to move <span className="font-bold text-slate-900 dark:text-slate-200">{confirmModal.staff?.name}</span> to the trash? They will lose access immediately, but can be restored later.</>
+          ) : confirmModal.action === 'restore' ? (
+            <>Are you sure you want to restore <span className="font-bold text-slate-900 dark:text-slate-200">{confirmModal.staff?.name}</span>? They will regain their previous access.</>
+          ) : (
+            <>Are you sure you want to <span className="font-bold text-rose-600">permanently delete</span> <span className="font-bold text-slate-900 dark:text-slate-200">{confirmModal.staff?.name}</span>? This action cannot be undone and will permanently destroy their record.</>
+          )
+        }
+        isLoading={confirmModal.isProcessing}
+        confirmText={
+          confirmModal.action === 'trash' ? 'Move to Trash' :
+          confirmModal.action === 'restore' ? 'Restore' :
+          'Permanently Delete'
+        }
+        confirmClassName={
+          confirmModal.action === 'forceDelete' 
+            ? 'bg-rose-600 hover:bg-rose-700 text-white' 
+            : 'bg-orange-600 hover:bg-orange-700 text-white'
+        }
       />
     </div>
   );

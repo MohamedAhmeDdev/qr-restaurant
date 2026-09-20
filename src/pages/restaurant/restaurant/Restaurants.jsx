@@ -2,11 +2,12 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Search, ChefHat,
-  Archive, Layers, X, PlusCircle
+  Search, ChefHat, Archive, Layers, X, PlusCircle,
+  User, Settings, LogOut, ChevronDown
 } from 'lucide-react';
 import api from '../../../services/api';
 import { useRestaurant } from '../../../contexts/RestaurantContext';
+// import { useAuth } from '../../../contexts/AuthContext'; // Uncomment when you have an auth context
 import ConfirmationModal from '../../../components/common/ConfirmationModal';
 import RestaurantGrid from '../../../components/cards/RestaurantGrid';
 import toast from 'react-hot-toast';
@@ -14,6 +15,7 @@ import { RestaurantService } from '../../../services/restaurant';
 
 export default function Restaurants() {
   const navigate = useNavigate();
+  // const { logout } = useAuth(); // Uncomment when you have an auth context
 
   // ── Shared context ──
   const {
@@ -32,6 +34,9 @@ export default function Restaurants() {
   const [isSwitching, setIsSwitching] = useState(null);
   const [openMenuId, setOpenMenuId] = useState(null);
   const [pendingAction, setPendingAction] = useState(null);
+  
+  // Profile dropdown state
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   // Delete modal state
   const [deleteModalState, setDeleteModalState] = useState({
@@ -42,6 +47,14 @@ export default function Restaurants() {
 
   const searchInputRef = useRef(null);
   const menuRefs = useRef({});
+  const profileRef = useRef(null);
+
+  // Mock user data (Replace with your actual auth context data)
+  const currentUser = {
+    name: 'Platform Owner',
+    email: 'ma07041705@gmail.com',
+    initials: 'PO',
+  };
 
   // Fetch list (search + tab aware)
   const fetchRestaurants = useCallback(async (query = '', tab = 'active') => {
@@ -77,15 +90,21 @@ export default function Restaurants() {
     return () => clearTimeout(timer);
   }, [searchQuery, activeTab, fetchRestaurants]);
 
-  // Close open row menu on Escape key press or outside click
+  // Close open menus on Escape key press or outside click
   useEffect(() => {
     const onKey = (e) => {
-      if (e.key === 'Escape') setOpenMenuId(null);
+      if (e.key === 'Escape') {
+        setOpenMenuId(null);
+        setIsProfileOpen(false);
+      }
     };
 
     const handleClickOutside = (e) => {
       if (openMenuId && !menuRefs.current[openMenuId]?.contains(e.target)) {
         setOpenMenuId(null);
+      }
+      if (isProfileOpen && profileRef.current && !profileRef.current.contains(e.target)) {
+        setIsProfileOpen(false);
       }
     };
 
@@ -95,7 +114,7 @@ export default function Restaurants() {
       window.removeEventListener('keydown', onKey);
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [openMenuId]);
+  }, [openMenuId, isProfileOpen]);
 
   const handleTabChange = (tab) => {
     if (tab === activeTab) return;
@@ -243,6 +262,21 @@ export default function Restaurants() {
     setOpenMenuId(openMenuId === restaurantId ? null : restaurantId);
   };
 
+  // Handle Logout
+  const handleLogout = async () => {
+    try {
+      // await logout(); // Uncomment when using Auth Context
+      // await api.post('/logout'); // Or direct API call
+      
+      clearActiveRestaurant();
+      toast.success('Signed out successfully');
+      navigate('/login'); // Adjust route as needed
+    } catch (err) {
+      console.error('Logout failed', err);
+      toast.error('Failed to sign out');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-orange-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 px-4 py-8 sm:px-6 lg:px-8">
       {/* Header Section */}
@@ -264,15 +298,62 @@ export default function Restaurants() {
             </div>
           </div>
 
-          {activeTab === 'active' && (
-            <button
-              onClick={() => navigate('/restaurant/create')}
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-xl text-sm font-semibold transition-all duration-200 shadow-lg shadow-orange-500/25 hover:shadow-xl hover:shadow-orange-500/30 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
+          <div className="flex items-center gap-3">
+            {activeTab === 'active' && (
+              <button
+                onClick={() => navigate('/restaurant/create')}
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-xl text-sm font-semibold transition-all duration-200 shadow-lg shadow-orange-500/25 hover:shadow-xl hover:shadow-orange-500/30 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
+              >
+                <PlusCircle className="w-4 h-4" />
+                Add Restaurant
+              </button>
+            )}
+
+              <button
+              onClick={() => navigate('/organization/settings')}
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-xl text-sm font-semibold transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
             >
-              <PlusCircle className="w-4 h-4" />
-              Add Restaurant
+              <Settings className="w-4 h-4" />
+              Organization Settings
             </button>
-          )}
+            {/* ── Account / Profile Dropdown ── */}
+            <div className="relative" ref={profileRef}>
+              <button
+                onClick={() => setIsProfileOpen(!isProfileOpen)}
+                className="flex items-center gap-3 pl-1 pr-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
+              >
+                <div className="w-8 h-8 rounded-lg bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 flex items-center justify-center text-xs font-bold">
+                  {currentUser.initials}
+                </div>
+                <div className="hidden sm:block text-left">
+                  <p className="text-sm font-semibold text-slate-900 dark:text-white leading-none">
+                    {currentUser.name}
+                  </p>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+                    Super Admin
+                  </p>
+                </div>
+                <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isProfileOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {/* Dropdown Menu */}
+              {isProfileOpen && (
+                <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-800 rounded-xl shadow-xl shadow-slate-200/50 dark:shadow-slate-950/50 border border-slate-200 dark:border-slate-700 py-1.5 z-50 animate-in fade-in zoom-in-95 duration-150">
+
+                  <button
+                    onClick={() => {
+                      setIsProfileOpen(false);
+                      handleLogout();
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Sign Out
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
