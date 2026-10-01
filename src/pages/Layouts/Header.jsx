@@ -15,7 +15,7 @@ export default function Header({ setMobileOpen }) {
   const { user } = useAuth();
 
   return (
-    <header className="sticky top-0 z-30 flex items-center justify-between h-16 px-4 bg-white dark:bg-slate-900 border-b border-gray-200/80 dark:border-slate-700/50 sm:px-6 lg:px-8 shadow-sm transition-colors duration-300">
+    <header className="sticky top-0 z-30 flex items-center justify-between h-16 px-4 bg-white dark:bg-slate-900 border-b border-gray-200/80 dark:border-slate-700/50 sm:px-6 lg:px-8 transition-colors duration-300">
       <div className="flex items-center flex-1">
         <button
           onClick={() => setMobileOpen(true)}

@@ -135,7 +135,7 @@ export default function SecurityTab() {
         </div>
 
         {/* Password Form Card */}
-        <div className="p-6 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl shadow-xs space-y-6">
+        <div className="p-6 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-md space-y-6">
           <div className="grid grid-cols-1 gap-5">
             {/* Old Password */}
             <div>
@@ -156,7 +156,7 @@ export default function SecurityTab() {
                     }
                   }}
                   placeholder="Enter your current password"
-                  className={`w-full pl-10 pr-3.5 py-2 bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 border rounded-lg text-sm transition-all focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 ${
+                  className={`w-full pl-10 pr-3.5 py-2 bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 border rounded-md text-sm transition-all focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 ${
                     passwordErrors.currentPassword
                       ? 'border-red-500 dark:border-red-500'
                       : 'border-gray-300 dark:border-slate-800'
@@ -190,7 +190,7 @@ export default function SecurityTab() {
                     }
                   }}
                   placeholder="Enter your new password"
-                  className={`w-full pl-10 pr-3.5 py-2 bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 border rounded-lg text-sm transition-all focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 ${
+                  className={`w-full pl-10 pr-3.5 py-2 bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 border rounded-md text-sm transition-all focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 ${
                     passwordErrors.newPassword
                       ? 'border-red-500 dark:border-red-500'
                       : 'border-gray-300 dark:border-slate-800'
@@ -252,7 +252,7 @@ export default function SecurityTab() {
                     }
                   }}
                   placeholder="Confirm your new password"
-                  className={`w-full pl-10 pr-3.5 py-2 bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 border rounded-lg text-sm transition-all focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 ${
+                  className={`w-full pl-10 pr-3.5 py-2 bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 border rounded-md text-sm transition-all focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 ${
                     passwordErrors.confirmPassword
                       ? 'border-red-500 dark:border-red-500'
                       : 'border-gray-300 dark:border-slate-800'
@@ -274,7 +274,7 @@ export default function SecurityTab() {
           <button
             type="submit"
             disabled={savingPassword}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold text-white shadow-xs transition-all ${
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold text-white shadow-xs transition-all ${
               !savingPassword
                 ? 'bg-orange-500 hover:bg-orange-600 active:bg-orange-700 cursor-pointer'
                 : 'bg-gray-300 dark:bg-slate-800 text-gray-500 dark:text-slate-500 cursor-not-allowed'
@@ -313,7 +313,7 @@ export default function SecurityTab() {
         </div>
 
         {/* 2FA Card */}
-        <div className="p-6 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl shadow-xs space-y-4">
+        <div className="p-6 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-md space-y-4">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-semibold text-gray-900 dark:text-slate-200 flex items-center gap-2">

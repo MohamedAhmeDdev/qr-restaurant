@@ -133,10 +133,10 @@ export default function PermissionsPage() {
 
   // Render permission rows grouped by category
   const renderPermissionGroup = (category, perms) => (
-    <div key={category} className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden transition-colors duration-200">
+    <div key={category} className="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 overflow-hidden transition-colors duration-200">
       <div className="px-6 py-3.5 bg-slate-100 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between transition-colors duration-200">
         <div className="flex items-center gap-2 font-bold text-sm text-slate-800 dark:text-slate-200">
-          <span>{category.charAt(0).toUpperCase() + category.slice(1)} Scope Capabilities</span>
+          <span>{category.charAt(0).toUpperCase() + category.slice(1)}</span>
         </div>
         <span className="text-xs text-slate-500 dark:text-slate-400 font-medium transition-colors duration-200">
           {perms.length} Permissions
@@ -144,7 +144,7 @@ export default function PermissionsPage() {
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full text-left text-sm">
+        <table className="w-full text-left text-sm whitespace-nowrap">
           <thead className="text-slate-500 dark:text-slate-400 font-medium text-xs bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-800 transition-colors duration-200">
             <tr>
               <th className="px-6 py-3">Permission</th>
@@ -177,7 +177,7 @@ export default function PermissionsPage() {
                       <Link
                         to={`/permissions/edit/${permId}`}
                         title="Edit permission"
-                        className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors duration-200"
+                        className="p-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-white transition-colors duration-200"
                       >
                         <Edit className="w-4 h-4" />
                       </Link>
@@ -185,7 +185,7 @@ export default function PermissionsPage() {
                         disabled={isDeletingThis}
                         onClick={() => handleDeleteClick(perm)}
                         title="Delete permission"
-                        className="p-1.5 rounded-lg transition-colors duration-200 hover:bg-rose-50 dark:hover:bg-rose-950 text-rose-600 dark:text-rose-400"
+                        className="p-1.5 rounded-md transition-colors duration-200 hover:bg-rose-50 dark:hover:bg-rose-950 text-rose-600 dark:text-rose-400"
                       >
                         {isDeletingThis ? (
                           <Loader2 className="w-4 h-4 animate-spin" />
@@ -215,7 +215,7 @@ export default function PermissionsPage() {
         </div>
         <Link
           to="/permissions/create"
-          className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-sm font-medium transition-colors duration-200 shadow-sm"
+          className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-sm text-sm font-medium transition-colors duration-200"
         >
           <PlusCircle className="w-4 h-4" /> Create Permission
         </Link>
@@ -246,7 +246,7 @@ export default function PermissionsPage() {
         /* SKELETON LOADING STATE */
         <div className="space-y-6">
           {[...Array(2)].map((_, idx) => (
-            <div key={idx} className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden animate-pulse">
+            <div key={idx} className="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 overflow-hidden animate-pulse">
               <div className="px-6 py-3.5 bg-slate-100 dark:bg-slate-900 flex justify-between items-center">
                 <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-48" />
                 <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-20" />
@@ -267,7 +267,7 @@ export default function PermissionsPage() {
           ))}
         </div>
       ) : error ? (
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden p-6">
+        <div className="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 overflow-hidden p-6">
           <EmptyState
             icon={AlertCircle}
             title="Unable to load permissions"
@@ -283,7 +283,7 @@ export default function PermissionsPage() {
           />
         </div>
       ) : Object.keys(groupedPermissions).length === 0 ? (
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden p-6">
+        <div className="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 overflow-hidden p-6">
           <EmptyState
             icon={KeyRound}
             title="No permissions found"

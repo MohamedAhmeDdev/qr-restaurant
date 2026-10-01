@@ -3,10 +3,8 @@ import {
   UserPlus,
   Mail,
   Building2,
-  CheckCircle,
   RotateCw,
   Send,
-  Users,
   User,
   Calendar,
   Trash2
@@ -38,10 +36,12 @@ export default function Invitations() {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Fetch invitations on mount
-  const fetchInvitations = useCallback(async () => {
+  // Fetch invitations
+  const fetchInvitations = useCallback(async (isSilent = false) => {
     try {
-      setLoading(true);
+      if (!isSilent) {
+        setLoading(true);
+      }
       setError(null);
       const response = await api.get('/invitations');
       const data = response.data?.data;
@@ -49,7 +49,9 @@ export default function Invitations() {
     } catch (err) {
       setError(err.response?.data?.message);
     } finally {
-      setLoading(false);
+      if (!isSilent) {
+        setLoading(false);
+      }
     }
   }, []);
 
@@ -78,8 +80,8 @@ export default function Invitations() {
       setIsInviteModalOpen(false);
       setResendTarget(null);
 
-      // Refresh background data to ensure state synchronization
-      fetchInvitations();
+      // Perform a silent refresh so table data stays synced without full loading state
+      fetchInvitations(true);
     } catch (err) {
       toast.error(err.response?.data?.message);
     } finally {
@@ -154,6 +156,7 @@ export default function Invitations() {
     { label: 'Recipient', align: 'left' },
     { label: 'Organization', align: 'left' },
     { label: 'Invited By', align: 'left' },
+    { label: 'Date', align: 'left' },
     { label: 'Status', align: 'left' },
     { label: 'Actions', align: 'right' }
   ];
@@ -210,6 +213,12 @@ export default function Invitations() {
             </div>
           </div>
         </td>
+        <td className="px-6 py-4 text-xs font-medium text-gray-600 dark:text-slate-300 transition-colors duration-200">
+          <div className="flex items-center gap-1.5">
+            <Calendar className="w-3.5 h-3.5 text-gray-400 dark:text-slate-500 transition-colors duration-200" />
+            <span>{formatDate(item.created_at)}</span>
+          </div>
+        </td>
 
         {/* Dynamic Status Display */}
         <td className="px-6 py-4">
@@ -233,7 +242,7 @@ export default function Invitations() {
                 onClick={() => handleResendInvitation(item)}
                 disabled={isResending}
                 title="Resend Invitation"
-                className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/50 rounded-lg transition-colors duration-200 disabled:opacity-50"
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/50 rounded-md transition-colors duration-200 disabled:opacity-50"
               >
                 <RotateCw className={`w-3.5 h-3.5 ${isResending ? 'animate-spin' : ''}`} />
                 <span>Resend</span>
@@ -242,7 +251,7 @@ export default function Invitations() {
             <button
               onClick={() => setDeleteTarget(item)}
               title="Delete Invitation"
-              className="p-1.5 text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg transition-colors duration-200"
+              className="p-1.5 text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-md transition-colors duration-200"
             >
               <Trash2 className="w-4 h-4" />
             </button>
@@ -273,9 +282,6 @@ export default function Invitations() {
       {/* PAGE HEADER */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-gradient-to-br from-orange-500/20 to-pink-500/20 dark:from-orange-500/30 dark:to-pink-500/30">
-            <Send className="w-6 h-6 text-orange-500 dark:text-orange-400" />
-          </div>
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white transition-colors duration-200">Invitations</h1>
             <p className="text-sm text-gray-500 dark:text-slate-400 transition-colors duration-200">
@@ -290,7 +296,7 @@ export default function Invitations() {
             setInviteResult(null);
             setIsInviteModalOpen(true);
           }}
-          className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-sm font-medium transition-colors duration-200 shadow-sm"
+          className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-sm text-sm font-medium transition-colors duration-200"
         >
           <UserPlus className="w-4 h-4" /> Send New Invitation
         </button>
@@ -312,8 +318,7 @@ export default function Invitations() {
         />
       </div>
 
-      {/* TABLE CONTAINER */}
-      <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-800 shadow-sm overflow-hidden transition-colors duration-200">
+
         <Toolbar
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
@@ -323,6 +328,8 @@ export default function Invitations() {
           onFilterChange={() => {}}
         />
 
+      {/* TABLE CONTAINER */}
+      <div className="bg-white dark:bg-slate-900 rounded-md border border-gray-200 dark:border-slate-800 overflow-hidden transition-colors duration-200">
         <Table
           columns={columns}
           data={filteredInvitations}
@@ -367,7 +374,7 @@ export default function Invitations() {
          <>
             Are you sure you want to delete the{' '}
             <span className="font-bold text-slate-900 dark:text-slate-200">
-              ${deleteTarget?.email}
+              {deleteTarget?.email}
             </span>{' '}
             invitation? This action cannot be undone.
           </>

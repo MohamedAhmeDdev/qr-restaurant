@@ -199,9 +199,9 @@ export default function AssignPermissions() {
       )}
 
       {/* SUMMARY BANNER */}
-      <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-sm transition-colors duration-200">
+      <div className="bg-white dark:bg-slate-900 p-4 rounded-md border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 transition-colors duration-200">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-lg bg-orange-100 dark:bg-orange-950 text-orange-600 dark:text-orange-400 transition-colors duration-200">
+          <div className="p-2.5 rounded-md bg-orange-100 dark:bg-orange-950 text-orange-600 dark:text-orange-400 transition-colors duration-200">
             <Shield className="w-5 h-5" />
           </div>
           <div>
@@ -215,15 +215,15 @@ export default function AssignPermissions() {
         </div>
 
         {isDirty && !isPageLoading && (
-          <div className="flex items-center gap-1.5 text-xs font-medium text-amber-600 dark:text-amber-300 bg-amber-50 dark:bg-amber-950 px-3 py-1.5 rounded-lg border border-amber-200 dark:border-amber-900 transition-colors duration-200">
+          <div className="flex items-center gap-1.5 text-xs font-medium text-amber-600 dark:text-amber-300 bg-amber-50 dark:bg-amber-950 px-3 py-1.5 rounded-md border border-amber-200 dark:border-amber-900 transition-colors duration-200">
             <AlertCircle className="w-4 h-4 shrink-0" /> Unsaved changes pending
           </div>
         )}
       </div>
 
       {/* CATEGORY FILTER TOOLBAR */}
-      <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-4 shadow-sm transition-colors duration-200">
-        <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg text-xs font-medium overflow-x-auto w-full sm:w-auto transition-colors duration-200">
+      <div className="bg-white dark:bg-slate-900 p-4 rounded-md border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-4 transition-colors duration-200">
+        <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-md text-xs font-medium overflow-x-auto w-full sm:w-auto transition-colors duration-200">
           {groupsLoading ? (
             <div className="flex items-center gap-1 px-3 py-1.5">
               {[...Array(4)].map((_, idx) => (
@@ -241,7 +241,7 @@ export default function AssignPermissions() {
                 onClick={() => setSelectedCategory(cat)}
                 className={`px-3 py-1.5 rounded-md transition-all duration-200 whitespace-nowrap capitalize ${
                   selectedCategory === cat 
-                    ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm font-semibold' 
+                    ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs font-semibold' 
                     : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
@@ -256,7 +256,7 @@ export default function AssignPermissions() {
       {isPageLoading ? (
         <div className="space-y-6">
           {[...Array(2)].map((_, idx) => (
-            <div key={idx} className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden animate-pulse">
+            <div key={idx} className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden animate-pulse">
               <div className="px-6 py-3.5 bg-slate-50 dark:bg-slate-800 flex justify-between items-center">
                 <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-32" />
                 <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-16" />
@@ -276,7 +276,7 @@ export default function AssignPermissions() {
           ))}
         </div>
       ) : apiError ? (
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 transition-colors duration-200">
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800  p-6 transition-colors duration-200">
           <EmptyState
             icon={AlertCircle}
             title={apiError}
@@ -284,7 +284,7 @@ export default function AssignPermissions() {
             action={
               <button
                 onClick={fetchData}
-                className="px-3.5 py-1.5 text-xs font-medium rounded-lg bg-rose-600 hover:bg-rose-700 text-white transition-colors duration-200"
+                className="px-3.5 py-1.5 text-xs font-medium rounded-md bg-rose-600 hover:bg-rose-700 text-white transition-colors duration-200"
               >
                 Try Again
               </button>
@@ -292,7 +292,7 @@ export default function AssignPermissions() {
           />
         </div>
       ) : Object.keys(groupedPermissions).length === 0 ? (
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 transition-colors duration-200">
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 transition-colors duration-200">
           <EmptyState
             icon={Shield}
             title="No permissions found"
@@ -306,7 +306,7 @@ export default function AssignPermissions() {
       ) : (
         <div className="space-y-6">
           {Object.entries(groupedPermissions).map(([category, perms]) => (
-            <div key={category} className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden transition-colors duration-200">
+            <div key={category} className="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 overflow-hidden transition-colors duration-200">
               
               {/* Category Sub-Header */}
               <div className="px-6 py-3.5 bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between transition-colors duration-200">
@@ -366,13 +366,13 @@ export default function AssignPermissions() {
       )}
 
       {/* BOTTOM ACTION BAR */}
-      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 shadow-sm transition-colors duration-200">
+      <div className="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 p-4  transition-colors duration-200">
         <div className="flex items-center justify-end gap-3">
           <button
             type="button"
             onClick={handleSave}
             disabled={!isDirty || isSaving || isPageLoading}
-            className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-colors duration-200 shadow-sm ${
+            className={`flex items-center gap-2 px-5 py-2 rounded-md text-sm font-semibold transition-colors duration-200 ${
               isDirty && !isSaving && !isPageLoading
                 ? 'bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer'
                 : 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed'

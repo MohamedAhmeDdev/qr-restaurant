@@ -36,7 +36,7 @@ export default function ProfileTab() {
       </div>
 
       {/* Profile Details Card */}
-      <div className="p-6 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl shadow-xs space-y-6">
+      <div className="p-6 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-md space-y-6">
         <div className="grid grid-cols-1 gap-5">
           {/* Full Name */}
           <div>
@@ -51,7 +51,7 @@ export default function ProfileTab() {
                 type="text"
                 readOnly
                 value={user?.name || ''}
-                className="w-full pl-10 pr-3.5 py-2 bg-gray-100/70 dark:bg-slate-950/60 text-gray-600 dark:text-slate-400 border border-gray-200 dark:border-slate-800/80 rounded-lg text-sm outline-none cursor-not-allowed"
+                className="w-full pl-10 pr-3.5 py-2 bg-gray-100/70 dark:bg-slate-950/60 text-gray-600 dark:text-slate-400 border border-gray-200 dark:border-slate-800/80 rounded-md text-sm outline-none cursor-not-allowed"
               />
             </div>
           </div>
@@ -69,7 +69,7 @@ export default function ProfileTab() {
                 type="email"
                 readOnly
                 value={user?.email || ''}
-                className="w-full pl-10 pr-3.5 py-2 bg-gray-100/70 dark:bg-slate-950/60 text-gray-600 dark:text-slate-400 border border-gray-200 dark:border-slate-800/80 rounded-lg text-sm outline-none cursor-not-allowed"
+                className="w-full pl-10 pr-3.5 py-2 bg-gray-100/70 dark:bg-slate-950/60 text-gray-600 dark:text-slate-400 border border-gray-200 dark:border-slate-800/80 rounded-md text-sm outline-none cursor-not-allowed"
               />
             </div>
           </div>
@@ -87,7 +87,7 @@ export default function ProfileTab() {
                 type="text"
                 readOnly
                 value={formatRole(user?.role)}
-                className="w-full pl-10 pr-3.5 py-2 bg-gray-100/70 dark:bg-slate-950/60 text-gray-600 dark:text-slate-400 border border-gray-200 dark:border-slate-800/80 rounded-lg text-sm outline-none cursor-not-allowed"
+                className="w-full pl-10 pr-3.5 py-2 bg-gray-100/70 dark:bg-slate-950/60 text-gray-600 dark:text-slate-400 border border-gray-200 dark:border-slate-800/80 rounded-md text-sm outline-none cursor-not-allowed"
               />
             </div>
           </div>

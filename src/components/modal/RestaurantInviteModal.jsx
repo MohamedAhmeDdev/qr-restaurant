@@ -62,7 +62,7 @@ export function RestaurantInviteModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
       {/* MODAL CONTAINER */}
-      <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 w-full max-w-lg rounded-2xl shadow-xl overflow-hidden text-gray-900 dark:text-slate-100 flex flex-col">
+      <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 w-full max-w-lg rounded-md overflow-hidden text-gray-900 dark:text-slate-100 flex flex-col">
         {/* MODAL HEADER */}
         <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-slate-800">
           <div>
@@ -120,7 +120,7 @@ export function RestaurantInviteModal({
               <button
                 type="submit"
                 disabled={isSending || !email.trim()}
-                className={`flex items-center gap-2 px-4 py-2 text-white rounded-lg text-sm font-medium transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed ${
+                className={`flex items-center gap-2 px-4 py-2 text-white rounded-md text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                   isResend 
                     ? 'bg-blue-500 hover:bg-blue-600' 
                     : 'bg-orange-500 hover:bg-orange-600'
