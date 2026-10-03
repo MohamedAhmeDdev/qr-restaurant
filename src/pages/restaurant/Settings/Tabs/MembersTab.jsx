@@ -105,12 +105,12 @@ export default function MembersTab() {
             }
 
             const response = await api.get('/organization/staff', { params });
-            
+
             setMembers(response.data?.data);
             setStats(response.data?.stats);
             setLastPage(response.data?.pagination?.last_page || 1);
             setTotalItems(response.data?.pagination?.total || 0);
-            
+
         } catch (err) {
             setError(err.response?.data?.message);
         } finally {
@@ -261,8 +261,8 @@ export default function MembersTab() {
         const assignedRestaurant = member.restaurants?.[0];
 
         return (
-            <tr 
-                key={member.id} 
+            <tr
+                key={member.id}
                 className={`transition-colors ${isTrashed ? 'bg-rose-50/20 dark:bg-rose-950/10' : 'hover:bg-gray-50/60 dark:hover:bg-slate-800/30'}`}
             >
                 <td className="px-6 py-4 font-mono text-xs font-semibold text-gray-500 dark:text-slate-400">
@@ -286,9 +286,9 @@ export default function MembersTab() {
                 </td>
 
                 <td className="px-6 py-3.5">
-                  <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-gray-700 dark:text-slate-300">
-                            {assignedRestaurant?.name}
-                        </span>
+                    <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-gray-700 dark:text-slate-300">
+                        {assignedRestaurant?.name}
+                    </span>
                 </td>
 
                 <td className="px-6 py-3.5">
@@ -302,21 +302,21 @@ export default function MembersTab() {
                 </td>
 
                 <td className="px-6 py-3.5">
-                  <StatusBadge status={member.status} />
+                    <StatusBadge status={member.status} />
                 </td>
 
                 <td className="px-6 py-3.5 text-right">
                     <div className="flex items-center justify-end gap-1">
                         {isTrashed ? (
-                             <>
-                            <button 
-                                type="button" 
-                                onClick={() => openConfirmModal(member, 'restore')} 
-                                className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/50 rounded-lg transition-colors duration-200"
-                            >
-                                <RotateCcw className="w-3.5 h-3.5" /> 
-                               <span>Restore</span>
-                          </button>
+                            <>
+                                <button
+                                    type="button"
+                                    onClick={() => openConfirmModal(member, 'restore')}
+                                    className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/50 rounded-lg transition-colors duration-200"
+                                >
+                                    <RotateCcw className="w-3.5 h-3.5" />
+                                    <span>Restore</span>
+                                </button>
 
                                 {/* <button 
                                     type="button" 
@@ -329,18 +329,18 @@ export default function MembersTab() {
                             </>
                         ) : (
                             <>
-                                <button 
-                                    type="button" 
-                                    onClick={() => openEditModal(member)} 
-                                    className="p-1.5 text-gray-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 rounded-lg transition-colors cursor-pointer" 
+                                <button
+                                    type="button"
+                                    onClick={() => openEditModal(member)}
+                                    className="p-1.5 text-gray-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 rounded-lg transition-colors cursor-pointer"
                                     title="Edit Info"
                                 >
                                     <Pencil className="w-4 h-4" />
                                 </button>
-                                <button 
-                                    type="button" 
-                                    onClick={() => openConfirmModal(member, 'trash')} 
-                                    className="p-1.5 text-gray-500 hover:text-rose-600 dark:text-slate-400 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors cursor-pointer" 
+                                <button
+                                    type="button"
+                                    onClick={() => openConfirmModal(member, 'trash')}
+                                    className="p-1.5 text-gray-500 hover:text-rose-600 dark:text-slate-400 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors cursor-pointer"
                                     title="Move to Trash"
                                 >
                                     <Trash2 className="w-4 h-4" />
@@ -356,54 +356,45 @@ export default function MembersTab() {
     return (
         <div className="max-w-7xl space-y-6 relative">
             {/* Header Section */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-4 border-b border-gray-200/80 dark:border-slate-800 gap-4">
-                <div className="flex items-center gap-3">
-                    <div className="p-2.5 rounded-xl bg-orange-500/10 text-orange-500 ring-1 ring-orange-500/20">
-                        <Users className="w-6 h-6" />
-                    </div>
-                    <div>
-                        <h2 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">
-                            Staff & Permissions
-                        </h2>
-                        <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
-                            Manage roles, account statuses, shift schedules, and staff access.
-                        </p>
-                    </div>
+            <div className="flex items-start justify-between border-b border-gray-200 dark:border-slate-800 pb-5">
+                <div>
+                    <h2 className="text-md md:text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2.5">
+                        <div className="p-2 bg-orange-500/10 dark:bg-orange-500/20 rounded-md text-orange-500">
+                            <Users className="w-5 h-5" />
+                        </div>
+                        Staff & Permissions
+                    </h2>
+                    <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">
+                        Manage roles, account statuses, shift schedules, and staff access.
+                    </p>
                 </div>
-
-                <button
-                    type="button"
-                    onClick={openCreateModal}
-                    className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 active:scale-[0.98] text-white text-xs font-semibold rounded-xl shadow-md shadow-orange-500/10 transition-all cursor-pointer shrink-0"
-                >
-                    <UserPlus className="w-4 h-4" />
-                    Add Staff Member
-                </button>
             </div>
+
+
 
             {/* Stats Summary Bar */}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-                <div className="p-3 bg-white dark:bg-slate-900 border border-gray-200/80 dark:border-slate-800 rounded-xl">
+                <div className="p-3 bg-white dark:bg-slate-900 border border-gray-200/80 dark:border-slate-800 rounded-md">
                     <p className="text-xs text-gray-500 dark:text-slate-400">Total Staff</p>
                     <p className="text-lg font-bold text-gray-900 dark:text-white mt-1">{stats.total}</p>
                 </div>
-                <div className="p-3 bg-white dark:bg-slate-900 border border-gray-200/80 dark:border-slate-800 rounded-xl">
+                <div className="p-3 bg-white dark:bg-slate-900 border border-gray-200/80 dark:border-slate-800 rounded-md">
                     <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">Active</p>
                     <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-1">{stats.active}</p>
                 </div>
-                <div className="p-3 bg-white dark:bg-slate-900 border border-gray-200/80 dark:border-slate-800 rounded-xl">
+                <div className="p-3 bg-white dark:bg-slate-900 border border-gray-200/80 dark:border-slate-800 rounded-md">
                     <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">Suspended</p>
                     <p className="text-lg font-bold text-amber-600 dark:text-amber-400 mt-1">{stats.suspended || 0}</p>
                 </div>
-                <div className="p-3 bg-white dark:bg-slate-900 border border-gray-200/80 dark:border-slate-800 rounded-xl">
+                <div className="p-3 bg-white dark:bg-slate-900 border border-gray-200/80 dark:border-slate-800 rounded-md">
                     <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">On Leave</p>
                     <p className="text-lg font-bold text-blue-600 dark:text-blue-400 mt-1">{stats.on_leave || 0}</p>
                 </div>
-                <div className="p-3 bg-white dark:bg-slate-900 border border-gray-200/80 dark:border-slate-800 rounded-xl">
+                <div className="p-3 bg-white dark:bg-slate-900 border border-gray-200/80 dark:border-slate-800 rounded-md">
                     <p className="text-xs text-slate-500 dark:text-slate-400">Inactive</p>
                     <p className="text-lg font-bold text-slate-600 dark:text-slate-300 mt-1">{stats.inactive || 0}</p>
                 </div>
-                <div className="p-3 bg-white dark:bg-slate-900 border border-gray-200/80 dark:border-slate-800 rounded-xl">
+                <div className="p-3 bg-white dark:bg-slate-900 border border-gray-200/80 dark:border-slate-800 rounded-md">
                     <p className="text-xs text-rose-500 dark:text-rose-400">Trashed</p>
                     <p className="text-lg font-bold text-rose-600 dark:text-rose-400 mt-1">{stats.trash}</p>
                 </div>
@@ -419,7 +410,7 @@ export default function MembersTab() {
                         placeholder="Search staff by name or email..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-10 pr-9 py-2 bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 border border-gray-200 dark:border-slate-800 rounded-xl text-xs transition-all focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 shadow-xs"
+                        className="w-full pl-10 pr-9 py-2 bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 border border-gray-200 dark:border-slate-800 rounded-md text-xs transition-all focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
                     />
                     {searchQuery && (
                         <button
@@ -440,7 +431,7 @@ export default function MembersTab() {
                         <select
                             value={statusFilter}
                             onChange={(e) => setStatusFilter(e.target.value)}
-                            className="w-full pl-10 pr-8 py-2 bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 border border-gray-200 dark:border-slate-800 rounded-xl text-xs transition-all focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 shadow-xs appearance-none cursor-pointer"
+                            className="w-full pl-10 pr-8 py-2 bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 border border-gray-200 dark:border-slate-800 rounded-md text-xs transition-all focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 appearance-none cursor-pointer"
                         >
                             <option value="active">Active Staff</option>
                             <option value="suspended">Suspended</option>
@@ -461,7 +452,7 @@ export default function MembersTab() {
                         <select
                             value={shiftTypeFilter}
                             onChange={(e) => setShiftTypeFilter(e.target.value)}
-                            className="w-full pl-10 pr-8 py-2 bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 border border-gray-200 dark:border-slate-800 rounded-xl text-xs transition-all focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 shadow-xs appearance-none cursor-pointer"
+                            className="w-full pl-10 pr-8 py-2 bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 border border-gray-200 dark:border-slate-800 rounded-md text-xs transition-all focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 appearance-none cursor-pointer"
                         >
                             <option value="all">All Shifts</option>
                             <option value="day">Day Shift</option>
@@ -480,7 +471,7 @@ export default function MembersTab() {
                         <select
                             value={selectedRestaurantFilter}
                             onChange={(e) => setSelectedRestaurantFilter(e.target.value)}
-                            className="w-full pl-10 pr-8 py-2 bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 border border-gray-200 dark:border-slate-800 rounded-xl text-xs transition-all focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 shadow-xs appearance-none cursor-pointer"
+                            className="w-full pl-10 pr-8 py-2 bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 border border-gray-200 dark:border-slate-800 rounded-md text-xs transition-all focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 appearance-none cursor-pointer"
                         >
                             <option value="all">All Restaurants</option>
                             {restaurants.map((restaurant) => (
@@ -499,7 +490,7 @@ export default function MembersTab() {
             </div>
 
             {/* Table Container Card */}
-            <div className="bg-white dark:bg-slate-900 border border-gray-200/80 dark:border-slate-800 rounded-2xl shadow-xs overflow-hidden">
+            <div className="bg-white dark:bg-slate-900 border border-gray-200/80 dark:border-slate-800 rounded-md overflow-hidden">
                 <Table
                     columns={columns}
                     data={members}
@@ -541,8 +532,8 @@ export default function MembersTab() {
                 onConfirm={handleConfirmAction}
                 title={
                     confirmModal.action === 'trash' ? 'Move Staff to Trash' :
-                    confirmModal.action === 'restore' ? 'Restore Staff Member' :
-                    'Permanently Delete Staff'
+                        confirmModal.action === 'restore' ? 'Restore Staff Member' :
+                            'Permanently Delete Staff'
                 }
                 message={
                     confirmModal.action === 'trash' ? (
@@ -556,12 +547,12 @@ export default function MembersTab() {
                 isLoading={confirmModal.isProcessing}
                 confirmText={
                     confirmModal.action === 'trash' ? 'Move to Trash' :
-                    confirmModal.action === 'restore' ? 'Restore' :
-                    'Permanently Delete'
+                        confirmModal.action === 'restore' ? 'Restore' :
+                            'Permanently Delete'
                 }
                 confirmClassName={
-                    confirmModal.action === 'forceDelete' 
-                        ? 'bg-rose-600 hover:bg-rose-700 text-white' 
+                    confirmModal.action === 'forceDelete'
+                        ? 'bg-rose-600 hover:bg-rose-700 text-white'
                         : 'bg-orange-600 hover:bg-orange-700 text-white'
                 }
             />
