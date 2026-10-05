@@ -1,33 +1,27 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { 
-  ArrowLeft, 
-  Image as ImageIcon, 
-  UtensilsCrossed, 
-  AlertCircle, 
+import {
+  ArrowLeft,
+  Image as ImageIcon,
   Info,
-  Edit3,
-  RefreshCw,
-  Sparkles,
-  Power,
-  Eye,
-  EyeOff,
   AlertTriangle,
-  PackageX
+  PackageX,
+  Edit
 } from 'lucide-react';
-import toast from 'react-hot-toast';
+
 
 import api from '../../../services/api';
 import { getImageUrl } from '../../../utils/getImageUrl';
 import StatusBadge from '../../../components/common/StatusBadge';
 import { useFormatPrice } from '../../../contexts/useFormatPrice';
 import { useRoleBasePath } from '../../../utils/useRoleBasePath';
+import Can from '../../../utils/Can';
 
 export default function MenuItemsDetails() {
   const { id } = useParams();
-   const basePath = useRoleBasePath();
+  const basePath = useRoleBasePath();
   const navigate = useNavigate();
-const {formatPrice} = useFormatPrice();
+  const { formatPrice } = useFormatPrice();
   const [item, setItem] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -58,16 +52,16 @@ const {formatPrice} = useFormatPrice();
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-4 sm:p-8 animate-pulse">
         <div className="max-w-6xl mx-auto space-y-8">
           <div className="flex justify-between items-center">
-            <div className="h-6 w-32 bg-slate-200 dark:bg-slate-800 rounded-lg" />
-            <div className="h-10 w-28 bg-slate-200 dark:bg-slate-800 rounded-xl" />
+            <div className="h-6 w-32 bg-slate-200 dark:bg-slate-800 rounded-md" />
+            <div className="h-10 w-28 bg-slate-200 dark:bg-slate-800 rounded-md" />
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             <div className="lg:col-span-7 space-y-6">
-              <div className="aspect-video w-full bg-slate-200 dark:bg-slate-800 rounded-2xl" />
-              <div className="h-64 bg-slate-200 dark:bg-slate-800 rounded-2xl" />
+              <div className="aspect-video w-full bg-slate-200 dark:bg-slate-800 rounded-md" />
+              <div className="h-64 bg-slate-200 dark:bg-slate-800 rounded-md" />
             </div>
             <div className="lg:col-span-5 space-y-6">
-              <div className="h-96 bg-slate-200 dark:bg-slate-800 rounded-2xl" />
+              <div className="h-96 bg-slate-200 dark:bg-slate-800 rounded-md" />
             </div>
           </div>
         </div>
@@ -76,74 +70,74 @@ const {formatPrice} = useFormatPrice();
   }
 
   // ── 2. ERROR STATE ──
-if (error) {
+  if (error) {
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-6">
-            <div className="max-w-md w-full text-center space-y-8">
-              <div className="space-y-3 flex flex-col items-center">
-                    <div className="p-4 rounded-full bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400">
-                        <AlertTriangle className="w-12 h-12" />
-                    </div>
-                </div>
-
-                {/* Copy */}
-                <div className="space-y-3">
-                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
-                        Couldn't load this item
-                    </h2>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">
-                        An unexpected error occurred while fetching the menu item details.
-                    </p>
-                </div>
-
-                {/* Actions */}
-                <div className="flex gap-3 justify-center">
-                    <button
-                        type="button"
-                        onClick={() => navigate('/menu-items')}
-                        className="px-5 py-2.5 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white underline underline-offset-4 decoration-slate-300 dark:decoration-slate-700 hover:decoration-slate-900 dark:hover:decoration-white transition-colors"
-                    >
-                        ← Back to list
-                    </button>
-                </div>
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-6">
+        <div className="max-w-md w-full text-center space-y-8">
+          <div className="space-y-3 flex flex-col items-center">
+            <div className="p-4 rounded-full bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400">
+              <AlertTriangle className="w-12 h-12" />
             </div>
+          </div>
+
+          {/* Copy */}
+          <div className="space-y-3">
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
+              Couldn't load this item
+            </h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              An unexpected error occurred while fetching the menu item details.
+            </p>
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-3 justify-center">
+            <button
+              type="button"
+              onClick={() => navigate('/menu-items')}
+              className="px-5 py-2.5 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white underline underline-offset-4 decoration-slate-300 dark:decoration-slate-700 hover:decoration-slate-900 dark:hover:decoration-white transition-colors"
+            >
+              ← Back to list
+            </button>
+          </div>
         </div>
+      </div>
     );
-}
+  }
 
   // ── 3. EMPTY STATE (Not Found / Removed) ──
   if (!item) {
     return (
-       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-6">
-            <div className="max-w-md w-full text-center space-y-8">
-             <div className="space-y-3 flex flex-col items-center">
-                    <div className="p-4 rounded-full bg-slate-100 dark:bg-slate-900 text-slate-400 dark:text-slate-500">
-                        <PackageX className="w-12 h-12" />
-                    </div>
-                </div>
-
-                {/* Copy */}
-                <div className="space-y-3">
-                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
-                        Item Not Found
-                    </h2>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">
-              The requested item does not exist or may have been permanently deleted.
-                    </p>
-                </div>
-
-                {/* Actions */}
-                <div className="flex gap-3 justify-center">
-                    <button
-                        type="button"
-                        onClick={() => navigate('/menu-items')}
-                        className="px-5 py-2.5 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white underline underline-offset-4 decoration-slate-300 dark:decoration-slate-700 hover:decoration-slate-900 dark:hover:decoration-white transition-colors"
-                    >
-                        ← Back to list
-                    </button>
-                </div>
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-6">
+        <div className="max-w-md w-full text-center space-y-8">
+          <div className="space-y-3 flex flex-col items-center">
+            <div className="p-4 rounded-full bg-slate-100 dark:bg-slate-900 text-slate-400 dark:text-slate-500">
+              <PackageX className="w-12 h-12" />
             </div>
+          </div>
+
+          {/* Copy */}
+          <div className="space-y-3">
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
+              Item Not Found
+            </h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              The requested item does not exist or may have been permanently deleted.
+            </p>
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-3 justify-center">
+            <button
+              type="button"
+              onClick={() => navigate('/menu-items')}
+              className="px-5 py-2.5 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white underline underline-offset-4 decoration-slate-300 dark:decoration-slate-700 hover:decoration-slate-900 dark:hover:decoration-white transition-colors"
+            >
+              ← Back to list
+            </button>
+          </div>
         </div>
+      </div>
     );
   }
 
@@ -151,39 +145,40 @@ if (error) {
   const modifierGroups = item.modifier_groups || [];
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 p-4 sm:p-8 transition-colors">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 p-3 sm:p-8 transition-colors">
       <div className="max-w-6xl mx-auto space-y-8">
-        
+
         {/* Header Actions */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 dark:border-slate-800/80 pb-5">
-          <button 
+        <div className="flex flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 dark:border-slate-800/80 pb-5">
+          <button
             type="button"
             onClick={() => navigate(-1)}
-            className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-orange-600 dark:hover:text-orange-400 transition-colors w-fit"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 dark:text-slate-400  transition-colors w-fit"
           >
             <ArrowLeft className="w-4 h-4" /> Back to Menu
           </button>
 
           <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => navigate(`${basePath}/menu-items/edit/${id}`)}
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 shadow-sm transition-all"
-            >
-              <Edit3 className="w-4 h-4 text-slate-500 dark:text-slate-400" />
-              Edit Item
-            </button>
+            <Can permission="menu.update">
+              <button
+                type="button"
+                onClick={() => navigate(`${basePath}/menu-items/edit/${id}`)}
+                className="inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-all"
+              >
+                <Edit className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+                Edit Item
+              </button>
+            </Can>
           </div>
+
         </div>
 
         {/* Layout Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          
-          {/* Main Visuals & Modifiers */}
-          <div className="lg:col-span-7 space-y-8">
-            
-            {/* Banner Image Display */}
-            <div className="relative bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden group">
+        <div className="flex flex-col lg:grid lg:grid-cols-12 gap-8 items-start">
+
+          {/* ============ 1. BANNER IMAGE ============ */}
+          <div className="order-1 lg:order-none lg:col-span-7 w-full">
+            <div className="relative bg-white dark:bg-slate-900 rounded-md border border-slate-200/80 dark:border-slate-800 overflow-hidden group">
               {item.image ? (
                 <div className="relative aspect-video w-full overflow-hidden bg-slate-100 dark:bg-slate-800">
                   <img
@@ -193,58 +188,152 @@ if (error) {
                   />
                 </div>
               ) : (
-                <div className="w-full aspect-video bg-slate-100/70 dark:bg-slate-800/50 border-2 border-dashed border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 gap-3">
-                  <div className="p-4 rounded-full bg-slate-200/50 dark:bg-slate-800">
+                <div className="w-full aspect-video bg-slate-100/70 dark:bg-slate-800/50 border border-dashed border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 gap-3">
+                  <div className="p-4 rounded-md bg-slate-200/50 dark:bg-slate-800">
                     <ImageIcon className="w-8 h-8" />
                   </div>
                   <span className="text-xs font-semibold uppercase tracking-wider">No Preview Image Uploaded</span>
                 </div>
               )}
             </div>
+          </div>
 
-            {/* Modifiers Section */}
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-6 sm:p-8 space-y-6">
-              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/60 pb-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-xl bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-100 dark:border-orange-500/20">
-                    <UtensilsCrossed className="w-5 h-5" />
-                  </div>
+          {/* ============ 2. DETAILS / CATEGORY SIDEBAR ============ */}
+          <div className="order-2 lg:order-none lg:col-span-5 lg:row-span-2 lg:sticky lg:top-8 w-full space-y-6">
+            <div className="bg-white dark:bg-slate-900 rounded-md border border-slate-200/80 dark:border-slate-800 p-4 sm:p-5 space-y-4">
+
+              {/* Details Header */}
+              <div className="space-y-4">
+
+                {/* Category Label & Badge */}
+                <div className="space-y-1">
+                  <label className="text-xs md:text-sm font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                    Category
+                  </label>
                   <div>
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">Customization & Modifiers</h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">Configured options and add-on pricing</p>
+                    <span className="text-xs md:text-sm text-slate-400 dark:text-slate-50">
+                      {item.category?.name}
+                    </span>
                   </div>
                 </div>
-                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+
+                {/* Item Name */}
+                <div className="space-y-0.5">
+                  <label className="text-xs md:text-sm font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                    Item Name
+                  </label>
+                  <h1 className="text-xs md:text-sm text-slate-400 dark:text-slate-500">
+                    {item.name}
+                  </h1>
+                </div>
+
+                {/* Slug */}
+                {item.slug && (
+                  <div className="space-y-0.5">
+                    <label className="text-xs md:text-sm font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                      Slug
+                    </label>
+                    <div className="text-xs text-slate-600 dark:text-slate-300">
+                      {item.slug}
+                    </div>
+                  </div>
+                )}
+
+                {/* Description */}
+                <div className="space-y-0.5">
+                  <label className="text-xs md:text-sm font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                    Description
+                  </label>
+                  <p className="text-xs md:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                    {item.description || 'No descriptive overview provided for this menu item.'}
+                  </p>
+                </div>
+
+              </div>
+
+              {/* Base Price Banner */}
+              <div className="p-3 rounded-md bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-800 flex items-center justify-between">
+                <span className="text-xs md:text-sm font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                  Price
+                </span>
+                <span className="text-xs md:text-sm text-slate-900 dark:text-white tracking-tight">
+                  {formatPrice(item.price)}
+                </span>
+              </div>
+
+              {/* Status Toggles & Indicators */}
+              <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800/80">
+                <h4 className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Item Status</h4>
+
+                {/* Availability Switch */}
+                <div className="flex items-center justify-between p-2.5 rounded-md border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900">
+                  <p className="text-xs md:text-sm font-semibold text-slate-800 dark:text-slate-200">Availability</p>
+                  <p className="text-slate-500 dark:text-slate-400">
+                    <StatusBadge status={item.is_available ? 'available' : 'sold_out'} />
+                  </p>
+                </div>
+
+                {/* Active Switch */}
+                <div className="flex items-center justify-between p-2.5 rounded-md border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900">
+                  <p className="text-xs md:text-sm font-semibold text-slate-800 dark:text-slate-200">Menu Visibility</p>
+                  <p className="text-slate-500 dark:text-slate-400">
+                    <StatusBadge status={item.is_active ? 'active' : 'inactive'} />
+                  </p>
+                </div>
+
+              </div>
+
+            </div>
+          </div>
+
+          {/* ============ 3. MODIFIERS SECTION ============ */}
+          <div className="order-3 lg:order-none lg:col-span-7 w-full">
+            <div className="bg-white dark:bg-slate-900 rounded-md border border-slate-200/80 dark:border-slate-800 p-3 space-y-4">
+
+              {/* Modifiers Header */}
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 dark:border-slate-800/60 pb-3">
+                <div className="flex items-start sm:items-center gap-3 min-w-0">
+                  <div className="min-w-0">
+                    <h3 className="text-xs sm:text-base md:text-lg font-bold text-slate-900 dark:text-white truncate">
+                      Customization &amp; Modifiers
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 sm:truncate">
+                      Configured options and add-on pricing
+                    </p>
+                  </div>
+                </div>
+
+                <span className="self-start sm:self-auto shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
                   {modifierGroups.length} {modifierGroups.length === 1 ? 'Group' : 'Groups'}
                 </span>
               </div>
 
               {modifierGroups.length > 0 ? (
-                <div className="space-y-6">
+                <div className="space-y-3">
                   {modifierGroups.map((mod, idx) => (
-                    <div 
-                      key={mod.id || idx} 
-                      className="border border-slate-200/70 dark:border-slate-800 rounded-xl overflow-hidden bg-slate-50/50 dark:bg-slate-900/40"
+                    <div
+                      key={mod.id || idx}
+                      className="border border-slate-200/70 dark:border-slate-800 rounded-md overflow-hidden bg-slate-50/50 dark:bg-slate-900/40"
                     >
                       {/* Modifier Header */}
-                      <div className="bg-slate-100/70 dark:bg-slate-800/40 px-5 py-3.5 border-b border-slate-200/70 dark:border-slate-800 flex flex-wrap justify-between items-center gap-2">
-                        <span className="font-bold text-slate-800 dark:text-slate-100 text-sm sm:text-base">
+                      <div className="bg-slate-100/70 dark:bg-slate-800/40 px-3 py-3 border-b border-slate-200/70 dark:border-slate-800 flex flex-wrap justify-between items-center gap-2">
+                        <span className="font-bold text-slate-800 dark:text-slate-100 text-xs sm:text-sm">
                           {mod.name}
                         </span>
-                        
+
                         <div className="flex items-center gap-2 flex-wrap">
                           {mod.is_required ? (
-                            <span className="text-[11px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-300 bg-amber-100/80 dark:bg-amber-900/30 px-2.5 py-0.5 rounded-md border border-amber-200 dark:border-amber-800/50">
+                            <span className="text-xs uppercase tracking-wider text-amber-700 dark:text-amber-300 bg-amber-100/80 dark:bg-amber-900/30 px-2 py-0.5 rounded-md border border-amber-200 dark:border-amber-800/50">
                               Required
                             </span>
                           ) : (
-                            <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 bg-slate-200/60 dark:bg-slate-800 px-2.5 py-0.5 rounded-md">
+                            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 bg-slate-200/60 dark:bg-slate-800 px-2 py-0.5 rounded-md">
                               Optional
                             </span>
                           )}
 
                           {mod.min_select !== undefined && mod.max_select !== undefined && (
-                            <span className="text-xs font-medium text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 px-2.5 py-0.5 rounded-md border border-slate-200 dark:border-slate-700/80">
+                            <span className="text-xs text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 px-2.5 py-0.5 rounded-md border border-slate-200 dark:border-slate-700/80">
                               {mod.min_select > 0 ? `Min ${mod.min_select}` : ''}
                               {mod.min_select > 0 && mod.max_select < 999 ? ' • ' : ''}
                               {mod.max_select < 999 ? `Max ${mod.max_select}` : 'Unlimited'}
@@ -257,19 +346,29 @@ if (error) {
                       {mod.options && mod.options.length > 0 ? (
                         <div className="divide-y divide-slate-100 dark:divide-slate-800/60 bg-white dark:bg-slate-900">
                           {mod.options.map((opt, optIdx) => (
-                            <div key={opt.id || optIdx} className="px-5 py-3 flex justify-between items-center text-sm hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
-                              <div className="flex items-center gap-2.5">
-                                <span className="font-medium text-slate-700 dark:text-slate-300">{opt.name}</span>
-                                <StatusBadge status={opt.is_available ? 'Available' : 'Unavailable'} />
+                            <div
+                              key={opt.id || optIdx}
+                              className="px-3 sm:px-5 py-3 flex flex-col gap-1 text-sm hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors"
+                            >
+                              {/* Name + status on same line */}
+                              <div className="flex items-center justify-between gap-2 sm:gap-2.5 min-w-0">
+                                <span className="text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 truncate">
+                                  {opt.name}
+                                </span>
+                                <span className="shrink-0">
+                                  <StatusBadge status={opt.is_available ? 'Available' : 'Unavailable'} />
+                                </span>
                               </div>
-                              <span className="font-semibold font-mono text-slate-600 dark:text-slate-400">
+
+                              {/* Price under the name */}
+                              <span className="text-xs sm:text-sm font-mono text-slate-600 dark:text-slate-400">
                                 {formatPrice(opt.price)}
                               </span>
                             </div>
                           ))}
                         </div>
                       ) : (
-                        <div className="px-5 py-4 text-xs text-slate-400 dark:text-slate-500 italic flex items-center gap-2 bg-white dark:bg-slate-900">
+                        <div className="px-4 py-4 text-xs text-slate-400 dark:text-slate-500 italic flex items-center gap-2 bg-white dark:bg-slate-900">
                           <Info className="w-4 h-4 text-slate-400" /> No options configured for this group.
                         </div>
                       )}
@@ -277,101 +376,12 @@ if (error) {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-10 border-2 border-dashed border-slate-200 dark:border-slate-800/80 rounded-xl bg-slate-50/50 dark:bg-slate-900/30">
-                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400">No customizations or add-ons attached.</p>
+                <div className="text-center py-4 border border-dashed border-slate-200 dark:border-slate-800/80 rounded-md bg-slate-50/50 dark:bg-slate-900/30">
+                  <p className="text-xs md:text-sm font-medium text-slate-500 dark:text-slate-400">No customizations or add-ons attached.</p>
                 </div>
               )}
             </div>
           </div>
-
-          {/* Right Column: Core Summary Sidebar */}
-          <div className="lg:col-span-5 lg:sticky lg:top-8 space-y-6">
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-4 sm:p-5 space-y-4">
-              
-              {/* Details Header */}
-              <div className="space-y-4">
-
-                {/* Category Label & Badge */}
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
-                    Category
-                  </label>
-                  <div>
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 text-[11px] font-bold uppercase tracking-wider border border-blue-100 dark:border-blue-500/20">
-                      {item.category?.name}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Item Name */}
-                <div className="space-y-0.5">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
-                    Item Name
-                  </label>
-                  <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-                    {item.name}
-                  </h1>
-                </div>
-
-                {/* Slug */}
-                {item.slug && (
-                  <div className="space-y-0.5">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
-                      Slug
-                    </label>
-                    <div className="p-2 font-mono text-xs text-slate-600 dark:text-slate-300 break-all bg-slate-50 dark:bg-slate-800/40 rounded-lg">
-                      {item.slug}
-                    </div>
-                  </div>
-                )}
-
-                {/* Description */}
-                <div className="space-y-0.5">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
-                    Description
-                  </label>
-                  <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
-                    {item.description || 'No descriptive overview provided for this menu item.'}
-                  </p>
-                </div>
-
-              </div>
-
-              {/* Base Price Banner */}
-              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-800 flex items-center justify-between">
-                <span className="text-sm font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-2">
-                  Price
-                </span>
-                <span className="text-md font-black text-slate-900 dark:text-white tracking-tight">
-                  {formatPrice(item.price)}
-                </span>
-              </div>
-
-     {/* Status Toggles & Indicators */}
-              <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800/80">
-                <h4 className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Item Status</h4>
-                
-                {/* Availability Switch */}
-                <div className="flex items-center justify-between p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900">
-                  <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">Availability</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    <StatusBadge status={item.is_available ? 'available' : 'sold_out'} />
-                  </p>
-                </div>
-
-                {/* Active Switch */}
-                <div className="flex items-center justify-between p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900">
-                  <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">Menu Visibility</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    <StatusBadge status={item.is_active ? 'active' : 'inactive'} />
-                  </p>
-                </div>
-
-              </div>
-
-            </div>
-          </div>
-
         </div>
       </div>
     </div>

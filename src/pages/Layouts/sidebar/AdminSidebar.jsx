@@ -215,11 +215,11 @@ export default function AdminSidebar({ mobileOpen, setMobileOpen, collapsed, set
                 setIsRestaurantDropdownOpen(!isRestaurantDropdownOpen);
               }
             }}
-            className={`flex items-center gap-2.5 rounded-xl p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors w-full text-left overflow-hidden ${collapsed ? 'lg:justify-center lg:w-auto' : ''
+            className={`flex items-center gap-2.5 rounded-md p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors w-full text-left overflow-hidden ${collapsed ? 'lg:justify-center lg:w-auto' : ''
               }`}
           >
             {/* Logo / Avatar */}
-            <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-orange-50 dark:bg-orange-950 text-orange-600 dark:text-orange-400 shrink-0 overflow-hidden">
+            <div className="flex items-center justify-center w-9 h-9 rounded bg-orange-50 dark:bg-orange-950 text-orange-600 dark:text-orange-400 shrink-0 overflow-hidden">
               {isLoadingDetails ? (
                 <ImageIcon className="w-5 h-5  text-orange-600 dark:text-orange-400" />
               ) : restaurantDetails?.logo ? (
@@ -259,7 +259,7 @@ export default function AdminSidebar({ mobileOpen, setMobileOpen, collapsed, set
           <div className="flex items-center shrink-0">
             <button
               onClick={() => setMobileOpen(false)}
-              className="lg:hidden text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white p-1 rounded-lg transition-colors duration-200"
+              className="lg:hidden text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white p-1 rounded-md transition-colors duration-200"
             >
               <X className="w-5 h-5" />
             </button>
@@ -271,7 +271,7 @@ export default function AdminSidebar({ mobileOpen, setMobileOpen, collapsed, set
                 setTooltip(null);
                 setIsRestaurantDropdownOpen(false);
               }}
-              className="hidden lg:flex items-center justify-center w-8 h-8 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors duration-200 ml-1"
+              className="hidden lg:flex items-center justify-center w-8 h-8 rounded-md text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors duration-200 ml-1"
               title={collapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
             >
               {collapsed ? (
@@ -284,7 +284,7 @@ export default function AdminSidebar({ mobileOpen, setMobileOpen, collapsed, set
 
       {/* DROPDOWN MENU */}
 {isRestaurantDropdownOpen && !collapsed && (
-  <div className="absolute top-full left-2 right-2 mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
+  <div className="absolute top-full left-2 right-2 mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md shadow-xs z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
     {isLoading ? (
       <div className="p-1 space-y-1">
         {[...Array(3)].map((_, i) => (
@@ -309,7 +309,7 @@ export default function AdminSidebar({ mobileOpen, setMobileOpen, collapsed, set
               <button
                 key={res.id}
                 onClick={() => handleSwitchRestaurant(res)}
-                className={`w-full flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-lg transition-colors ${
+                className={`w-full flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-md transition-colors ${
                   activeRestaurant?.id === res.id
                     ? 'bg-orange-50 dark:bg-orange-950/50 text-orange-600 dark:text-orange-400'
                     : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50'
@@ -333,7 +333,7 @@ export default function AdminSidebar({ mobileOpen, setMobileOpen, collapsed, set
                 setIsRestaurantDropdownOpen(false);
                 navigate('/restaurant');
               }}
-              className="flex items-center justify-center gap-1.5 px-2 py-2 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/50 rounded-lg transition-colors"
+              className="flex items-center justify-center gap-1.5 px-2 py-2 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/50 rounded-md transition-colors"
             >
               <Layers className="w-3.5 h-3.5" />
               <span>View All</span>
@@ -342,7 +342,7 @@ export default function AdminSidebar({ mobileOpen, setMobileOpen, collapsed, set
             {/* Add Restaurant Button */}
             <button
               onClick={handleAddRestaurant}
-              className="flex items-center justify-center gap-1.5 px-2 py-2 text-xs font-semibold text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-950/50 rounded-lg transition-colors"
+              className="flex items-center justify-center gap-1.5 px-2 py-2 text-xs font-semibold text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-950/50 rounded-md transition-colors"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Add New</span>
@@ -378,7 +378,7 @@ export default function AdminSidebar({ mobileOpen, setMobileOpen, collapsed, set
                     onMouseEnter={(e) => !isPopoverOpen && showTooltip(e, item.name)}
                     onMouseLeave={hideTooltip}
                     className={`
-                      relative flex items-center w-full rounded-xl transition-colors duration-200 group
+                      relative flex items-center w-full rounded-md transition-colors duration-200 group
                       ${collapsed ? 'lg:justify-center lg:h-11 lg:w-11 lg:mx-auto' : 'px-3 py-2.5'} 
                       ${isSubItemActive || isPopoverOpen
                         ? 'bg-orange-50 dark:bg-orange-950 text-orange-600 dark:text-orange-400 font-medium'
@@ -431,7 +431,7 @@ export default function AdminSidebar({ mobileOpen, setMobileOpen, collapsed, set
                               to={subItem.href}
                               onClick={() => setMobileOpen(false)}
                               className={`
-                                flex items-center px-3 py-2 rounded-lg text-sm transition-colors duration-200 group relative
+                                flex items-center px-3 py-2 rounded-md text-sm transition-colors duration-200 group relative
                                 ${isSubActive
                                   ? 'text-orange-600 dark:text-orange-400 font-medium bg-orange-50 dark:bg-orange-950'
                                   : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
@@ -463,7 +463,7 @@ export default function AdminSidebar({ mobileOpen, setMobileOpen, collapsed, set
                 onMouseEnter={(e) => showTooltip(e, item.name)}
                 onMouseLeave={hideTooltip}
                 className={` 
-                  relative flex items-center rounded-xl transition-colors duration-200 group
+                  relative flex items-center rounded-md transition-colors duration-200 group
                   ${collapsed ? 'lg:justify-center lg:h-11 lg:w-11 lg:mx-auto' : 'px-3 py-2.5'} 
                   ${isActive
                     ? 'bg-orange-50 dark:bg-orange-950 text-orange-600 dark:text-orange-400 font-medium'
@@ -505,7 +505,7 @@ export default function AdminSidebar({ mobileOpen, setMobileOpen, collapsed, set
             onMouseEnter={(e) => showTooltip(e, 'Sign Out')}
             onMouseLeave={hideTooltip}
             className={` 
-              flex items-center rounded-xl w-full text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-red-50 dark:hover:bg-red-950 hover:text-red-600 dark:hover:text-red-400 transition-colors duration-200 group relative
+              flex items-center rounded-md w-full text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-red-50 dark:hover:bg-red-950 hover:text-red-600 dark:hover:text-red-400 transition-colors duration-200 group relative
               ${collapsed ? 'lg:justify-center lg:h-10 lg:w-10' : 'gap-3 px-3 py-2.5'} 
             `}
           >
@@ -547,7 +547,7 @@ export default function AdminSidebar({ mobileOpen, setMobileOpen, collapsed, set
               left: -4,
             }}
           />
-          <div className="relative w-44 rounded-xl bg-white dark:bg-slate-800 p-1.5 shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden transition-colors duration-200">
+          <div className="relative w-44 rounded-md bg-white dark:bg-slate-800 p-1.5 shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden transition-colors duration-200">
             {(() => {
               const ParentIcon = navigation[activePopover.index]?.icon;
               return (

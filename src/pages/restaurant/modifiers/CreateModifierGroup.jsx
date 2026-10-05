@@ -1,14 +1,9 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../../services/api';
 import ModifierGroupForm from '../../../components/forms/ModifierGroupsForm';
-import { useRoleBasePath } from '../../../utils/useRoleBasePath';
 
 export default function CreateModifierGroup() {
-  const navigate = useNavigate();
-     const basePath = useRoleBasePath();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
 
@@ -17,9 +12,9 @@ export default function CreateModifierGroup() {
     description: '',
     min_select: 0,
     max_select: 1,
-    is_required: false, 
-    is_active: false,   
-  options: [{ name: '', price: '0.00', is_available: false }], 
+    is_required: false,
+    is_active: false,
+    options: [{ name: '', price: '0.00', is_available: false }],
   });
 
   const validate = () => {
@@ -60,7 +55,7 @@ export default function CreateModifierGroup() {
 
       const response = await api.post('/modifier-groups', payload);
       toast.success(response?.data?.message);
-       navigate(`${basePath}/modifier-group`);
+      navigate(`${basePath}/modifier-groups`);
     } catch (err) {
       toast.error(err.response?.data?.message);
     } finally {
@@ -68,37 +63,16 @@ export default function CreateModifierGroup() {
     }
   };
 
-  const handleCancel = () => {
-    navigate(`${basePath}/modifier-groups`);
-  };
+
 
   return (
     <div className="p-1 md:p-4 max-w-4xl mx-auto min-h-screen space-y-6 bg-gray-50/50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 transition-colors duration-200">
-      <div className="flex items-center gap-4 pb-2 border-b border-gray-200/60 dark:border-slate-800">
-        <button 
-          onClick={handleCancel}
-          className="p-2.5 rounded-xl border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-600 dark:text-slate-300 shadow-sm transition-all active:scale-95"
-          title="Back to Modifier Groups"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-        <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white">
-            Add New Modifier Group
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5">
-            Create a new modifier group and configure its settings.
-          </p>
-        </div>
-      </div>
-
       <ModifierGroupForm
         formData={formData}
         setFormData={setFormData}
         errors={errors}
         setErrors={setErrors}
         onSubmit={handleSubmit}
-        onCancel={handleCancel}
         isSubmitting={isSubmitting}
         submitButtonText="Create Modifier Group"
       />

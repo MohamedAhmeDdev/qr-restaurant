@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { Building2, Users, Shield, CreditCard, Trash2 } from 'lucide-react';
+import { Building2, Users, Trash2, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../../../../contexts/AuthContext';
 import OrganizationSidebar from './OrganizationsSidebar';
 
 // Import your tab components
-import OrganizationTab from '../Tabs/OrganizationTab'; 
-import DeleteOrgTab from '../Tabs/DeleteOrgTab'; // Import the new Delete tab
+import OrganizationTab from '../Tabs/OrganizationTab';
+import DeleteOrgTab from '../Tabs/DeleteOrgTab';
 import MembersTab from '../Tabs/MembersTab';
+import { useNavigate } from 'react-router-dom';
 
 const TABS = [
   { id: 'profile', label: 'Organization profile', icon: Building2, category: 'Organization' },
@@ -15,24 +16,32 @@ const TABS = [
   { id: 'delete', label: 'Delete organization', icon: Trash2, category: 'Danger Zone', isDanger: true },
 ];
 
-// ... imports remain the same
+
 
 export default function Organization() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('profile');
-  const { user } = useAuth();
+
+  const handleCancel = () => {
+    navigate('/restaurant');
+  };
 
   return (
     <div className="min-h-screen bg-white dark:bg-slate-950 text-gray-900 dark:text-slate-100 transition-colors duration-200">
       <div className="max-w-7xl mx-auto px-4 py-8">
-        
+
         {/* TOP ORGANIZATION HEADER */}
         <div className="flex items-center gap-3 pb-6 mb-6 border-b border-gray-200 dark:border-slate-800">
-          <div className="w-10 h-10 rounded-lg bg-orange-500 text-white font-bold flex items-center justify-center text-lg shadow-sm shrink-0">
-            {user?.organization_name?.[0]?.toUpperCase() || <Building2 className="w-5 h-5" />}
-          </div>
+          <button
+            onClick={handleCancel}
+            className="p-2.5  text-gray-600 dark:text-slate-300 active:scale-[0.98]"
+            aria-label="Go back"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
           <div>
             <h1 className="text-lg font-semibold leading-tight text-gray-900 dark:text-white">
-              {user?.organization_name || 'Organization Settings'}
+              Organization Settings
             </h1>
             <p className="text-xs text-gray-500 dark:text-slate-400">
               Manage workspace details, members, security, and administrative actions
@@ -49,15 +58,14 @@ export default function Organization() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-3 py-1.5 text-sm font-medium transition-colors whitespace-nowrap rounded-md ${
-                  isActive
-                    ? tab.isDanger
-                      ? 'bg-red-500/10 text-red-600 dark:text-red-400'
-                      : 'bg-orange-500/10 text-orange-600 dark:text-orange-400'
-                    : tab.isDanger
-                      ? 'text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30'
-                      : 'text-gray-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800'
-                }`}
+                className={`flex items-center gap-2 px-3 py-1.5 text-xs md:text-sm font-medium transition-colors whitespace-nowrap ${isActive
+                  ? tab.isDanger
+                    ? 'bg-red-500/10 text-red-600 dark:text-red-400'
+                    : 'bg-orange-500/10 text-orange-600 dark:text-orange-400'
+                  : tab.isDanger
+                    ? 'text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30'
+                    : 'text-gray-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800'
+                  }`}
               >
                 <Icon className="w-4 h-4" />
                 <span>{tab.label}</span>
@@ -73,13 +81,13 @@ export default function Organization() {
             <OrganizationSidebar tabs={TABS} activeTab={activeTab} setActiveTab={setActiveTab} />
           </div>
 
-          {/* MAIN CONTENT AREA: Added min-h-[600px] to prevent vertical jumping */}
+          {/* MAIN CONTENT AREA */}
           <main className="lg:col-span-3 min-h-[600px]">
             {activeTab === 'profile' && <OrganizationTab />}
-              {activeTab === 'members' && <MembersTab />}
+            {activeTab === 'members' && <MembersTab />}
             {activeTab === 'delete' && <DeleteOrgTab />}
-            
-    
+
+
             {activeTab === 'billing' && (
               <div className="space-y-4 max-w-3xl">
                 <h2 className="text-xl font-semibold border-b border-gray-200 dark:border-slate-800 pb-3">Billing & Plans</h2>

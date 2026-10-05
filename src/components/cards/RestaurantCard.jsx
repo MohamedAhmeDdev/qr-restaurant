@@ -33,12 +33,12 @@ export default function RestaurantCard({
         <div
             key={restaurant.id}
             className={`
-                group/card relative rounded-2xl border p-4 transition-all duration-300 flex flex-col gap-3 outline-none
+                group/card relative rounded-md border p-4 transition-all duration-300 flex flex-col gap-3 outline-none
                 ${restaurant.isTrashed
                     ? 'border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30 opacity-75'
                     : isActiveWorkspace
-                        ? 'border-orange-400 dark:border-orange-500/60 bg-gradient-to-br from-orange-50/50 to-white dark:from-orange-950/20 dark:to-slate-900 ring-2 ring-orange-500/20 shadow-xl shadow-orange-500/10'
-                        : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-orange-400 dark:hover:border-orange-500/60 hover:shadow-xl hover:shadow-slate-200/50 dark:hover:shadow-none'
+                        ? 'border-orange-400 dark:border-orange-500/60 bg-gradient-to-br from-orange-50/50 to-white dark:from-orange-950/20 dark:to-slate-900 ring-2 ring-orange-500/20'
+                        : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-orange-400 dark:hover:border-orange-500/60'
                 }
                 ${isSwitchingThis || isBusy ? 'opacity-60 pointer-events-none' : ''}
             `}
@@ -51,13 +51,13 @@ export default function RestaurantCard({
                         <img
                             src={getImageUrl(restaurant.logo)}
                             alt={restaurant.name}
-                            className="w-11 h-11 rounded-lg object-cover border border-gray-100 dark:border-slate-700 shrink-0"
+                            className="w-11 h-11 rounded-sm object-cover border border-gray-100 dark:border-slate-700 shrink-0"
                         />
                     ) : (
-                        <div className={`w-11 h-11 rounded-lg flex items-center justify-center shrink-0 ${restaurant.isTrashed
+                        <div className={`w-11 h-11 rounded-md flex items-center justify-center shrink-0 ${restaurant.isTrashed
                             ? 'bg-slate-100 dark:bg-slate-800 text-slate-400'
                             : isActiveWorkspace
-                                ? 'bg-gradient-to-br from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/30'
+                                ? 'bg-gradient-to-br from-orange-500 to-amber-500 text-white'
                                 : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500'
                             }`}>
                             <Building2 className="w-5 h-5" />
@@ -79,14 +79,14 @@ export default function RestaurantCard({
                     <div className="relative" ref={menuRef}>
                         <button
                             onClick={(e) => onToggleMenu(e, restaurant.id)}
-                            className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                            className="p-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
                             aria-label="More options"
                         >
                             <MoreVertical className="w-4 h-4" />
                         </button>
 
                         {isMenuOpen && (
-                            <div className="absolute right-0 top-full mt-1.5 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 z-10 overflow-hidden">
+                            <div className="absolute right-0 top-full mt-1.5 w-48 bg-white dark:bg-slate-800 rounded-md shadow-md border border-slate-200 dark:border-slate-700 z-10 overflow-hidden">
                                 {!restaurant.isTrashed ? (
                                     <>
                                         <button
@@ -198,13 +198,12 @@ export default function RestaurantCard({
                         type="button"
                         onClick={() => onSwitchRestaurant(restaurant)}
                         disabled={isSwitchingThis || !isRestaurantActive}
-                        className={`w-full py-2 px-4 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all duration-200 ${
-                            !isRestaurantActive
+                        className={`w-full py-2 px-4 rounded-md font-semibold text-sm flex items-center justify-center gap-2 transition-all duration-200 ${!isRestaurantActive
                                 ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed shadow-none'
                                 : isActiveWorkspace
-                                ? 'bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg shadow-orange-500/25 hover:shadow-xl hover:shadow-orange-500/30 active:scale-[0.98]'
-                                : 'bg-slate-900 group-hover/card:bg-orange-500 dark:bg-slate-100 dark:group-hover/card:bg-orange-500 text-white dark:text-slate-900 dark:group-hover/card:text-white shadow-md group-hover/card:shadow-lg group-hover/card:shadow-orange-500/25 active:scale-[0.98]'
-                        }`}
+                                    ? 'bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white active:scale-[0.98]'
+                                    : 'bg-slate-900 group-hover/card:bg-orange-500 dark:bg-slate-100 dark:group-hover/card:bg-orange-500 text-white dark:text-slate-900 dark:group-hover/card:text-white active:scale-[0.98]'
+                            }`}
                         title={!isRestaurantActive ? 'Cannot switch to a deactivated restaurant' : ''}
                     >
                         {isSwitchingThis ? (
@@ -215,12 +214,12 @@ export default function RestaurantCard({
                         ) : !isRestaurantActive ? (
                             <>
                                 <XCircle className="w-4 h-4" />
-                               Restaurant is deactivated
+                                Restaurant is deactivated
                             </>
                         ) : isActiveWorkspace ? (
                             <>
                                 <ChefHat className="w-4 h-4" />
-                               Current workspace
+                                Current workspace
                                 <ArrowRight className="w-4 h-4" />
                             </>
                         ) : (

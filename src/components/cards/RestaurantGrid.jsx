@@ -32,12 +32,12 @@ export default function RestaurantGrid({
                     {Array.from({ length: 6 }).map((_, index) => (
                         <div
                             key={index}
-                            className="rounded-2xl border border-slate-200 dark:border-slate-800 p-6 h-64 relative overflow-hidden bg-white dark:bg-slate-900"
+                            className="rounded-md border border-slate-200 dark:border-slate-800 p-6 h-64 relative overflow-hidden bg-white dark:bg-slate-900"
                         >
                             <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.6s_infinite] bg-gradient-to-r from-transparent via-slate-100 dark:via-slate-800/60 to-transparent" />
                             <div className="space-y-4">
                                 <div className="flex items-start gap-3">
-                                    <div className="w-12 h-12 bg-slate-200 dark:bg-slate-800 rounded-xl" />
+                                    <div className="w-12 h-12 bg-slate-200 dark:bg-slate-800 rounded-md" />
                                     <div className="flex-1 space-y-2">
                                         <div className="h-5 bg-slate-200 dark:bg-slate-800 rounded-md w-3/4" />
                                         <div className="h-4 bg-slate-100 dark:bg-slate-800/60 rounded-md w-1/2" />
@@ -60,7 +60,7 @@ export default function RestaurantGrid({
                         action={
                             <button
                                 onClick={onRetry}
-                                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-950/30 rounded-lg transition-colors duration-200"
+                                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-950/30 rounded-md transition-colors duration-200"
                             >
                                 <RotateCcw className="w-4 h-4" /> Try again
                             </button>
@@ -96,7 +96,7 @@ export default function RestaurantGrid({
                             ) : searchQuery ? (
                                 <button
                                     onClick={onClearSearch}
-                                    className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors duration-200"
+                                    className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors duration-200"
                                 >
                                     Clear search
                                 </button>
@@ -105,7 +105,7 @@ export default function RestaurantGrid({
                     />
                 </div>
             ) : (
-                <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <div className="px-3 py-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                     {restaurants.map((restaurant) => {
                         const isActiveWorkspace = activeSlug === restaurant.slug && !restaurant.isTrashed;
                         const isSwitchingThis = isSwitching === restaurant.id;

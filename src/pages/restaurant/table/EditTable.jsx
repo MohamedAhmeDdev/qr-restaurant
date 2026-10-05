@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
 import TableForm from '../../../components/forms/TableForm';
 import toast from 'react-hot-toast';
 import api from '../../../services/api';
@@ -8,14 +7,13 @@ import LoadingScreen from '../../../components/common/LoadingScreen';
 import { useRoleBasePath } from '../../../utils/useRoleBasePath';
 
 export default function EditTable() {
-  const navigate = useNavigate();
-   const basePath = useRoleBasePath();
   const { id } = useParams();
-  
+  const navigate = useNavigate();
+  const basePath = useRoleBasePath();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [errors, setErrors] = useState({});
-  
+
   const [formData, setFormData] = useState({
     name: '',
     table_number: '',
@@ -28,7 +26,7 @@ export default function EditTable() {
       setIsLoading(true);
       const response = await api.get(`/tables/${id}`);
       const data = response.data?.data
-      
+
       setFormData({
         name: data.name,
         table_number: data.table_number,
@@ -37,9 +35,9 @@ export default function EditTable() {
       });
     } catch (err) {
       toast.error(err.response?.data?.message);
-    }finally {
+    } finally {
       setIsLoading(false);
-    } 
+    }
   }, [id]);
 
   useEffect(() => {
@@ -63,7 +61,7 @@ export default function EditTable() {
     if (!validate()) return;
 
     setIsSubmitting(true);
-    
+
     try {
       const payload = {
         name: formData.name.trim(),
@@ -82,30 +80,14 @@ export default function EditTable() {
     }
   };
 
-  const handleCancel = () => {
-    navigate(`${basePath}/table`);
-  };
 
-    if (isLoading) {
-      return <LoadingScreen label="Loading table details..." />;
-    }
-  
+  if (isLoading) {
+    return <LoadingScreen label="Loading table details..." />;
+  }
+
 
   return (
     <div className="p-1 sm:p-4 max-w-4xl mx-auto min-h-screen space-y-6 bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 transition-colors duration-200">
-      {/* Header */}
-      <div className="mb-8 flex items-center gap-4">
-        <button 
-          onClick={handleCancel}
-          className="p-2.5 rounded-xl border border-gray-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-gray-50 dark:hover:bg-slate-800/80 text-gray-600 dark:text-slate-300 shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-        <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white">Edit Table</h1>
-          <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">Update table details and configuration.</p>
-        </div>
-      </div>
 
       <TableForm
         formData={formData}
@@ -113,7 +95,6 @@ export default function EditTable() {
         errors={errors}
         setErrors={setErrors}
         onSubmit={handleSubmit}
-        onCancel={handleCancel}
         isSubmitting={isSubmitting}
         submitButtonText="Update Table"
         isEdit={true}

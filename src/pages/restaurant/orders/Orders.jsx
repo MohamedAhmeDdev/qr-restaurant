@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, forwardRef } from 'react';
-import { 
-  UtensilsCrossed, Search, Eye, Clock, AlertCircle, 
+import {
+  UtensilsCrossed, Search, Eye, Clock, AlertCircle,
   RotateCcw, Loader2, RefreshCw, XCircle,
   Calendar as CalendarIcon, ChevronLeft, ChevronRight
 } from 'lucide-react';
@@ -18,16 +18,16 @@ import api from '../../../services/api';
 import toast from 'react-hot-toast';
 import { useFormatPrice } from '../../../contexts/useFormatPrice';
 import { useRoleBasePath } from '../../../utils/useRoleBasePath';
+import ConfirmationModal from '../../../components/common/ConfirmationModal';
 
 const DateInputButton = forwardRef(({ value, onClick, label }, ref) => (
   <button
     type="button"
     ref={ref}
     onClick={onClick}
-    className="flex items-center gap-2 bg-white dark:bg-slate-900 hover:bg-gray-50 dark:hover:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-gray-900 dark:text-slate-100 transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 cursor-pointer shadow-sm"
+    className="flex items-center gap-2 bg-white dark:bg-slate-900 hover:bg-gray-50 dark:hover:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-md px-3 py-2 text-xs font-mono text-gray-900 dark:text-slate-100 transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 cursor-pointer"
   >
-    <CalendarIcon className="w-3.5 h-3.5 text-orange-500" />
-    <span className="text-gray-500 dark:text-slate-400 font-sans font-medium">{label}:</span>
+    <span className="text-gray-500 dark:text-slate-400">{label}:</span>
     <span className="text-gray-900 dark:text-white font-semibold">{value || 'Select Date'}</span>
   </button>
 ));
@@ -41,16 +41,23 @@ export default function Orders() {
   const currentPage = Number(searchParams.get('page')) || 1;
   const searchQuery = searchParams.get('search') || '';
   const selectedStatus = searchParams.get('status') || 'all';
-  
+
   const startDateStr = searchParams.get('start_date');
   const endDateStr = searchParams.get('end_date');
-  
+
 
   const [orders, setOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [updatingOrderId, setUpdatingOrderId] = useState(null);
-  
+
+  // Cancel confirmation modal state
+  const [cancelModal, setCancelModal] = useState({
+    isOpen: false,
+    order: null,
+    isProcessing: false,
+  });
+
   // Pagination & Stats State
   const [lastPage, setLastPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
@@ -94,47 +101,47 @@ export default function Orders() {
     updateUrlParams(1, searchQuery, selectedStatus, newStart, newEnd);
   };
 
-// 1. Stable Date References
-const startDate = React.useMemo(
-  () => (startDateStr ? parse(startDateStr, 'yyyy-MM-dd', new Date()) : subDays(new Date(), 6)),
-  [startDateStr]
-);
+  // 1. Stable Date References
+  const startDate = React.useMemo(
+    () => (startDateStr ? parse(startDateStr, 'yyyy-MM-dd', new Date()) : subDays(new Date(), 6)),
+    [startDateStr]
+  );
 
-const endDate = React.useMemo(
-  () => (endDateStr ? parse(endDateStr, 'yyyy-MM-dd', new Date()) : new Date()),
-  [endDateStr]
-);
+  const endDate = React.useMemo(
+    () => (endDateStr ? parse(endDateStr, 'yyyy-MM-dd', new Date()) : new Date()),
+    [endDateStr]
+  );
 
-// 2. Safe Fetch Hook
-const fetchOrders = useCallback(async () => {
-  setIsLoading(true);
-  setError(null);
-  try {
-    const params = {
-      page: currentPage,
-      per_page: 15,
-      start_date: format(startDate, 'yyyy-MM-dd'),
-      end_date: format(endDate, 'yyyy-MM-dd'),
-    };
-    if (selectedStatus !== 'all') params.status = selectedStatus;
-    if (searchQuery) params.search = searchQuery;
+  // 2. Safe Fetch Hook
+  const fetchOrders = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const params = {
+        page: currentPage,
+        per_page: 15,
+        start_date: format(startDate, 'yyyy-MM-dd'),
+        end_date: format(endDate, 'yyyy-MM-dd'),
+      };
+      if (selectedStatus !== 'all') params.status = selectedStatus;
+      if (searchQuery) params.search = searchQuery;
 
-    const response = await api.get('/orders', { params });
-    const payload = response.data;
-    
-    const orderList = Array.isArray(payload) ? payload : (payload?.data || []);
-    setOrders(orderList);
-    
+      const response = await api.get('/orders', { params });
+      const payload = response.data;
+
+      const orderList = Array.isArray(payload) ? payload : (payload?.data || []);
+      setOrders(orderList);
+
       if (payload?.stats) setStats(payload.stats);
-    setLastPage(payload?.pagination?.last_page || payload?.last_page || 1);
-    setTotalItems(payload?.pagination?.total || payload?.total || orderList.length);
-  } catch (err) {
-    console.error("Error fetching orders:", err);
-    setError(err.response?.data?.message);
-  } finally {
-    setIsLoading(false);
-  }
-}, [currentPage, startDate, endDate, selectedStatus, searchQuery]);
+      setLastPage(payload?.pagination?.last_page || payload?.last_page || 1);
+      setTotalItems(payload?.pagination?.total || payload?.total || orderList.length);
+    } catch (err) {
+      console.error("Error fetching orders:", err);
+      setError(err.response?.data?.message);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [currentPage, startDate, endDate, selectedStatus, searchQuery]);
 
   useEffect(() => {
     fetchOrders();
@@ -166,10 +173,12 @@ const fetchOrders = useCallback(async () => {
     if (!targetOrder) return;
 
     const previousStatus = targetOrder.status;
-    const previousOrders = [...orders]; 
+    const previousOrders = [...orders];
     const previousStats = { ...stats };
+    const isCancel = newStatus === 'cancelled';
 
     setUpdatingOrderId(orderId);
+    if (isCancel) setCancelModal(prev => ({ ...prev, isProcessing: true }));
 
     // 1. Optimistically update local orders array
     setOrders(prev => {
@@ -189,13 +198,25 @@ const fetchOrders = useCallback(async () => {
     try {
       const response = await api.patch(`/orders/${orderId}`, { status: newStatus });
       toast.success(response?.data?.message);
+      if (isCancel) setCancelModal({ isOpen: false, order: null, isProcessing: false });
     } catch (err) {
       toast.error(err.response?.data?.message);
       // Rollback on failure
       setOrders(previousOrders);
       setStats(previousStats);
+      if (isCancel) setCancelModal(prev => ({ ...prev, isProcessing: false }));
     } finally {
       setUpdatingOrderId(null);
+    }
+  };
+
+  const openCancelModal = (order) => {
+    setCancelModal({ isOpen: true, order, isProcessing: false });
+  };
+
+  const closeCancelModal = () => {
+    if (!cancelModal.isProcessing) {
+      setCancelModal({ isOpen: false, order: null, isProcessing: false });
     }
   };
 
@@ -225,29 +246,30 @@ const fetchOrders = useCallback(async () => {
 
   return (
     <div className="p-2 sm:p-4 space-y-6 bg-gray-50 dark:bg-slate-950 min-h-screen text-gray-900 dark:text-slate-100 transition-colors duration-200">
-      
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="flex items-center gap-2 text-2xl sm:text-3xl font-bold bg-gradient-to-r from-orange-600 to-orange-400 bg-clip-text text-transparent leading-tight">
-            <UtensilsCrossed className="w-6 h-6 text-orange-500" />
+          <h1 className="text-base md:text-xl font-bold bg-gradient-to-r from-orange-600 to-orange-400 bg-clip-text text-transparent leading-tight">
             Live Orders
           </h1>
-          <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
+          <p className="text-xs lg:text-base text-gray-500 dark:text-slate-400 mt-1">
             Track kitchen workflow and table service in real-time.
           </p>
         </div>
-        <button 
-          onClick={fetchOrders} 
-          disabled={isLoading}
-          className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-lg text-xs font-semibold text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} /> Refresh
-        </button>
+        <div className="w-full flex justify-end sm:w-auto sm:block">
+          <button
+            onClick={fetchOrders}
+            disabled={isLoading}
+            className="flex items-center gap-2 px-2 py-2 md:px-4 md:py-2.5 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-md text-xs font-semibold text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} /> Refresh
+          </button>
+        </div>
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-3">
         <StatsCard label="Total Orders" value={isLoading && stats.total === 0 ? '...' : stats.total} />
         <StatsCard label="Pending" value={isLoading && stats.pending === 0 ? '...' : stats.pending} />
         <StatsCard label="Preparing" value={isLoading && stats.preparing === 0 ? '...' : stats.preparing} />
@@ -280,8 +302,8 @@ const fetchOrders = useCallback(async () => {
       />
 
       {/* Date Filter */}
-      <div className="relative z-50 flex flex-col lg:flex-row lg:items-center justify-between gap-4 p-4 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl shadow-sm">
-        <div className="flex items-center gap-2">
+      <div className="relative z-50 flex flex-col lg:flex-row lg:items-center justify-between gap-4 px-2 py-4 sm:px-4 sm:py-4  bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-md">
+        <div className="flex items-center gap-1 sm:gap-2">
           <DatePicker
             selected={startDate}
             onChange={(date) => handleDateChange(date, endDate)}
@@ -300,7 +322,7 @@ const fetchOrders = useCallback(async () => {
           />
           <button
             onClick={() => applyPreset('7days')}
-            className="p-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-500 dark:text-slate-400 hover:text-orange-600 dark:hover:text-orange-400 transition-colors cursor-pointer shadow-sm"
+            className="p-2.5 rounded-md bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-500 dark:text-slate-400 hover:text-orange-600 dark:hover:text-orange-400 transition-colors cursor-pointer"
             title="Reset range"
           >
             <RotateCcw className="w-3.5 h-3.5" />
@@ -312,7 +334,7 @@ const fetchOrders = useCallback(async () => {
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
           {Array.from({ length: 6 }).map((_, idx) => (
-            <div key={idx} className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-800 p-4 space-y-4 shadow-sm animate-pulse">
+            <div key={idx} className="bg-white dark:bg-slate-900 rounded-md border border-gray-200 dark:border-slate-800 p-4 space-y-4 animate-pulse">
               <div className="flex justify-between items-start">
                 <div className="space-y-2 w-1/2">
                   <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-3/4" />
@@ -327,14 +349,14 @@ const fetchOrders = useCallback(async () => {
               </div>
               <div className="pt-4 border-t border-gray-100 dark:border-slate-800 flex justify-between items-center">
                 <div className="h-6 bg-slate-200 dark:bg-slate-800 rounded w-20" />
-                <div className="h-8 bg-slate-200 dark:bg-slate-800 rounded-xl w-24" />
+                <div className="h-8 bg-slate-200 dark:bg-slate-800 rounded-md w-24" />
               </div>
             </div>
           ))}
         </div>
       ) : error ? (
         /* 2. ERROR STATE */
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-800 shadow-sm p-12">
+        <div className="bg-white dark:bg-slate-900 rounded-md border border-gray-200 dark:border-slate-800 p-12">
           <EmptyState
             icon={AlertCircle}
             title="Failed to load orders"
@@ -351,7 +373,7 @@ const fetchOrders = useCallback(async () => {
         </div>
       ) : orders.length === 0 ? (
         /* 3. EMPTY STATE */
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-800 shadow-sm p-12">
+        <div className="bg-white dark:bg-slate-900 rounded-md border border-gray-200 dark:border-slate-800 p-12">
           <EmptyState
             icon={isFiltered ? Search : UtensilsCrossed}
             title={isFiltered ? 'No matching orders found' : 'No active orders'}
@@ -364,7 +386,7 @@ const fetchOrders = useCallback(async () => {
               isFiltered ? (
                 <button
                   onClick={() => updateUrlParams(1, '', 'all', subDays(new Date(), 6), new Date())}
-                  className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors duration-200 cursor-pointer"
+                  className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors duration-200 cursor-pointer"
                 >
                   Clear filters
                 </button>
@@ -380,28 +402,27 @@ const fetchOrders = useCallback(async () => {
             const isUpdating = updatingOrderId === order.id;
 
             return (
-              <div 
-                key={order.id} 
-                className={`bg-white dark:bg-slate-900 rounded-2xl border border-gray-200/80 dark:border-slate-800 shadow-sm hover:shadow-md flex flex-col overflow-hidden transition-all ${
-                  isUpdating ? 'opacity-60 pointer-events-none' : ''
-                }`}
+              <div
+                key={order.id}
+                className={`bg-white dark:bg-slate-900 rounded-md border border-gray-200/80 dark:border-slate-800 flex flex-col overflow-hidden transition-all ${isUpdating ? 'opacity-60 pointer-events-none' : ''
+                  }`}
               >
                 <div className="p-4 flex-1 flex flex-col gap-4">
-                  
+
                   {/* Header Section */}
                   <div className="flex justify-between items-start gap-3 border-b border-gray-100 dark:border-slate-800 pb-3">
                     <div className="space-y-1.5">
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-bold tracking-wider text-gray-400 dark:text-slate-500 uppercase">Order ID:</span>
-                        <span className="font-mono font-bold text-gray-900 dark:text-white text-base">
+                        <span className="text-[10px] font-bold tracking-wider text-gray-900 dark:text-white   uppercase">Order ID:</span>
+                        <span className="font-mono  text-xs md:text-sm font-bold text-gray-400 dark:text-slate-500">
                           #{order.order_number}
                         </span>
                         <StatusBadge status={order.status} />
                       </div>
-                      
+
                       <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-slate-400">
                         <span className="font-medium text-gray-700 dark:text-slate-300 flex items-center gap-1">
-                          <span className="text-xs font-bold uppercase text-gray-400 dark:text-slate-500">Table:</span>
+                          <span className="text-xs font-bold uppercase text-gray-900 dark:text-white">Table:</span>
                           {order.table?.id}
                         </span>
                         <span>•</span>
@@ -412,9 +433,9 @@ const fetchOrders = useCallback(async () => {
                       </div>
                     </div>
 
-                    <Link 
+                    <Link
                       to={`${basePath}/orders-details/${order.id}`}
-                      className="p-2 text-gray-400 hover:text-gray-700 dark:hover:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors shrink-0"
+                      className="p-2 text-gray-400 hover:text-gray-700 dark:hover:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-md transition-colors shrink-0"
                       title="View Order Details"
                     >
                       <Eye className="w-4 h-4" />
@@ -424,26 +445,26 @@ const fetchOrders = useCallback(async () => {
                   {/* Items Section */}
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-[10px] font-bold tracking-wider text-gray-400 dark:text-slate-500 uppercase">
+                      <span className="text-[10px] font-bold tracking-wider text-gray-900 dark:text-white uppercase">
                         Items Ordered
                       </span>
-                      <span className="text-[11px] font-medium text-gray-400">
+                      <span className="text-xs md:text-sm font-medium text-gray-400">
                         {order.items?.length} item(s)
                       </span>
                     </div>
-                    
+
                     <div className="space-y-3 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
                       {order.items?.map(item => (
                         <div key={item.id} className="border-b border-gray-50 dark:border-slate-800 last:border-0 pb-2 last:pb-0">
                           <div className="flex justify-between items-start text-sm">
-                            <span className="font-medium text-gray-900 dark:text-white">
+                            <span className="font-medium text-xs md:text-sm text-gray-400 dark:text-slate-500e">
                               {item.quantity}x {item.item_name}
                             </span>
                             <span className="font-mono text-gray-600 dark:text-slate-400">
                               {formatPrice(item.subtotal)}
                             </span>
                           </div>
-                          
+
                           {item.modifiers && item.modifiers.length > 0 && (
                             <div className="mt-1 ml-4 space-y-0.5">
                               <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400 dark:text-slate-500 block">
@@ -453,7 +474,7 @@ const fetchOrders = useCallback(async () => {
                                 <div key={i} className="text-[12px] text-gray-500 dark:text-slate-500 flex justify-between">
                                   <span>
                                     <span className="text-gray-400 dark:text-slate-600 font-medium">{mod.modifier_group_name}:
-                                  </span> {mod.modifier_option_name}
+                                    </span> {mod.modifier_option_name}
                                   </span>
                                   <span className="font-mono">{formatPrice(mod.unit_price)}</span>
                                 </div>
@@ -477,7 +498,7 @@ const fetchOrders = useCallback(async () => {
 
                   {/* Order Note Section */}
                   {order.notes && (
-                    <div className="text-xs text-gray-600 dark:text-slate-300 p-2.5 bg-blue-50/50 dark:bg-blue-950/20 rounded-lg border border-blue-100 dark:border-blue-900/30">
+                    <div className="text-xs text-gray-600 dark:text-slate-300 p-2.5 bg-blue-50/50 dark:bg-blue-950/20 rounded-md border border-blue-100 dark:border-blue-900/30">
                       <span className="text-[9px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 block mb-0.5">
                         Order Note
                       </span>
@@ -489,10 +510,10 @@ const fetchOrders = useCallback(async () => {
                 {/* Bottom Bar: Total & Actions */}
                 <div className="p-3.5 bg-gray-50/80 dark:bg-slate-900/80 border-t border-gray-100 dark:border-slate-800 flex items-center justify-between gap-2">
                   <div className="flex flex-col">
-                    <span className="text-[9px] font-bold tracking-wider text-gray-400 dark:text-slate-500 uppercase">
+                    <span className="text-[9px] font-bold tracking-wider text-gray-900 dark:text-white uppercase">
                       Total
                     </span>
-                    <span className="text-sm font-black text-gray-900 dark:text-white font-mono leading-tight">
+                    <span className="text-sm font-black  text-gray-400 dark:text-slate-500 font-mono leading-tight">
                       {currency} {order.total_amount}
                     </span>
                   </div>
@@ -501,9 +522,9 @@ const fetchOrders = useCallback(async () => {
                     {/* Cancel Button - Only displays if status is pending */}
                     {order.status === 'pending' && (
                       <button
-                        onClick={() => updateOrderStatus(order.id, 'cancelled')}
+                        onClick={() => openCancelModal(order)}
                         disabled={isUpdating}
-                        className="flex items-center gap-1 px-3 py-2 bg-red-50 hover:bg-red-100 dark:bg-red-950/40 dark:hover:bg-red-900/60 text-red-600 dark:text-red-400 text-xs font-semibold rounded-xl border border-red-200/60 dark:border-red-900/40 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
+                        className="flex items-center gap-1 px-2 py-2 md:px-3 md:py-2.5 bg-red-50 hover:bg-red-100 dark:bg-red-950/40 dark:hover:bg-red-900/60 text-red-600 dark:text-red-400 text-xs font-semibold rounded-sm border border-red-200/60 dark:border-red-900/40 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
                         title="Cancel Order"
                       >
                         <XCircle className="w-3.5 h-3.5" />
@@ -516,7 +537,7 @@ const fetchOrders = useCallback(async () => {
                       <button
                         onClick={() => updateOrderStatus(order.id, nextStatus)}
                         disabled={isUpdating}
-                        className="flex items-center gap-1.5 px-3.5 py-2 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 disabled:bg-orange-400 text-white text-xs font-bold rounded-xl shadow-sm transition-all active:scale-95 min-w-[90px] justify-center cursor-pointer"
+                        className="flex items-center gap-1.5 px-2 py-2 md:px-3 md:py-2.5 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 disabled:bg-orange-400 text-white text-xs font-bold rounded-sm transition-all active:scale-95 min-w-[90px] justify-center cursor-pointer"
                       >
                         {isUpdating ? (
                           <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -533,6 +554,8 @@ const fetchOrders = useCallback(async () => {
         </div>
       )}
 
+
+
       {/* Pagination */}
       {!isLoading && !error && orders.length > 0 && (
         <div className="flex justify-center">
@@ -545,6 +568,37 @@ const fetchOrders = useCallback(async () => {
           />
         </div>
       )}
+
+
+      {/* Cancel Order Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={cancelModal.isOpen}
+        onClose={closeCancelModal}
+        onConfirm={() => updateOrderStatus(cancelModal.order?.id, 'cancelled')}
+        title="Cancel Order"
+        message={
+          <>
+            Are you sure you want to cancel order{' '}
+            <span className="font-bold text-slate-900 dark:text-slate-200">
+              #{cancelModal.order?.order_number}
+            </span>
+            {cancelModal.order?.table?.id && (
+              <>
+                {' '}for table{' '}
+                <span className="font-bold text-slate-900 dark:text-slate-200">
+                  {cancelModal.order.table.id}
+                </span>
+              </>
+            )}
+            ? This action cannot be undone.
+          </>
+        }
+        isLoading={cancelModal.isProcessing}
+        loadingText="Cancelling..."
+        confirmText="Cancel Order"
+        cancelText="Keep Order"
+        variant="danger"
+      />
     </div>
   );
 }

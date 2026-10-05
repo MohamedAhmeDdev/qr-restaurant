@@ -10,7 +10,7 @@ export default function Toolbar({
   dropdowns = [],
 }) {
   return (
-    <div className="p-1.5 sm:p-3 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3 transition-colors duration-200">
+    <div className="p-1.5 sm:p-3 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-md  flex flex-col md:flex-row md:items-center justify-between gap-3 transition-colors duration-200">
       
       {/* Search Box */}
       {showSearch && onSearchChange && (

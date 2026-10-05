@@ -253,12 +253,12 @@ export default function StaffPage() {
         className="hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors group border-b border-gray-100 dark:border-slate-800/60 last:border-none"
       >
         <td className="px-6 py-4 font-mono text-xs font-semibold text-gray-500 dark:text-slate-400">
-          #{staff.id}
+          {staff.id}
         </td>
         <td className="px-6 py-4">
           <div className="flex items-center gap-3">
             <div className="min-w-0">
-              <p className="font-semibold text-gray-900 dark:text-white truncate">{staff.name}</p>
+              <p className="font-semibold text-xs  md:text-sm text-gray-900 dark:text-white truncate">{staff.name}</p>
               <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-slate-400 mt-0.5">
                 <span className="flex items-center gap-1 truncate">
                   <Mail className="w-3 h-3 shrink-0" /> {staff.email}
@@ -267,14 +267,14 @@ export default function StaffPage() {
             </div>
           </div>
         </td>
-        <td className="px-6 py-4 text-gray-700 dark:text-slate-300 font-medium">
+        <td className="px-6 py-4  text-xs  md:text-sm text-gray-500 dark:text-slate-400">
           {staff.role?.name}
         </td>
-        <td className="px-6 py-4 text-gray-700 dark:text-slate-300">
+        <td className="px-6 py-4 text-gray-700  text-xs  md:text-sm dark:text-slate-300">
           {staff.shift_type}
         </td>
-        <td className="px-6 py-4 text-gray-700 dark:text-slate-300">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-gray-700 dark:text-slate-300 text-xs font-medium">
+        <td className="px-6 py-4 text-gray-500 dark:text-slate-400">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1  text-xs  md:text-sm">
             <Calendar className="w-3 h-3" /> {formatDate(staff.started_at)}
           </span>
         </td>
@@ -287,14 +287,14 @@ export default function StaffPage() {
               <>
                 <button
                   onClick={() => openConfirmModal(staff, 'restore')}
-                  className="p-2 rounded-lg text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-950/30 transition-colors"
+                  className="p-2 rounded-md text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-950/30 transition-colors"
                   title="Restore"
                 >
                   <RefreshCw className="w-4 h-4" />
                 </button>
                 {/* <button
                 onClick={() => openConfirmModal(staff, 'forceDelete')}
-                className="p-2 rounded-lg text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors cursor-pointer"
+                className="p-2 rounded-md text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors cursor-pointer"
                 title="Permanently Delete"
               >
                 <Trash2 className="w-4 h-4" />
@@ -305,14 +305,14 @@ export default function StaffPage() {
                 <>
                   <Link
                     to={`${basePath}/staff/edit/${staff.id}`}
-                    className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg text-gray-500 hover:text-blue-600 transition-colors inline-block"
+                    className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md text-gray-500 hover:text-blue-600 transition-colors inline-block"
                     title="Edit"
                   >
                     <Edit className="w-4 h-4" />
                   </Link>
                   <button
                     onClick={() => openConfirmModal(staff, 'trash')}
-                    className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-gray-500 hover:text-red-600 transition-colors cursor-pointer"
+                    className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md text-gray-500 hover:text-red-600 transition-colors cursor-pointer"
                     title="Remove"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -330,24 +330,24 @@ export default function StaffPage() {
     <div className="p-1 sm:p-4 space-y-6 bg-gray-50 dark:bg-slate-950 min-h-screen text-gray-900 dark:text-slate-100 transition-colors duration-200">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-orange-600 to-orange-400 bg-clip-text text-transparent leading-tight">
-            Staff Management
-          </h1>
-          <p className="text-md text-gray-500 dark:text-slate-400 mt-1">
-            Manage your team members, roles, and operational shift statuses.
-          </p>
-        </div>
-        <Link
-          to={`${basePath}/staff/create`} 
-          className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-lg text-sm font-medium transition-all shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 active:scale-[0.98]"
-        >
-          <UserPlus className="w-4 h-4" /> Add Staff
-        </Link>
-      </div>
+  <div>
+    <h1 className="text-base md:text-xl font-bold bg-gradient-to-r from-orange-600 to-orange-400 bg-clip-text text-transparent leading-tight">
+      Staff Management
+    </h1>
+    <p className="text-xs lg:text-base text-gray-500 dark:text-slate-400 mt-1">
+      Manage your team members, roles, and operational shift statuses.
+    </p>
+  </div>
+  <Link
+    to={`${basePath}/staff/create`}
+          className="flex items-center gap-2 px-2 py-2 md:px-4 md:py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-sm text-xs lg:text-sm font-semibold transition-all active:scale-95 self-end md:self-auto"
+  >
+    <UserPlus className="w-4 h-4" /> Add Staff
+  </Link>
+</div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-3">
         <StatsCard label="Total Staff" value={loading && stats.total === 0 ? '...' : stats.total} />
         <StatsCard label="Active Staff" value={loading && stats.active === 0 ? '...' : stats.active} />
         <StatsCard label="Suspended" value={loading && stats.suspended === 0 ? '...' : (stats.suspended || 0)} />
@@ -401,7 +401,7 @@ export default function StaffPage() {
       />
 
       {/* Staff Table & Reusable Pagination */}
-      <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-800 shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 rounded-md border border-gray-200 dark:border-slate-800 overflow-hidden">
         <Table
           columns={columns}
           data={staffList}

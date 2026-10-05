@@ -22,7 +22,7 @@ export default function Layout({ SidebarComponent }) {
       <div className="flex flex-col flex-1 w-0 overflow-hidden">
         <Header setMobileOpen={setMobileOpen} />
 
-        <main className={`flex-1 overflow-y-auto transition-all duration-300 ${collapsed ? 'lg:p-6' : 'lg:p-8'} p-4 sm:p-6`}>
+        <main className={`flex-1 overflow-y-auto transition-all duration-300 ${collapsed ? 'lg:p-2' : 'lg:p-2'} p-2 sm:p-2`}>
           <Outlet />
         </main>
       </div>

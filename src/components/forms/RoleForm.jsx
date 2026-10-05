@@ -12,7 +12,7 @@ export default function RoleForm({
   submitButtonText = 'Save Role'
 }) {
   return (
-      <form onSubmit={onSubmit} className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-800 shadow-sm p-6 space-y-6 transition-colors duration-200">
+      <form onSubmit={onSubmit} className="bg-white dark:bg-slate-900 rounded-md border border-gray-200 dark:border-slate-800  p-6 space-y-6 transition-colors duration-200">
         
         {/* BASIC INFORMATION SECTION */}
         <div className="space-y-4">
@@ -81,7 +81,7 @@ export default function RoleForm({
           <button
             type="submit"
             disabled={isSubmitting}
-            className="px-5 py-2 bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white rounded-lg text-xs font-medium transition-colors duration-200 shadow-sm flex items-center gap-2"
+            className="px-5 py-2 bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white rounded-md text-xs font-medium transition-colors duration-200 flex items-center gap-2"
           >
             <Save className="w-4 h-4" /> 
             {isSubmitting ? 'Saving...' : submitButtonText}

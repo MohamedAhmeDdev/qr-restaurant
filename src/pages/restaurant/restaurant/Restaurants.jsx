@@ -2,12 +2,11 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Search, ChefHat, Archive, Layers, X, PlusCircle,
-  User, Settings, LogOut, ChevronDown
+  Search, Archive, Layers, X, PlusCircle, Settings, LogOut, ChevronDown
 } from 'lucide-react';
 import api from '../../../services/api';
 import { useRestaurant } from '../../../contexts/RestaurantContext';
-// import { useAuth } from '../../../contexts/AuthContext'; // Uncomment when you have an auth context
+import { useAuth } from '../../../contexts/AuthContext';
 import ConfirmationModal from '../../../components/common/ConfirmationModal';
 import RestaurantGrid from '../../../components/cards/RestaurantGrid';
 import toast from 'react-hot-toast';
@@ -15,8 +14,7 @@ import { RestaurantService } from '../../../services/restaurant';
 
 export default function Restaurants() {
   const navigate = useNavigate();
-  // const { logout } = useAuth(); // Uncomment when you have an auth context
-
+  const { logout, user } = useAuth();
   // ── Shared context ──
   const {
     activeSlug,
@@ -34,7 +32,7 @@ export default function Restaurants() {
   const [isSwitching, setIsSwitching] = useState(null);
   const [openMenuId, setOpenMenuId] = useState(null);
   const [pendingAction, setPendingAction] = useState(null);
-  
+
   // Profile dropdown state
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
@@ -49,12 +47,8 @@ export default function Restaurants() {
   const menuRefs = useRef({});
   const profileRef = useRef(null);
 
-  // Mock user data (Replace with your actual auth context data)
-  const currentUser = {
-    name: 'Platform Owner',
-    email: 'ma07041705@gmail.com',
-    initials: 'PO',
-  };
+
+
 
   // Fetch list (search + tab aware)
   const fetchRestaurants = useCallback(async (query = '', tab = 'active') => {
@@ -265,9 +259,9 @@ export default function Restaurants() {
   // Handle Logout
   const handleLogout = async () => {
     try {
-      // await logout(); // Uncomment when using Auth Context
-      // await api.post('/logout'); // Or direct API call
-      
+      await logout();
+      await api.post('/logout');
+
       clearActiveRestaurant();
       toast.success('Signed out successfully');
       navigate('/login'); // Adjust route as needed
@@ -278,76 +272,67 @@ export default function Restaurants() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-orange-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 px-4 py-8 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-950 px-4 py-8 sm:px-6 lg:px-8">
       {/* Header Section */}
-      <div className="max-w-7xl mx-auto mb-8">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="max-w-7xl mx-auto mb-8 space-y-4">
+        <div className="flex items-center gap-3">
           <div>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/30">
-                <ChefHat className="w-6 h-6" strokeWidth={2.5} />
-              </div>
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
-                  Restaurants
-                </h1>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-                  Manage your restaurant locations and workspaces
-                </p>
-              </div>
-            </div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
+              Restaurants
+            </h1>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+              Manage your restaurant locations and workspaces
+            </p>
           </div>
+        </div>
 
-          <div className="flex items-center gap-3">
+        <div className="flex flex-col  sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center gap-1.5 sm:gap-3">
+            {/* Add Restaurant Button */}
             {activeTab === 'active' && (
               <button
                 onClick={() => navigate('/restaurant/create')}
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-xl text-sm font-semibold transition-all duration-200 shadow-lg shadow-orange-500/25 hover:shadow-xl hover:shadow-orange-500/30 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
+                title="Add Restaurant"
+                className="inline-flex items-center justify-center gap-2 px-2 py-2 sm:px-5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-md text-sm font-semibold transition-all duration-200 active:scale-[0.98]"
               >
-                <PlusCircle className="w-4 h-4" />
-                Add Restaurant
+                <PlusCircle className="w-4 h-4 shrink-0" />
+                <span className="">Add Restaurant</span>
               </button>
             )}
 
-              <button
+            {/* Organization Settings Button */}
+            <button
               onClick={() => navigate('/organization/settings')}
-              className="inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-xl text-sm font-semibold transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
+              title="Organization Settings"
+              className="inline-flex items-center justify-center gap-2 px-3 sm:px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-md text-sm font-semibold transition-all active:scale-[0.98]"
             >
-              <Settings className="w-4 h-4" />
-              Organization Settings
+              <Settings className="w-4 h-4 shrink-0" />
+              <span className="hidden md:inline">Organization Settings</span>
             </button>
+
             {/* ── Account / Profile Dropdown ── */}
             <div className="relative" ref={profileRef}>
               <button
                 onClick={() => setIsProfileOpen(!isProfileOpen)}
-                className="flex items-center gap-3 pl-1 pr-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
+                className="flex items-center gap-2 sm:gap-3 px-2.5 sm:pl-1 sm:pr-3 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md hover:bg-slate-50 dark:hover:bg-slate-700 transition-all duration-200"
               >
-                <div className="w-8 h-8 rounded-lg bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 flex items-center justify-center text-xs font-bold">
-                  {currentUser.initials}
-                </div>
-                <div className="hidden sm:block text-left">
-                  <p className="text-sm font-semibold text-slate-900 dark:text-white leading-none">
-                    {currentUser.name}
-                  </p>
-                  <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
-                    Super Admin
-                  </p>
-                </div>
-                <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isProfileOpen ? 'rotate-180' : ''}`} />
+                <p className="text-sm font-semibold text-slate-900 dark:text-white leading-none capitalize">
+                  {user.name}
+                </p>
+                <ChevronDown className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${isProfileOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {/* Dropdown Menu */}
               {isProfileOpen && (
-                <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-800 rounded-xl shadow-xl shadow-slate-200/50 dark:shadow-slate-950/50 border border-slate-200 dark:border-slate-700 py-1.5 z-50 animate-in fade-in zoom-in-95 duration-150">
-
+                <div className="absolute left-0 mt-1 w-38 bg-white dark:bg-slate-800 rounded-md shadow-md shadow-slate-200/50 dark:shadow-slate-950/50 border border-slate-200 dark:border-slate-700 z-50 animate-in fade-in zoom-in-95 duration-150">
                   <button
                     onClick={() => {
                       setIsProfileOpen(false);
                       handleLogout();
                     }}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                    className="w-full flex items-center gap-3 px-2 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors rounded-md"
                   >
-                    <LogOut className="w-4 h-4" />
+                    <LogOut className="w-4 h-4 shrink-0" />
                     Sign Out
                   </button>
                 </div>
@@ -359,87 +344,87 @@ export default function Restaurants() {
 
       {/* Main Container */}
       <div className="max-w-7xl mx-auto">
-        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl shadow-slate-200/50 dark:shadow-slate-950/50 ring-1 ring-slate-200/80 dark:ring-slate-800 overflow-hidden">
-          {/* Tabs & Controls */}
-          <div className="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
-            <div className="px-6 pt-4">
-              <div className="flex gap-1 p-1 bg-slate-100 dark:bg-slate-800/50 rounded-xl w-fit">
-                <button
-                  onClick={() => handleTabChange('active')}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
-                    activeTab === 'active'
-                      ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                  }`}
-                >
-                  <Layers className="w-4 h-4" />
-                  Active
-                  <span
-                    className={`ml-1 px-2 py-0.5 text-xs rounded-full ${
-                      activeTab === 'active'
-                        ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400'
-                        : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
-                    }`}
-                  >
-                    {activeTab === 'active' ? restaurants.length : '-'}
-                  </span>
-                </button>
 
+        <div className="mb-6 flex flex-col gap-4 rounded-md border border-slate-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between dark:border-slate-800 dark:bg-slate-900">
+          <div className="w-full sm:max-w-xs md:max-w-sm">
+            <div className="relative w-full">
+              <Search
+                className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 transition-colors peer-focus:text-orange-500"
+                strokeWidth={2}
+              />
+              <input
+                ref={searchInputRef}
+                type="text"
+                placeholder={`Search ${activeTab === 'trashed' ? 'deleted' : 'active'} restaurants...`}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="peer w-full rounded-lg border border-slate-200 bg-slate-50 py-2 pl-10 pr-10 text-sm text-slate-900 placeholder:text-slate-400 transition-all duration-200 focus:border-orange-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-orange-500/10 hover:border-slate-300 dark:border-slate-700 dark:bg-slate-800/50 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-orange-500 dark:focus:bg-slate-800 dark:hover:border-slate-600"
+              />
+              {searchQuery && (
                 <button
-                  onClick={() => handleTabChange('trashed')}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
-                    activeTab === 'trashed'
-                      ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                  }`}
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery('');
+                    searchInputRef.current?.focus();
+                  }}
+                  aria-label="Clear search"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 transition-colors hover:bg-slate-200/60 hover:text-slate-600 dark:hover:bg-slate-700 dark:hover:text-slate-200"
                 >
-                  <Archive className="w-4 h-4" />
-                  Trash
-                  <span
-                    className={`ml-1 px-2 py-0.5 text-xs rounded-full ${
-                      activeTab === 'trashed'
-                        ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400'
-                        : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
-                    }`}
-                  >
-                    {activeTab === 'trashed' ? restaurants.length : '-'}
-                  </span>
+                  <X className="h-4 w-4" />
                 </button>
-              </div>
-            </div>
-
-            {/* Search Bar */}
-            <div className="px-6 py-4">
-              <div className="relative max-w-md">
-                <Search
-                  className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"
-                  strokeWidth={2}
-                />
-                <input
-                  ref={searchInputRef}
-                  type="text"
-                  placeholder={`Search ${activeTab === 'trashed' ? 'deleted' : 'active'} restaurants...`}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-10 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm placeholder:text-slate-400 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-400 hover:border-slate-300 dark:hover:border-slate-600 transition-all duration-200"
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => {
-                      setSearchQuery('');
-                      searchInputRef.current?.focus();
-                    }}
-                    aria-label="Clear search"
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-full hover:bg-slate-200/60 dark:hover:bg-slate-700 transition-colors"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
+              )}
             </div>
           </div>
 
-          {/* Content View handled inside Grid */}
+          <div className="w-full sm:w-auto">
+            <div className="inline-flex w-full rounded-md bg-slate-100 p-1 sm:w-auto dark:bg-slate-800/60">
+
+              {/* Active Tab */}
+              <button
+                type="button"
+                onClick={() => handleTabChange('active')}
+                className={`flex flex-1 items-center justify-center gap-2 rounded-md px-3.5 py-2 text-sm font-medium transition-all duration-150 sm:flex-none ${activeTab === 'active'
+                    ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-700 dark:text-white'
+                    : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
+                  }`}
+              >
+                <Layers className="h-4 w-4" />
+                <span>Active</span>
+                <span
+                  className={`ml-1.5 rounded-full px-2 py-0.5 text-xs font-semibold ${activeTab === 'active'
+                      ? 'bg-orange-100 text-orange-600 dark:bg-orange-500/20 dark:text-orange-400'
+                      : 'bg-slate-200/70 text-slate-600 dark:bg-slate-600/50 dark:text-slate-400'
+                    }`}
+                >
+                  {activeTab === 'active' ? restaurants.length : '-'}
+                </span>
+              </button>
+
+              {/* Trash Tab */}
+              <button
+                type="button"
+                onClick={() => handleTabChange('trashed')}
+                className={`flex flex-1 items-center justify-center gap-2 rounded-md px-3.5 py-2 text-sm font-medium transition-all duration-150 sm:flex-none ${activeTab === 'trashed'
+                    ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-700 dark:text-white'
+                    : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
+                  }`}
+              >
+                <Archive className="h-4 w-4" />
+                <span>Trash</span>
+                <span
+                  className={`ml-1.5 rounded-full px-2 py-0.5 text-xs font-semibold ${activeTab === 'trashed'
+                      ? 'bg-orange-100 text-orange-600 dark:bg-orange-500/20 dark:text-orange-400'
+                      : 'bg-slate-200/70 text-slate-600 dark:bg-slate-600/50 dark:text-slate-400'
+                    }`}
+                >
+                  {activeTab === 'trashed' ? restaurants.length : '-'}
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-slate-900 rounded-md ring-1 ring-slate-200/80 dark:ring-slate-800 overflow-hidden">
           <RestaurantGrid
             restaurants={restaurants}
             activeSlug={activeSlug}

@@ -79,8 +79,7 @@ export default function Organizations() {
         />
       </div>
 
-      {/* TABLE CONTAINER */}
-      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden transition-colors duration-200">
+
         <Toolbar
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
@@ -90,6 +89,9 @@ export default function Organizations() {
           onFilterChange={setStatusFilter}
         />
 
+
+      {/* TABLE CONTAINER */}
+      <div className="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 overflow-hidden transition-colors duration-200">
         {/* REUSABLE TABLE INTEGRATION */}
         <Table
           columns={columns}
@@ -138,7 +140,7 @@ export default function Organizations() {
                   <Link
                     to={`/restaurants/${tenant.id}`}
                     title="View Restaurants"
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-medium text-slate-700 dark:text-slate-200 transition-colors duration-200"
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-medium text-slate-700 dark:text-slate-200 transition-colors duration-200"
                   >
                     <span>View</span>
                   </Link>

@@ -20,12 +20,12 @@ export default function CreateRestaurant() {
     background_image: null,
   });
 
-const validate = () => {
+  const validate = () => {
     const newErrors = {};
     if (!formData.name.trim()) newErrors.name = 'Restaurant name is required.';
     if (!formData.status) newErrors.status = 'Status is required.';
     if (!formData.currency) newErrors.currency = 'Currency is required.';
-    
+
     // Enforce file uploads if they haven't been provided or pre-loaded
     if (!formData.logo && !imagePreview) {
       newErrors.logo = 'Restaurant logo is required.';
@@ -49,7 +49,7 @@ const validate = () => {
       formDataToSend.append('name', formData.name.trim());
       formDataToSend.append('status', formData.status);
       formDataToSend.append('currency', formData.currency);
-      
+
       if (formData.logo) {
         formDataToSend.append('logo', formData.logo);
       }
@@ -76,21 +76,21 @@ const validate = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100/50 to-gray-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 p-6 md:p-10 transition-colors">
+     <div className="min-h-screen bg-gray-50 dark:bg-slate-950 p-6 md:p-10 transition-colors">
       <div className="max-w-7xl mx-auto mb-8 flex items-center justify-between">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-1">
           <button
             onClick={handleCancel}
-            className="p-2.5 rounded-xl border border-gray-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-gray-50 dark:hover:bg-slate-800/80 text-gray-600 dark:text-slate-300 shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
+            className="p-2.5  text-gray-600 dark:text-slate-300 active:scale-[0.98]"
             aria-label="Go back"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
-            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white">
+            <h1 className="text-base md:text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white">
               Add New Restaurant
             </h1>
-            <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">
+            <p className="text-xs md:text-sm text-gray-500 dark:text-slate-400 mt-1">
               Register a new location and set up its initial profile.
             </p>
           </div>

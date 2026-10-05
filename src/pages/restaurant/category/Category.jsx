@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { 
-  Trash2, AlertCircle, Folder, Hash, Search, 
-  Power, PlusCircle, Edit, Tag, RefreshCw 
+import {
+  Trash2, AlertCircle, Folder, Hash, Search,
+  Power, PlusCircle, Edit, Tag, RefreshCw
 } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -14,11 +14,10 @@ import ConfirmationModal from '../../../components/common/ConfirmationModal';
 import api from '../../../services/api';
 import Pagination from '../../../components/common/Pagination';
 import { useRoleBasePath } from '../../../utils/useRoleBasePath';
-import { useAuth } from '../../../contexts/AuthContext';
+import Can from '../../../utils/Can';
 
 export default function CategoryPage() {
-  const { user } = useAuth();
-   const basePath = useRoleBasePath();
+  const basePath = useRoleBasePath();
   const [searchParams, setSearchParams] = useSearchParams();
 
   // URL-driven state
@@ -83,7 +82,7 @@ export default function CategoryPage() {
 
     try {
       const response = await api.get('/categories', { params });
-      
+
 
       const paginatedData = response.data?.data;
       const items = paginatedData.data;
@@ -115,38 +114,38 @@ export default function CategoryPage() {
 
 
   // Quick Toggle Active/Inactive
-const toggleStatus = async (category) => {
-  const updatedStatus = !category.is_active;
+  const toggleStatus = async (category) => {
+    const updatedStatus = !category.is_active;
 
-  // Optimistically update list based on active filter view
-  setCategories(prev => {
-    if (statusFilter === 'active' && !updatedStatus) {
-      return prev.filter(c => c.id !== category.id);
+    // Optimistically update list based on active filter view
+    setCategories(prev => {
+      if (statusFilter === 'active' && !updatedStatus) {
+        return prev.filter(c => c.id !== category.id);
+      }
+      if (statusFilter === 'inactive' && updatedStatus) {
+        return prev.filter(c => c.id !== category.id);
+      }
+      return prev.map(c => c.id === category.id ? { ...c, is_active: updatedStatus } : c);
+    });
+
+    // Optimistically update counts
+    setStats(prev => ({
+      ...prev,
+      active: updatedStatus ? prev.active + 1 : Math.max(0, prev.active - 1),
+      inactive: updatedStatus ? Math.max(0, prev.inactive - 1) : prev.inactive + 1
+    }));
+
+    try {
+      const response = await api.put(`/categories/${category.id}`, { is_active: updatedStatus });
+      toast.success(response.data?.message);
+    } catch (err) {
+      console.error('Failed to toggle status:', err);
+      toast.error(err.response?.data?.message);
+
+      // Refresh to restore accurate server state on failure
+      fetchCategories();
     }
-    if (statusFilter === 'inactive' && updatedStatus) {
-      return prev.filter(c => c.id !== category.id);
-    }
-    return prev.map(c => c.id === category.id ? { ...c, is_active: updatedStatus } : c);
-  });
-
-  // Optimistically update counts
-  setStats(prev => ({
-    ...prev,
-    active: updatedStatus ? prev.active + 1 : Math.max(0, prev.active - 1),
-    inactive: updatedStatus ? Math.max(0, prev.inactive - 1) : prev.inactive + 1
-  }));
-
-  try {
-    const response = await api.put(`/categories/${category.id}`, { is_active: updatedStatus });
-    toast.success(response.data?.message);
-  } catch (err) {
-    console.error('Failed to toggle status:', err);
-    toast.error(err.response?.data?.message);
-    
-    // Refresh to restore accurate server state on failure
-    fetchCategories();
-  }
-};
+  };
 
   // --- UNIFIED CONFIRMATION MODAL HANDLERS ---
   const openConfirmModal = (category, action) => {
@@ -227,7 +226,7 @@ const toggleStatus = async (category) => {
     }
   };
 
-   const handleSearchChange = (query) => {
+  const handleSearchChange = (query) => {
     updateUrlParams(1, query, statusFilter);
   };
 
@@ -268,77 +267,86 @@ const toggleStatus = async (category) => {
         className="border-b border-gray-100 dark:border-slate-800/60 hover:bg-gray-50/50 dark:hover:bg-slate-800/50 transition-colors"
       >
         <td className="px-6 py-4 font-mono text-xs font-semibold text-gray-500 dark:text-slate-400">
-          #{cat.id}
+          {cat.id}
         </td>
-      <td className="py-4 px-4 font-bold text-gray-900 dark:text-white">
-        {cat.name}
-      </td>
-      <td className="py-4 px-4 font-mono text-xs text-gray-500 dark:text-slate-400">
-        <span className="inline-flex items-center gap-1">
-          <Hash className="w-3 h-3 text-gray-400 dark:text-slate-500" />
-          {cat.slug}
-        </span>
-      </td>
-      <td className="py-4 px-4 hidden md:table-cell text-xs text-gray-600 dark:text-slate-400 max-w-xs truncate">
-        {cat.description?.trim() || "—"}
-      </td>
-      <td className="py-4 px-4">
-        <StatusBadge status={cat.is_active ? 'active' : 'inactive'} />
-      </td>
-      <td className="py-4 px-4 sm:px-6 text-right">
+        <td className="py-4 px-4 text-gray-400 dark:text-slate-500">
+          {cat.name}
+        </td>
+        <td className="py-4 px-4 font-mono text-xs text-gray-500 dark:text-slate-400">
+          <span className="inline-flex items-center gap-1">
+            <Hash className="w-3 h-3 text-gray-400 dark:text-slate-500" />
+            {cat.slug}
+          </span>
+        </td>
+        <td className="py-4 px-4 hidden md:table-cell text-xs text-gray-600 dark:text-slate-400 max-w-xs truncate">
+          {cat.description?.trim() || "—"}
+        </td>
+        <td className="py-4 px-4">
+          <StatusBadge status={cat.is_active ? 'active' : 'inactive'} />
+        </td>
+        <td className="py-4 px-4 sm:px-6 text-right">
           <div className="flex items-center justify-end gap-1">
             {isTrashed ? (
               <>
-                <button
-                  onClick={() => openConfirmModal(cat, 'restore')}
-                  className="p-2 rounded-lg text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-950/30 transition-colors"
-                  title="Restore"
-                >
-                  <RefreshCw className="w-4 h-4" />
-                </button>
-                {/* <button
-              onClick={() => openConfirmModal(cat, 'forceDelete')}
-              className="p-2 rounded-lg text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors cursor-pointer"
-              title="Permanently Delete"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button> */}
+              <Can permission="category.restore">
+                  <button
+                    onClick={() => openConfirmModal(cat, 'restore')}
+                    className="p-2 rounded-md text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-950/30 transition-colors"
+                    title="Restore"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                  </button>
+                </Can>
+
+                {/* <Can permission="category.force_delete">
+          <button
+            onClick={() => openConfirmModal(cat, 'forceDelete')}
+            className="p-2 rounded-md text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors cursor-pointer"
+            title="Permanently Delete"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </Can> */}
               </>
-            ) : user?.role === 'cashier' || 'waiter' ? (
-            <span className="text-xs text-gray-400 italic">No actions available</span>
             ) : (
               <>
-                <button
-                  onClick={() => toggleStatus(cat)}
-                  className={`p-2 rounded-lg transition-colors ${cat.is_active
-                      ? 'text-red-500 hover:bg-red-100/50 dark:text-red-400 dark:hover:bg-red-950/30'
-                      : 'text-emerald-600 hover:bg-emerald-100/50 dark:text-emerald-400 dark:hover:bg-emerald-950/30'
-                    }`}
-                  title={cat.is_active ? 'Deactivate' : 'Activate'}
-                >
-                  <Power className="w-4 h-4" />
-                </button>
+                <Can permission="category.update">
+                  <button
+                    onClick={() => toggleStatus(cat)}
+                    className={`p-2 rounded-md transition-colors ${cat.is_active
+                        ? 'text-red-500 hover:bg-red-100/50 dark:text-red-400 dark:hover:bg-red-950/30'
+                        : 'text-emerald-600 hover:bg-emerald-100/50 dark:text-emerald-400 dark:hover:bg-emerald-950/30'
+                      }`}
+                    title={cat.is_active ? 'Deactivate' : 'Activate'}
+                  >
+                    <Power className="w-4 h-4" />
+                  </button>
+                </Can>
 
-                <Link
-                  to={`${basePath}/category/edit/${cat.id}`}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg text-gray-500 hover:text-blue-600 transition-colors inline-block"
-                  title="Edit"
-                >
-                  <Edit className="w-4 h-4" />
-                </Link>
+                <Can permission="category.update">
+                  <Link
+                    to={`${basePath}/category/edit/${cat.id}`}
+                    className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md text-gray-500 hover:text-blue-600 transition-colors inline-block"
+                    title="Edit"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </Link>
+                </Can>
 
-                <button
-                  onClick={() => openConfirmModal(cat, 'trash')}
-                  className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-gray-500 hover:text-red-600 transition-colors cursor-pointer"
-                  title="Remove"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                <Can permission="category.delete">
+                  <button
+                    onClick={() => openConfirmModal(cat, 'trash')}
+                    className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md text-gray-500 hover:text-red-600 transition-colors cursor-pointer"
+                    title="Remove"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </Can>
               </>
             )}
           </div>
-      </td>
-    </tr>
+        </td>
+      </tr>
     );
   };
 
@@ -348,20 +356,22 @@ const toggleStatus = async (category) => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-orange-600 to-orange-400 bg-clip-text text-transparent leading-tight">
+          <h1 className="text-base md:text-xl font-bold bg-gradient-to-r from-orange-600 to-orange-400 bg-clip-text text-transparent leading-tight">
             Menu Categories
           </h1>
-          <p className="text-md sm:text-sm text-gray-500 dark:text-slate-400 mt-1">
+          <p className="text-xs lg:text-base text-gray-500 dark:text-slate-400 mt-1">
             Organize and manage your menu category structure.
           </p>
         </div>
-        <Link
-          to={`${basePath}/category/create`}
-          className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white rounded-xl text-sm font-semibold transition-all duration-200 shadow-lg shadow-orange-500/20 hover:shadow-orange-500/35 active:scale-[0.98]"
-        >
-          <Tag className="w-4 h-4 stroke-[2.5]" />
-          <span>New Category</span>
-        </Link>
+        <Can permission="category.create">
+          <Link
+            to={`${basePath}/category/create`}
+            className="flex items-center gap-2 px-2 py-2 md:px-4 md:py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-sm text-xs lg:text-sm font-semibold transition-all active:scale-95 self-end md:self-auto"
+          >
+            <Tag className="w-4 h-4 stroke-[2.5]" />
+            <span>New Category</span>
+          </Link>
+        </Can>
       </div>
 
 
@@ -373,10 +383,10 @@ const toggleStatus = async (category) => {
         <StatsCard label="Trash" value={loading && stats.trash === 0 ? '...' : stats.trash} />
       </div>
 
-          {/* Toolbar */}
+      {/* Toolbar */}
       <Toolbar
         searchQuery={searchQuery}
-        onSearchChange={handleSearchChange} 
+        onSearchChange={handleSearchChange}
         searchPlaceholder="Search categories..."
         dropdowns={[
           {
@@ -397,8 +407,8 @@ const toggleStatus = async (category) => {
       />
 
       {/* Generic Table Component handling Loading, Error, Empty, and List States */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
-      <Table
+      <div className="bg-white dark:bg-slate-900 rounded-md border border-gray-200/80 dark:border-slate-800 overflow-hidden">
+        <Table
           columns={columns}
           data={categories}
           renderRow={renderRow}
@@ -415,15 +425,15 @@ const toggleStatus = async (category) => {
         />
       </div>
 
-        {!loading && !error && categories.length > 0 && (
-          <Pagination
-            currentPage={currentPage}
-            totalPages={lastPage}
-            totalRecords={totalItems}
-            onPageChange={handlePageChange}
-            maxVisible={5}
-          />
-        )}
+      {!loading && !error && categories.length > 0 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={lastPage}
+          totalRecords={totalItems}
+          onPageChange={handlePageChange}
+          maxVisible={5}
+        />
+      )}
 
       {/* Unified Confirmation Modal */}
       <ConfirmationModal
@@ -432,8 +442,8 @@ const toggleStatus = async (category) => {
         onConfirm={handleConfirmAction}
         title={
           confirmModal.action === 'trash' ? 'Move Category to Trash' :
-          confirmModal.action === 'restore' ? 'Restore Category' :
-          'Permanently Delete Category'
+            confirmModal.action === 'restore' ? 'Restore Category' :
+              'Permanently Delete Category'
         }
         message={
           confirmModal.action === 'trash' ? (
@@ -447,12 +457,12 @@ const toggleStatus = async (category) => {
         isLoading={confirmModal.isProcessing}
         confirmText={
           confirmModal.action === 'trash' ? 'Move to Trash' :
-          confirmModal.action === 'restore' ? 'Restore' :
-          'Permanently Delete'
+            confirmModal.action === 'restore' ? 'Restore' :
+              'Permanently Delete'
         }
         confirmClassName={
-          confirmModal.action === 'forceDelete' 
-            ? 'bg-rose-600 hover:bg-rose-700 text-white' 
+          confirmModal.action === 'forceDelete'
+            ? 'bg-rose-600 hover:bg-rose-700 text-white'
             : 'bg-orange-600 hover:bg-orange-700 text-white'
         }
       />

@@ -87,11 +87,11 @@ export default function RestaurantForm({
   // Reusable Section Header
   const SectionHeader = ({ icon: Icon, title, description }) => (
     <div className="flex items-center gap-3 pb-4 border-b border-gray-100 dark:border-slate-800 mb-6">
-      <div className="p-2.5 rounded-xl bg-orange-500/10 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400">
-        <Icon className="w-5 h-5" />
+      <div className="p-2 rounded-md bg-orange-500/10 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400">
+        <Icon className="w-3 h-3 md:w-5 md:h-5" />
       </div>
       <div>
-        <h3 className="text-base font-semibold text-gray-900 dark:text-white">{title}</h3>
+        <h3 className=" text-sm md:text-xl font-semibold text-gray-900 dark:text-white">{title}</h3>
         {description && <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">{description}</p>}
       </div>
     </div>
@@ -118,26 +118,26 @@ export default function RestaurantForm({
 
     return (
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-gray-700 dark:text-slate-300">
+        <label className="block text-sm text-gray-700 dark:text-slate-300">
           {label} <span className="text-orange-500">*</span>
         </label>
 
         {preview ? (
           <div className="space-y-2">
-            <div className={`relative group w-full ${aspectClass} max-h-64 rounded-2xl overflow-hidden border border-gray-200 dark:border-slate-700 bg-gray-900 shadow-sm`}>
+            <div className={`relative group w-full ${aspectClass} max-h-64 rounded-md overflow-hidden border border-gray-200 dark:border-slate-700 bg-gray-900`}>
               <img src={preview} alt="Preview" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
               <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-3 backdrop-blur-[2px]">
                 <button
                   type="button"
                   onClick={() => inputRef.current?.click()}
-                  className="px-4 py-2 rounded-xl bg-white text-gray-900 text-xs font-semibold hover:bg-gray-100 transition-colors shadow-lg transform translate-y-2 group-hover:translate-y-0 duration-200"
+                  className="px-4 py-2 rounded-md bg-white text-gray-900 text-xs font-semibold hover:bg-gray-100 transition-colors transform translate-y-2 group-hover:translate-y-0 duration-200"
                 >
                   Replace
                 </button>
                 <button
                   type="button"
                   onClick={onRemove}
-                  className="p-2.5 rounded-xl bg-red-500 text-white hover:bg-red-600 transition-colors shadow-lg transform translate-y-2 group-hover:translate-y-0 duration-200 delay-75"
+                  className="p-2.5 rounded-md bg-red-500 text-white hover:bg-red-600 transition-colors transform translate-y-2 group-hover:translate-y-0 duration-200 delay-75"
                   aria-label="Remove image"
                 >
                   <X className="w-4 h-4" />
@@ -145,7 +145,7 @@ export default function RestaurantForm({
               </div>
             </div>
             <div className="flex items-center justify-between px-1">
-              <span className="text-xs font-medium text-gray-600 dark:text-slate-300 truncate max-w-[200px]" title={getFileName()}>
+              <span className="text-xs  text-gray-600 dark:text-slate-300 truncate max-w-[200px]" title={getFileName()}>
                 {getFileName()}
               </span>
               <div className="flex items-center gap-3 text-xs font-semibold">
@@ -171,9 +171,9 @@ export default function RestaurantForm({
           <button
             type="button"
             onClick={() => inputRef.current?.click()}
-            className={`w-full ${aspectClass} max-h-64 flex flex-col items-center justify-center gap-3 p-6 rounded-2xl border-2 border-dashed transition-all duration-200 group relative overflow-hidden border-gray-200 dark:border-slate-700 hover:border-orange-400 dark:hover:border-orange-500 bg-gray-50/50 dark:bg-slate-800/50 hover:bg-orange-50/30 dark:hover:bg-slate-800`}
+            className={`w-full ${aspectClass} max-h-64 flex flex-col items-center justify-center gap-3 p-6 rounded-md border-2 border-dashed transition-all duration-200 group relative overflow-hidden border-gray-200 dark:border-slate-700 hover:border-orange-400 dark:hover:border-orange-500 bg-gray-50/50 dark:bg-slate-800/50 hover:bg-orange-50/30 dark:hover:bg-slate-800`}
           >
-            <div className="p-3.5 rounded-2xl transition-all duration-200 bg-white dark:bg-slate-700 text-gray-400 group-hover:text-orange-500 group-hover:scale-110 shadow-sm">
+            <div className="p-3.5 rounded-md transition-all duration-200 bg-white dark:bg-slate-700 text-gray-400 group-hover:text-orange-500">
               <Icon className="w-6 h-6" />
             </div>
             <div className="text-center space-y-1">
@@ -201,16 +201,13 @@ export default function RestaurantForm({
   return (
     <form onSubmit={onSubmit} className="space-y-6 max-w-4xl mx-auto pb-12">
       {/* Main Card */}
-      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-200/80 dark:border-slate-800 shadow-xl shadow-gray-200/40 dark:shadow-none overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 rounded-md border border-gray-200/80 dark:border-slate-800 overflow-hidden">
 
         {/* Header Banner */}
-        <div className="px-6 md:px-8 py-6 border-b border-gray-100 dark:border-slate-800 bg-gradient-to-r from-orange-500/[0.03] via-transparent to-transparent flex items-center justify-between">
+        <div className="px-3 md:px-8 py-6 border-b border-gray-100 dark:border-slate-800 via-transparent to-transparent flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="p-3 rounded-2xl bg-orange-500 text-white shadow-lg shadow-orange-500/25">
-              <ChefHat className="w-6 h-6" />
-            </div>
             <div>
-              <h2 className="font-bold text-xl text-gray-900 dark:text-white tracking-tight">
+              <h2 className="font-bold text-base md:text-xl text-gray-900 dark:text-white tracking-tight">
                 {isEdit ? 'Edit Restaurant Profile' : 'New Restaurant Profile'}
               </h2>
               <p className="text-xs md:text-sm text-gray-500 dark:text-slate-400 mt-0.5">
@@ -220,7 +217,7 @@ export default function RestaurantForm({
           </div>
         </div>
 
-        <div className="p-6 md:p-8 space-y-8">
+        <div className="p-4 md:p-8 space-y-4">
 
           {/* SECTION 1: BASIC INFO */}
           <section>
@@ -233,7 +230,7 @@ export default function RestaurantForm({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Name Field - Prominent */}
               <div className="space-y-2">
-                <label htmlFor="restaurant-name" className="block text-sm font-medium text-gray-700 dark:text-slate-300">
+                <label htmlFor="restaurant-name" className="block text-sm  text-gray-700 dark:text-slate-300">
                   Restaurant Name <span className="text-orange-500">*</span>
                 </label>
                 <input
@@ -242,7 +239,7 @@ export default function RestaurantForm({
                   value={formData.name || ''}
                   onChange={(e) => handleInputChange('name', e.target.value)}
                   placeholder="e.g., Bella Italia Downtown"
-                  className="w-full px-4.5 py-3.5 rounded-2xl border border-gray-200 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-800/50 text-gray-900 dark:text-white placeholder-gray-400 outline-none transition-all text-sm font-medium focus:border-orange-500 focus:bg-white dark:focus:bg-slate-800 focus:ring-4 focus:ring-orange-500/10"
+                  className="w-full px-4.5 py-2 rounded-md border border-gray-200 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-800/50 text-gray-900 dark:text-white placeholder-gray-400 outline-none transition-all text-sm focus:border-orange-500 focus:bg-white dark:focus:bg-slate-800 focus:ring-4 focus:ring-orange-500/10"
                 />
                 {errors.name && (
                   <p className="text-xs text-red-500 flex items-center gap-1.5 mt-1">
@@ -253,7 +250,7 @@ export default function RestaurantForm({
 
               {/* Currency Field */}
               <div className="space-y-2">
-                <label htmlFor="currency" className="block text-sm font-medium text-gray-700 dark:text-slate-300">
+                <label htmlFor="currency" className="block text-sm text-gray-700 dark:text-slate-300">
                   Currency <span className="text-orange-500">*</span>
                 </label>
                 <div className="relative">
@@ -262,7 +259,7 @@ export default function RestaurantForm({
                     required
                     value={formData.currency || 'select'}
                     onChange={(e) => handleInputChange('currency', e.target.value)}
-                    className="w-full px-4.5 pr-10 py-3.5 rounded-2xl border border-gray-200 dark:border-slate-700 appearance-none bg-gray-50/50 dark:bg-slate-800/50 text-gray-900 dark:text-white outline-none transition-all text-sm font-medium cursor-pointer focus:border-orange-500 focus:bg-white dark:focus:bg-slate-800 focus:ring-4 focus:ring-orange-500/10"
+                    className="w-full px-4.5 pr-10 py-2 rounded-md border border-gray-200 dark:border-slate-700 appearance-none bg-gray-50/50 dark:bg-slate-800/50 text-gray-900 dark:text-white outline-none transition-all text-sm cursor-pointer focus:border-orange-500 focus:bg-white dark:focus:bg-slate-800 focus:ring-4 focus:ring-orange-500/10"
                   >
                     <option value="select" disabled>Select Currency</option>
                     {cc.data.map((c) => (
@@ -333,12 +330,12 @@ export default function RestaurantForm({
 
             <div className="grid grid-cols-1 gap-4">
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300">
+                <label className="block text-sm text-gray-700 dark:text-slate-300">
                   Visibility Status <span className="text-orange-500">*</span>
                 </label>
                 
                 {/* Status Toggle Card */}
-                <div className="relative p-4 rounded-xl border-2 transition-all duration-200  cursor-pointer bg-white dark:bg-slate-800/40 border-gray-200 dark:border-slate-700/80 ">
+                <div className="relative p-4 rounded-md border-2 transition-all duration-200  cursor-pointer bg-white dark:bg-slate-800/40 border-gray-200 dark:border-slate-700/80 ">
                   <label htmlFor="is_active" className="flex items-start gap-4 cursor-pointer">
                     <div className="relative flex items-center justify-center mt-0.5">
                       <input
@@ -362,7 +359,7 @@ export default function RestaurantForm({
                         <span className="text-sm font-semibold text-gray-800 dark:text-slate-200 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
                           Active Restaurant
                         </span>
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium transition-colors ${
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] transition-colors ${
                           formData.status === 'active'
                             ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
                             : 'bg-gray-100 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400'
@@ -397,7 +394,7 @@ export default function RestaurantForm({
           <button
             type="button"
             onClick={onCancel}
-            className="px-6 py-3.5 rounded-2xl border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-gray-700 dark:text-slate-300 text-sm font-semibold hover:bg-gray-50 dark:hover:bg-slate-800 transition-all shadow-sm active:scale-[0.98]"
+            className="px-6 py-2 rounded-sm border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-gray-700 dark:text-slate-300 text-sm font-semibold hover:bg-gray-50 dark:hover:bg-slate-800 transition-all shadow-sm active:scale-[0.98]"
           >
             Cancel
           </button>
@@ -405,7 +402,7 @@ export default function RestaurantForm({
         <button
           type="submit"
           disabled={isSubmitting}
-          className="px-8 py-3.5 rounded-2xl bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white text-sm font-semibold flex items-center gap-2 transition-all disabled:opacity-70 disabled:cursor-not-allowed shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 active:scale-[0.98] min-w-[160px] justify-center"
+          className="px-8 py-2 rounded-sm bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white text-sm font-semibold flex items-center gap-2 transition-all disabled:opacity-70 disabled:cursor-not-allowed active:scale-[0.98] min-w-[160px] justify-center"
         >
           {isSubmitting ? (
             <>

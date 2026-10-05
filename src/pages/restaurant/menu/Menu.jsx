@@ -23,13 +23,12 @@ import CategoriesService from '../../../services/categories';
 import { useFormatPrice } from '../../../contexts/useFormatPrice';
 import StatsCard from '../../../components/cards/StatsCard';
 import { useRoleBasePath } from '../../../utils/useRoleBasePath';
-import { useAuth } from '../../../contexts/AuthContext';
+import Can from '../../../utils/Can';
 
 export default function MenuTable() {
-  const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
-     const basePath = useRoleBasePath();
-  const {formatPrice} = useFormatPrice();
+  const basePath = useRoleBasePath();
+  const { formatPrice } = useFormatPrice();
 
   // URL-driven state
   const currentPage = Number(searchParams.get('page')) || 1;
@@ -40,13 +39,13 @@ export default function MenuTable() {
   const [categories, setCategories] = useState([]);
   const [items, setItems] = useState([]);
 
-    const [stats, setStats] = useState({
-      total: 0,
-      active: 0,
-      inactive: 0,
-      trash: 0
-    });
-  
+  const [stats, setStats] = useState({
+    total: 0,
+    active: 0,
+    inactive: 0,
+    trash: 0
+  });
+
   // Pagination State
   const [lastPage, setLastPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
@@ -184,39 +183,39 @@ export default function MenuTable() {
   };
 
   // Toggle Active/Inactive Status Optimistically
-// Toggle Active/Inactive Status Optimistically
-const toggleStatus = async (item) => {
-  const updatedStatus = !item.is_active;
+  // Toggle Active/Inactive Status Optimistically
+  const toggleStatus = async (item) => {
+    const updatedStatus = !item.is_active;
 
-  // Option 1: Remove from array if current filter doesn't match the updated status
-  setItems((prev) => {
-    const statusMatchesFilter =
-      statusFilter === 'all' ||
-      (statusFilter === 'active' && updatedStatus) ||
-      (statusFilter === 'inactive' && !updatedStatus);
+    // Option 1: Remove from array if current filter doesn't match the updated status
+    setItems((prev) => {
+      const statusMatchesFilter =
+        statusFilter === 'all' ||
+        (statusFilter === 'active' && updatedStatus) ||
+        (statusFilter === 'inactive' && !updatedStatus);
 
-    if (!statusMatchesFilter) {
-      return prev.filter((i) => i.id !== item.id);
+      if (!statusMatchesFilter) {
+        return prev.filter((i) => i.id !== item.id);
+      }
+
+      return prev.map((i) => (i.id === item.id ? { ...i, is_active: updatedStatus } : i));
+    });
+
+    setStats((prev) => ({
+      ...prev,
+      active: updatedStatus ? prev.active + 1 : Math.max(0, prev.active - 1),
+      inactive: updatedStatus ? Math.max(0, prev.inactive - 1) : prev.inactive + 1
+    }));
+
+    try {
+      const response = await api.patch(`/menu-items/${item.id}/toggle-active`);
+      toast.success(response?.data?.message);
+    } catch (err) {
+      toast.error(err.response?.data?.message);
+      // Rollback by refetching items to restore exact filter state
+      fetchMenuItems();
     }
-
-    return prev.map((i) => (i.id === item.id ? { ...i, is_active: updatedStatus } : i));
-  });
-
-  setStats((prev) => ({
-    ...prev,
-    active: updatedStatus ? prev.active + 1 : Math.max(0, prev.active - 1),
-    inactive: updatedStatus ? Math.max(0, prev.inactive - 1) : prev.inactive + 1
-  }));
-
-  try {
-    const response = await api.patch(`/menu-items/${item.id}/toggle-active`);
-    toast.success(response?.data?.message);
-  } catch (err) {
-    toast.error(err.response?.data?.message);
-    // Rollback by refetching items to restore exact filter state
-    fetchMenuItems();
-  }
-};
+  };
 
   // --- UNIFIED CONFIRMATION MODAL HANDLERS ---
   const openConfirmModal = (item, action) => {
@@ -306,25 +305,25 @@ const toggleStatus = async (item) => {
         key={item.id}
         className="transition-colors border-b border-slate-100 dark:border-slate-800 hover:bg-gray-50/50 dark:hover:bg-slate-800/50"
       >
-          <td className="px-6 py-4 font-mono text-xs font-semibold text-gray-500 dark:text-slate-400">
-          #{item.id}
+        <td className="px-6 py-4 font-mono text-xs font-semibold text-gray-500 dark:text-slate-400">
+          {item.id}
         </td>
-        
+
         <td className="py-3.5 px-6">
           <div className="flex items-center gap-3">
             {item.image ? (
               <img
                 src={getImageUrl(item.image)}
                 alt={item.name}
-                className="w-11 h-11 rounded-lg object-cover border border-gray-100 dark:border-slate-700 shrink-0"
+                className="w-11 h-11 rounded-md object-cover border border-gray-100 dark:border-slate-700 shrink-0"
               />
             ) : (
-              <div className="w-11 h-11 rounded-lg bg-gray-100 dark:bg-slate-800 flex items-center justify-center text-gray-400 shrink-0">
+              <div className="w-11 h-11 rounded-md bg-gray-100 dark:bg-slate-800 flex items-center justify-center text-gray-400 shrink-0">
                 <ImageIcon className="w-5 h-5" />
               </div>
             )}
             <div className="min-w-0">
-              <div className="font-semibold text-gray-900 dark:text-white truncate">{item.name}</div>
+              <div className="font-semibold text-xs md:text-sm text-gray-900 dark:text-white truncate">{item.name}</div>
               {item.slug && (
                 <div className="text-xs text-gray-400 dark:text-slate-500 font-mono truncate">
                   {item.slug}
@@ -340,11 +339,11 @@ const toggleStatus = async (item) => {
           </div>
         </td>
 
-        <td className="py-3.5 px-6 text-xs">
+        <td className="py-3.5 px-6 text-gray-500 dark:text-slate-400 text-xs">
           {category?.name}
         </td>
 
-        <td className="py-3.5 px-6 font-semibold text-gray-900 dark:text-white tabular-nums">
+        <td className="py-3.5 px-6 text-xs md:text-sm text-gray-500 dark:text-slate-400 tabular-nums">
           {formatPrice(item.price)}
         </td>
 
@@ -360,76 +359,93 @@ const toggleStatus = async (item) => {
           />
         </td>
 
-<td className="py-4 px-4 sm:px-6 text-right">
-  <div className="flex items-center justify-end gap-1">
-    {/* Always visible View button */}
-    <Link
-      to={`${basePath}/menu-items-details/${item.id}`}
-      className="p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg text-gray-500 hover:text-green-600 transition-colors inline-block"
-      title="View"
-    >
-      <Eye className="w-4 h-4" />
-    </Link>
+        <td className="py-4 px-4 sm:px-6 text-right">
+          <div className="flex items-center justify-end gap-1">
 
-    {isTrashed ? (
-      <>
-        <button
-          onClick={() => openConfirmModal(cat, 'restore')}
-          className="p-2 rounded-lg text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-950/30 transition-colors"
-          title="Restore"
-        >
-          <RefreshCw className="w-4 h-4" />
-        </button>
-      </>
-    ) : ['cashier', 'waiter'].includes(user?.role) ? (
-      <span className="text-xs text-gray-400 italic">No actions available</span>
-    ) : (
-      <>
-        <button
-          type="button"
-          onClick={() => handleToggleAvailability(item.id, item.is_available)}
-          className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${
-            item.is_available
-              ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 dark:bg-amber-950/40 dark:text-amber-400 dark:hover:bg-amber-900/40 border border-amber-200 dark:border-amber-800/50'
-              : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-400 dark:hover:bg-emerald-900/40 border border-emerald-200 dark:border-emerald-800/50'
-          }`}
-        >
-          {item.is_available ? 'Mark as Sold Out' : 'Mark Available'}
-        </button>
 
-        <button
-          type="button"
-          onClick={() => toggleStatus(item)}
-          className={`p-2 rounded-lg transition-colors ${
-            item.is_active
-              ? 'text-red-500 hover:bg-red-100/50 dark:text-red-400 dark:hover:bg-red-950/30'
-              : 'text-emerald-600 hover:bg-emerald-100/50 dark:text-emerald-400 dark:hover:bg-emerald-950/30'
-          }`}
-          title={item.is_active ? 'Deactivate' : 'Activate'}
-        >
-          <Power className="w-4 h-4" />
-        </button>
+            {isTrashed ? (
+              <>
+                <Can permission="menu.restore">
+                  <button
+                    onClick={() => openConfirmModal(item, 'restore')}
+                    className="p-2 rounded-md text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-950/30 transition-colors"
+                    title="Restore"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                  </button>
+                </Can>
 
-        <Link
-          to={`${basePath}/menu-items/edit/${item.id}`}
-          className="p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg text-gray-500 hover:text-blue-600 transition-colors inline-block"
-          title="Edit"
-        >
-          <Edit className="w-4 h-4" />
-        </Link>
+                {/* <Can permission="menu.force_delete">
+                  <button
+                    onClick={() => openConfirmModal(item, 'forceDelete')}
+                    className="p-2 rounded-md text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors cursor-pointer"
+                    title="Permanently Delete"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </Can> */}
+              </>
+            ) : (
+              <>
+                <Can permission="menu.update">
+                  <button
+                    type="button"
+                    onClick={() => handleToggleAvailability(item.id, item.is_available)}
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors whitespace-nowrap ${item.is_available
+                        ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 dark:bg-amber-950/40 dark:text-amber-400 dark:hover:bg-amber-900/40 border border-amber-200 dark:border-amber-800/50'
+                        : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-400 dark:hover:bg-emerald-900/40 border border-emerald-200 dark:border-emerald-800/50'
+                      }`}
+                  >
+                    {item.is_available ? 'Mark as Sold Out' : 'Mark Available'}
+                  </button>
+                </Can>
 
-        <button
-          type="button"
-          onClick={() => openConfirmModal(item, 'trash')}
-          className="p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-gray-500 hover:text-red-600 transition-colors cursor-pointer"
-          title="Remove"
-        >
-          <Trash2 className="w-4 h-4" />
-        </button>
-      </>
-    )}
-  </div>
-</td>
+                <Can permission="menu.update">
+                  <button
+                    type="button"
+                    onClick={() => toggleStatus(item)}
+                    className={`p-2 rounded-md transition-colors ${item.is_active
+                        ? 'text-red-500 hover:bg-red-100/50 dark:text-red-400 dark:hover:bg-red-950/30'
+                        : 'text-emerald-600 hover:bg-emerald-100/50 dark:text-emerald-400 dark:hover:bg-emerald-950/30'
+                      }`}
+                    title={item.is_active ? 'Deactivate' : 'Activate'}
+                  >
+                    <Power className="w-4 h-4" />
+                  </button>
+                </Can>
+
+                <Link
+                  to={`${basePath}/menu-items-details/${item.id}`}
+                  className="p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md text-gray-500 hover:text-green-600 transition-colors inline-block"
+                  title="View"
+                >
+                  <Eye className="w-4 h-4" />
+                </Link>
+
+                <Can permission="menu.update">
+                  <Link
+                    to={`${basePath}/menu-items/edit/${item.id}`}
+                    className="p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md text-gray-500 hover:text-blue-600 transition-colors inline-block"
+                    title="Edit"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </Link>
+                </Can>
+
+                <Can permission="menu.delete">
+                  <button
+                    type="button"
+                    onClick={() => openConfirmModal(item, 'trash')}
+                    className="p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md text-gray-500 hover:text-red-600 transition-colors cursor-pointer"
+                    title="Remove"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </Can>
+              </>
+            )}
+          </div>
+        </td>
       </tr>
     );
   };
@@ -438,21 +454,23 @@ const toggleStatus = async (item) => {
     <div className="p-1 sm:p-4 space-y-6 bg-gray-50 dark:bg-slate-950 min-h-screen text-gray-900 dark:text-slate-100 transition-colors duration-200">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-orange-600 to-orange-400 bg-clip-text text-transparent leading-tight">
+          <h1 className="text-base md:text-xl font-bold bg-gradient-to-r from-orange-600 to-orange-400 bg-clip-text text-transparent leading-tight">
             Menu Inventory
           </h1>
-          <p className="text-md text-gray-500 dark:text-slate-400 mt-1">
+          <p className="text-xs lg:text-base text-gray-500 dark:text-slate-400 mt-1">
             Manage items, prices, and availability status.
           </p>
         </div>
 
-        <Link
-          to={`${basePath}/menu-items/create`}
-          className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white rounded-xl text-sm font-semibold transition-all duration-200 shadow-lg shadow-orange-500/20 hover:shadow-orange-500/35 active:scale-[0.98]"
-        >
-          <UtensilsCrossed className="w-4 h-4" />
-          <span>Add Menu Item</span>
-        </Link>
+        <Can permission="menu.create">
+          <Link
+            to={`${basePath}/menu-items/create`}
+            className="flex items-center gap-2 px-2 py-2 md:px-4 md:py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-sm text-xs lg:text-sm font-semibold transition-all active:scale-95 self-end md:self-auto"
+          >
+            <UtensilsCrossed className="w-4 h-4" />
+            <span>Add Menu Item</span>
+          </Link>
+        </Can>
       </div>
 
       {/* Statistics Cards */}
@@ -497,7 +515,7 @@ const toggleStatus = async (item) => {
         ]}
       />
 
-      <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-800 overflow-hidden shadow-sm">
+      <div className="bg-white dark:bg-slate-900 rounded-md border border-gray-200 dark:border-slate-800 overflow-hidden">
         <Table
           columns={columns}
           data={items}
@@ -532,8 +550,8 @@ const toggleStatus = async (item) => {
         onConfirm={handleConfirmAction}
         title={
           confirmModal.action === 'trash' ? 'Move Menu Item to Trash' :
-          confirmModal.action === 'restore' ? 'Restore Menu Item' :
-          'Permanently Delete Menu Item'
+            confirmModal.action === 'restore' ? 'Restore Menu Item' :
+              'Permanently Delete Menu Item'
         }
         message={
           confirmModal.action === 'trash' ? (
@@ -547,12 +565,12 @@ const toggleStatus = async (item) => {
         isLoading={confirmModal.isProcessing}
         confirmText={
           confirmModal.action === 'trash' ? 'Move to Trash' :
-          confirmModal.action === 'restore' ? 'Restore' :
-          'Permanently Delete'
+            confirmModal.action === 'restore' ? 'Restore' :
+              'Permanently Delete'
         }
         confirmClassName={
-          confirmModal.action === 'forceDelete' 
-            ? 'bg-rose-600 hover:bg-rose-700 text-white' 
+          confirmModal.action === 'forceDelete'
+            ? 'bg-rose-600 hover:bg-rose-700 text-white'
             : 'bg-orange-600 hover:bg-orange-700 text-white'
         }
       />
