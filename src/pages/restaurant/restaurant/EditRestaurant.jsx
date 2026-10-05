@@ -146,10 +146,10 @@ const validate = () => {
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
-            <h1 className="text-md md:text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white">
+            <h1 className="text-base md:text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white">
               Edit Restaurant
             </h1>
-            <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">
+            <p className="text-xs md:text-sm text-gray-500 dark:text-slate-400 mt-1">
               Update restaurant details and branding.
             </p>
           </div>

@@ -7,7 +7,7 @@ export default function StatsCard({ label, value}) {
       <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider transition-colors duration-200">
         {label}
       </p>
-      <p className="text-xl font-bold mt-1 transition-colors duration-200 text-gray-900 dark:text-white">
+      <p className="text-sm lg:text-xl font-bold mt-1 transition-colors duration-200 text-gray-900 dark:text-white">
         {value}
       </p>
     </div>

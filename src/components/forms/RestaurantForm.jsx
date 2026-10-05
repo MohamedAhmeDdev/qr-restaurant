@@ -207,7 +207,7 @@ export default function RestaurantForm({
         <div className="px-3 md:px-8 py-6 border-b border-gray-100 dark:border-slate-800 via-transparent to-transparent flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div>
-              <h2 className="font-bold text-md md:text-xl text-gray-900 dark:text-white tracking-tight">
+              <h2 className="font-bold text-base md:text-xl text-gray-900 dark:text-white tracking-tight">
                 {isEdit ? 'Edit Restaurant Profile' : 'New Restaurant Profile'}
               </h2>
               <p className="text-xs md:text-sm text-gray-500 dark:text-slate-400 mt-0.5">

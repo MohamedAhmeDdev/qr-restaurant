@@ -8,7 +8,7 @@ import { useFormatPrice } from '../../contexts/useFormatPrice';
 const CustomChartTooltip = ({ active, payload, label, currency }) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-slate-900/90 dark:bg-slate-100/95 backdrop-blur-md text-white dark:text-slate-900 text-xs font-semibold px-3 py-2 rounded-xl shadow-xl border border-slate-700/50 dark:border-slate-300/50">
+      <div className="bg-slate-900/90 dark:bg-slate-100/95 backdrop-blur-md text-white dark:text-slate-900 text-xs font-semibold px-3 py-2 rounded-md shadow-xl border border-slate-700/50 dark:border-slate-300/50">
         <p className="text-[11px] text-slate-400 dark:text-slate-500 font-medium">{label}</p>
         <p className="text-amber-400 dark:text-amber-600 font-bold text-sm mt-0.5">
           {currency} {payload[0].value.toLocaleString()}
@@ -49,16 +49,16 @@ export default function DashboardPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-orange-600 to-orange-400 bg-clip-text text-transparent leading-tight">
+          <h1 className="text-base md:text-xl  font-bold bg-gradient-to-r from-orange-600 to-orange-400 bg-clip-text text-transparent leading-tight">
             Restaurant Dashboard
           </h1>
-          <p className="text-md text-gray-500 dark:text-slate-400 mt-1">
+          <p className="text-base text-gray-500 dark:text-slate-400 mt-1">
             Cafe Bella
           </p>
         </div>
 
         <div className="flex items-center gap-3 self-end sm:self-auto">
-          <div className="flex items-center gap-2 px-3.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-full text-xs font-medium text-slate-600 dark:text-slate-400 shadow-sm">
+          <div className="flex items-center gap-2 px-3.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-full text-xs font-medium text-slate-600 dark:text-slate-400">
             <Clock className="w-3.5 h-3.5 text-slate-400" />
             <span>Today, {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
           </div>
@@ -82,7 +82,7 @@ export default function DashboardPage() {
       </section>
 
       {/* Revenue Chart */}
-      <section className="bg-white dark:bg-slate-900/80 backdrop-blur-sm rounded-2xl border border-slate-200/80 dark:border-slate-800/80 shadow-xs p-6 flex flex-col justify-between min-h-[380px]">
+      <section className="bg-white dark:bg-slate-900/80 backdrop-blur-sm rounded-md border border-slate-200/80 dark:border-slate-800/80 shadow-xs p-6 flex flex-col justify-between min-h-[380px]">
         <div className="flex justify-between items-start mb-2">
           <div>
             <h3 className="text-base font-bold text-slate-900 dark:text-white">Weekly Revenue Trend</h3>

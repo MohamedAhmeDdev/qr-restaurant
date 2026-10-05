@@ -375,7 +375,7 @@ export default function MenuPage() {
                   <div className="flex-1 min-w-0 flex flex-col justify-between">
                     <div>
                       <div className="flex items-baseline justify-between gap-2">
-                        <h3 className="font-serif text-md leading-tight text-ink group-hover:text-rust transition-colors truncate">
+                        <h3 className="font-serif text-base leading-tight text-ink group-hover:text-rust transition-colors truncate">
                           {item.name}
                         </h3>
                         <span className="text-sm shrink-0 text-ink font-medium">

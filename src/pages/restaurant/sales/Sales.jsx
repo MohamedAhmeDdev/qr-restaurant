@@ -7,7 +7,7 @@ import {
   Utensils
 } from 'lucide-react';
 import {
-  format, subDays, startOfMonth, endOfMonth, startOfYear, 
+  format, subDays, startOfMonth, endOfMonth, startOfYear,
   endOfYear, getYear, getMonth
 } from 'date-fns';
 import { useSearchParams } from 'react-router-dom';
@@ -25,11 +25,10 @@ const DateInputButton = forwardRef(({ value, onClick, label }, ref) => (
     type="button"
     ref={ref}
     onClick={onClick}
-    className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-slate-100 transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer shadow-sm"
+    className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-md px-1.5 md:px-3 py-2 text-xs font-mono text-slate-100 transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer"
   >
-    <CalendarIcon className="w-3.5 h-3.5 text-amber-400" />
-    <span className="text-slate-400 font-sans font-medium">{label}:</span>
-    <span className="text-white font-semibold">{value || 'Select Date'}</span>
+    <span className="text-slate-400">{label}:</span>
+    <span className="text-white">{value || 'Select Date'}</span>
   </button>
 ));
 
@@ -52,8 +51,8 @@ export default function SalesPage() {
   // Data & State Flags
   const [salesStats, setSalesStats] = useState({ total_revenue: 0, total_orders: 0, average_order_value: 0 });
   const [menuItems, setMenuItems] = useState([]);
-  const [lastPage, setLastPage] = useState(1);       
-  const [totalItems, setTotalItems] = useState(0); 
+  const [lastPage, setLastPage] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -79,9 +78,9 @@ export default function SalesPage() {
     let newStart = subDays(now, 6);
     let newEnd = now;
 
-    if (type === 'today') { newStart = now; newEnd = now; } 
-    else if (type === '7days') { newStart = subDays(now, 6); newEnd = now; } 
-    else if (type === 'month') { newStart = startOfMonth(now); newEnd = endOfMonth(now); } 
+    if (type === 'today') { newStart = now; newEnd = now; }
+    else if (type === '7days') { newStart = subDays(now, 6); newEnd = now; }
+    else if (type === 'month') { newStart = startOfMonth(now); newEnd = endOfMonth(now); }
     else if (type === 'year') { newStart = startOfYear(now); newEnd = endOfYear(now); }
 
     updateUrlParams(1, searchTerm, categoryFilter, newStart, newEnd);
@@ -92,7 +91,7 @@ export default function SalesPage() {
       .then((data) => setCategories(data || []))
       .catch((err) => console.error("Failed to load categories", err));
   }, []);
-    
+
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -115,7 +114,7 @@ export default function SalesPage() {
       ]);
 
       setSalesStats(statsRes.data?.data?.stats);
-      
+
       const itemsData = itemsRes.data;
       setMenuItems(itemsData.data);
       setLastPage(itemsData.pagination?.last_page);
@@ -173,8 +172,8 @@ export default function SalesPage() {
     { label: 'Menu Item' },
     { label: 'Category' },
     { label: 'Unit Price' },
-    { label: 'Units Sold', align: 'right' },
-    { label: 'Gross Revenue', align: 'right' },
+    { label: 'Units Sold' },
+    { label: 'Gross Revenue' },
     { label: 'Calculated Status' },
   ];
 
@@ -184,29 +183,26 @@ export default function SalesPage() {
     return (
       <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-slate-800/50 border-b border-gray-100 dark:border-slate-800 transition-colors">
         <td className="px-6 py-4 font-semibold text-gray-800 dark:text-slate-100">
-          <div className="flex items-center gap-2.5">
-            <div className="p-1.5 rounded-lg bg-orange-50 dark:bg-slate-800 text-orange-500 dark:text-orange-400">
-              <ChefHat className="w-4 h-4" />
-            </div>
+          <div className="text-xs md:text-sm flex items-center gap-2.5">
             <span>{item.name}</span>
           </div>
         </td>
-        <td className="px-6 py-4 text-gray-500 dark:text-slate-400 font-medium capitalize">{item.category}</td>
+        <td className="px-6 py-4 text-gray-500 dark:text-slate-400 text-xs md:text-sm font-medium capitalize">{item.category}</td>
         <td className="px-6 py-4 text-gray-700 dark:text-slate-300 font-mono">{formatPrice(item.price)}</td>
-        <td className="px-6 py-4 text-right font-bold font-mono">
+        <td className="px-6 py-4 font-bold text-xs md:text-sm">
           <span className={isUnsold ? 'text-rose-600 dark:text-rose-400' : 'text-gray-800 dark:text-slate-200'}>{item.sold}</span>
         </td>
-        <td className="px-6 py-4 text-right font-bold font-mono text-gray-900 dark:text-slate-100">
+        <td className="px-6 py-4 text-xs md:text-sm font-mono text-gray-900 dark:text-slate-100">
           {currency} {item.revenue?.toLocaleString(undefined, { minimumFractionDigits: 2 })}
         </td>
-        <td className="px-6 py-4">{item.status}</td>
+        <td className="px-6 py-4 text-xs md:text-sm">{item.status}</td>
       </tr>
     );
   };
 
   const isFiltered = Boolean(searchTerm || categoryFilter !== 'all');
 
-    const handleExport = async () => {
+  const handleExport = async () => {
     setIsExporting(true);
     try {
       // 1. Prepare parameters to fetch ALL filtered data (bypassing pagination)
@@ -230,7 +226,7 @@ export default function SalesPage() {
 
       // 3. Define CSV headers
       const headers = ['Menu Item', 'Category', 'Unit Price', 'Units Sold', 'Gross Revenue', 'Calculated Status'];
-      
+
       // 4. Map data to CSV rows with proper escaping for commas/quotes
       const rows = dataToExport.map(item => [
         `"${(item.name || '').replace(/"/g, '""')}"`,
@@ -252,11 +248,11 @@ export default function SalesPage() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      
+
       // Generate a descriptive filename
       const fileName = `sales_report_${exportParams.start_date}_to_${exportParams.end_date}.csv`;
       link.setAttribute('download', fileName);
-      
+
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -275,10 +271,14 @@ export default function SalesPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-orange-400 bg-clip-text text-transparent">Menu Sales Breakdown</h1>
-          <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">Dishes and drinks revenue computed dynamically from your selected date window.</p>
+          <h1 className="text-base md:text-xl font-bold bg-gradient-to-r from-orange-600 to-orange-400 bg-clip-text text-transparent">Menu Sales Breakdown</h1>
+          <p className="text-xs lg:text-sm text-gray-500 dark:text-slate-400 mt-1">Dishes and drinks revenue computed dynamically from your selected date window.</p>
         </div>
-        <button onClick={handleExport} disabled={isExporting} className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-xl text-sm font-medium transition-all duration-200 shadow-lg hover:shadow-orange-500/30 active:scale-[0.98] disabled:opacity-70 cursor-pointer">
+        <button
+          onClick={handleExport}
+          disabled={isExporting}
+          className="flex items-center whitespace-nowrap gap-2 px-2 py-2 md:px-4 md:py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-sm text-xs lg:text-sm font-medium transition-all duration-200 active:scale-[0.98] disabled:opacity-70 cursor-pointer self-end sm:self-auto"
+        >
           {isExporting ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <Download className="w-4 h-4" />}
           <span>Export Report</span>
         </button>
@@ -286,8 +286,8 @@ export default function SalesPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-      <StatsCard label="Total Revenue" value={loading ? '...' : `${currency} ${salesStats.total_revenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} />
-      <StatsCard label="Avg Order Value" value={loading ? '...' : `${currency} ${salesStats.average_order_value.toFixed(2)}`} />
+        <StatsCard label="Total Revenue" value={loading ? '...' : `${currency} ${salesStats.total_revenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} />
+        <StatsCard label="Avg Order Value" value={loading ? '...' : `${currency} ${salesStats.average_order_value.toFixed(2)}`} />
         <StatsCard label="Total Orders" value={loading ? '...' : salesStats.total_orders} />
       </div>
 
@@ -312,32 +312,49 @@ export default function SalesPage() {
       />
 
       {/* Date Range Picker Controls */}
-      <div className="relative z-50 flex flex-col lg:flex-row lg:items-center justify-between gap-4 p-4 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl shadow-sm">
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 lg:pb-0">
-          <span className="text-xs font-semibold text-gray-500 dark:text-slate-400 flex items-center gap-1.5 mr-1">
-            <CalendarIcon className="w-3.5 h-3.5 text-orange-500" /> Preset:
-          </span>
-          <button onClick={() => applyPreset('today')} className="px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-medium text-gray-700 dark:text-slate-300 transition-colors cursor-pointer">Today</button>
-          <button onClick={() => applyPreset('7days')} className="px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-medium text-gray-700 dark:text-slate-300 transition-colors cursor-pointer">Last 7 Days</button>
-          <button onClick={() => applyPreset('month')} className="px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-medium text-gray-700 dark:text-slate-300 transition-colors cursor-pointer">This Month</button>
-          <button onClick={() => applyPreset('year')} className="px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-medium text-gray-700 dark:text-slate-300 transition-colors cursor-pointer">This Year</button>
+      <div className="relative flex flex-col lg:flex-row lg:items-center justify-between gap-4 p-4 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-md">
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 lg:flex-nowrap lg:overflow-visible overflow-x-auto pb-1 lg:pb-0 -mx-1 px-1">
+          <button
+            onClick={() => applyPreset('today')}
+            className="flex-shrink-0 px-1.5 sm:px-3 py-1.5 rounded-md bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs md:text-[11] sm:text-xs font-medium text-gray-700 dark:text-slate-300 transition-colors cursor-pointer whitespace-nowrap"
+          >
+            Today
+          </button>
+          <button
+            onClick={() => applyPreset('7days')}
+            className="flex-shrink-0 px-1.5 sm:px-3 py-1.5 rounded-md bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs md:text-[11] sm:text-xs font-medium text-gray-700 dark:text-slate-300 transition-colors cursor-pointer whitespace-nowrap"
+          >
+            Last 7 Days
+          </button>
+          <button
+            onClick={() => applyPreset('month')}
+            className="flex-shrink-0 px-1.5 sm:px-3 py-1.5 rounded-md bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs md:text-[11] sm:text-xs font-medium text-gray-700 dark:text-slate-300 transition-colors cursor-pointer whitespace-nowrap"
+          >
+            This Month
+          </button>
+          <button
+            onClick={() => applyPreset('year')}
+            className="flex-shrink-0 px-1.5 sm:px-3 py-1.5 rounded-md bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs md:text-[11] sm:text-xs font-medium text-gray-700 dark:text-slate-300 transition-colors cursor-pointer whitespace-nowrap"
+          >
+            This Year
+          </button>
         </div>
 
         <div className="flex items-center gap-2">
           <DatePicker selected={startDate} onChange={(date) => updateUrlParams(1, searchTerm, categoryFilter, date, endDate)} dateFormat="yyyy-MM-dd" renderCustomHeader={renderCustomHeader} customInput={<DateInputButton label="From" />} />
           <span className="text-gray-400 font-bold text-xs">–</span>
           <DatePicker selected={endDate} onChange={(date) => updateUrlParams(1, searchTerm, categoryFilter, startDate, date)} minDate={startDate} dateFormat="yyyy-MM-dd" renderCustomHeader={renderCustomHeader} customInput={<DateInputButton label="To" />} />
-          <button onClick={() => applyPreset('7days')} className="p-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-500 dark:text-slate-400 hover:text-orange-600 dark:hover:text-orange-400 transition-colors cursor-pointer shadow-sm" title="Reset range">
+          <button onClick={() => applyPreset('7days')} className="p-2.5 rounded-md bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-500 dark:text-slate-400 hover:text-orange-600 dark:hover:text-orange-400 transition-colors cursor-pointer" title="Reset range">
             <RotateCcw className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
 
       {/* Table Container */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-800 overflow-hidden shadow-sm">
+      <div className="bg-white dark:bg-slate-900 rounded-md border border-gray-200 dark:border-slate-800 overflow-hidden">
         <Table
           columns={columns}
-          data={menuItems} 
+          data={menuItems}
           renderRow={renderRow}
           loading={loading}
           error={error}
@@ -346,16 +363,16 @@ export default function SalesPage() {
           emptyTitle={isFiltered ? "No matching menu items" : "No sales data found"}
           emptyDescription={isFiltered ? "No menu items match your search term or category filter." : "No sales recorded during this date window."}
         />
-        
+
         {/* ✅ 5. Pagination Component */}
         {!loading && !error && menuItems.length > 0 && (
-            <Pagination
-              currentPage={currentPage}
-              totalPages={lastPage}
-              totalRecords={totalItems}
-              onPageChange={handlePageChange}
-              maxVisible={5}
-            />
+          <Pagination
+            currentPage={currentPage}
+            totalPages={lastPage}
+            totalRecords={totalItems}
+            onPageChange={handlePageChange}
+            maxVisible={5}
+          />
         )}
       </div>
     </div>

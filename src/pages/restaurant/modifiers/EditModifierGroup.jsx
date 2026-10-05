@@ -1,19 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Edit3 } from 'lucide-react';
+import { useParams } from 'react-router-dom';
 import ModifierGroupForm from '../../../components/forms/ModifierGroupsForm';
 import toast from 'react-hot-toast';
 import api from '../../../services/api';
 import LoadingScreen from '../../../components/common/LoadingScreen';
-import { useRoleBasePath } from '../../../utils/useRoleBasePath';
+
 
 export default function EditModifierGroup() {
-  const navigate = useNavigate();
-   const basePath = useRoleBasePath();
   const { id } = useParams();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-   const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [errors, setErrors] = useState({});
 
   const [formData, setFormData] = useState({
@@ -23,12 +20,12 @@ export default function EditModifierGroup() {
     max_select: 1,
     is_required: false,
     is_active: false, // Changed from "" to boolean false
-options: [{ name: '', price: '0.00', is_available: false }], 
+    options: [{ name: '', price: '0.00', is_available: false }],
   });
 
   const fetchModifierGroup = useCallback(async () => {
     try {
-        setIsLoading(true);
+      setIsLoading(true);
       const response = await api.get(`/modifier-groups/${id}`);
       const data = response.data?.data;
 
@@ -41,15 +38,15 @@ options: [{ name: '', price: '0.00', is_available: false }],
         is_active: Boolean(data.is_active),
         options: data.options?.length
           ? data.options.map(o => ({
-              name: o.name || '',
-              price: String(o.price || 0),
-              is_available: o.is_available !== false,
-            }))
+            name: o.name || '',
+            price: String(o.price || 0),
+            is_available: o.is_available !== false,
+          }))
           : [{ name: '', price: '0.00', is_available: false }],
       });
     } catch (err) {
       toast.error(err.response?.data?.message);
-    }finally {
+    } finally {
       setIsLoading(false);
     }
   }, [id]);
@@ -104,34 +101,13 @@ options: [{ name: '', price: '0.00', is_available: false }],
     }
   };
 
-  const handleCancel = () => {
-    navigate(`${basePath}/modifier-groups`);
-  };
 
-    if (isLoading) {
-      return <LoadingScreen label="Loading modifier group details..." />;
-    }
+  if (isLoading) {
+    return <LoadingScreen label="Loading modifier group details..." />;
+  }
 
   return (
     <div className="p-1 md:p-4 max-w-4xl mx-auto min-h-screen space-y-6 bg-gray-50/50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 transition-colors duration-200">
-      <div className="flex items-center gap-4 pb-2 border-b border-gray-200/60 dark:border-slate-800">
-        <button 
-          onClick={handleCancel}
-          className="p-2.5 rounded-xl border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-600 dark:text-slate-300 shadow-sm transition-all active:scale-95"
-          title="Back to Modifier Groups"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white">Edit Modifier Group</h1>
-            <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400">
-              <Edit3 className="w-3 h-3" /> Editing
-            </span>
-          </div>
-          <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5">Update modifier group details and configuration.</p>
-        </div>
-      </div>
 
       <ModifierGroupForm
         formData={formData}
@@ -139,7 +115,6 @@ options: [{ name: '', price: '0.00', is_available: false }],
         errors={errors}
         setErrors={setErrors}
         onSubmit={handleSubmit}
-        onCancel={handleCancel}
         isSubmitting={isSubmitting}
         submitButtonText="Update Modifier Group"
         isEdit={true}

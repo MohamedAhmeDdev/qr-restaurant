@@ -18,9 +18,9 @@ import { useAuth } from '../../../contexts/AuthContext';
 
 export default function TableList() {
   const navigate = useNavigate();
-   const basePath = useRoleBasePath();
+  const basePath = useRoleBasePath();
   const [searchParams, setSearchParams] = useSearchParams();
-    const { user } = useAuth();
+  const { user } = useAuth();
 
   // URL-driven state
   const currentPage = Number(searchParams.get('page')) || 1;
@@ -31,16 +31,16 @@ export default function TableList() {
   const [tables, setTables] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+
   // Track which table is currently regenerating its QR code
   const [generatingQrId, setGeneratingQrId] = useState(null);
 
-      const [stats, setStats] = useState({
-        total: 0,
-        active: 0,
-        inactive: 0,
-        trash: 0
-      });
+  const [stats, setStats] = useState({
+    total: 0,
+    active: 0,
+    inactive: 0,
+    trash: 0
+  });
 
   // Pagination State
   const [lastPage, setLastPage] = useState(1);
@@ -76,7 +76,7 @@ export default function TableList() {
     if (statusFilter === 'trash') {
       params.only_trashed = 1;
     } else if (statusFilter !== 'all') {
-      params.status = statusFilter; 
+      params.status = statusFilter;
     }
 
     if (searchQuery.trim() !== '') {
@@ -85,10 +85,10 @@ export default function TableList() {
 
     try {
       const response = await api.get('/tables', { params });
-     const responseData = response.data;
+      const responseData = response.data;
 
       setTables(responseData.data.data);
-      setStats(responseData.stats); 
+      setStats(responseData.stats);
 
       const pagination = responseData.data;
 
@@ -247,17 +247,17 @@ export default function TableList() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex items-center gap-3">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-orange-600 to-orange-400 bg-clip-text text-transparent leading-tight">
+            <h1 className="text-base md:text-xl font-bold bg-gradient-to-r from-orange-600 to-orange-400 bg-clip-text text-transparent leading-tight">
               Floor Plan & Tables
             </h1>
-            <p className="text-md text-slate-500 dark:text-slate-400 mt-0.5">
+            <p className="text-xs lg:text-base text-slate-500 dark:text-slate-400 mt-0.5">
               Manage seating arrangements, QR codes, and table statuses in real-time.
             </p>
           </div>
         </div>
         <button
           onClick={() => navigate(`${basePath}/table/create`)}
-          className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-xl text-sm font-medium transition-all duration-200 shadow-lg shadow-orange-500/20 hover:shadow-orange-500/30 active:scale-[0.98]"
+          className="flex items-center gap-2 px-2 py-2 md:px-4 md:py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-sm whitespace-nowrap text-xs lg:text-sm font-medium transition-all duration-200 active:scale-[0.98] self-end sm:self-auto"
         >
           <QrCode className="w-4 h-4" /> Add New Table
         </button>
@@ -272,7 +272,7 @@ export default function TableList() {
       </div>
 
 
-     
+
       {/* Search & Filter Toolbar */}
       <Toolbar
         searchQuery={searchQuery}
@@ -295,20 +295,58 @@ export default function TableList() {
       />
 
       {/* 1. LOADING SKELETON STATE */}
+      {/* 1. LOADING SKELETON STATE */}
       {loading ? (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 gap-5">
           {Array.from({ length: 6 }).map((_, idx) => (
             <div
               key={idx}
-              className="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200/80 dark:border-slate-800 flex gap-4 animate-pulse"
+              className="group relative bg-white dark:bg-slate-900 rounded-md border border-slate-200 overflow-hidden animate-pulse"
             >
-              <div className="w-40 h-40 rounded-xl bg-slate-200 dark:bg-slate-800 shrink-0" />
-              <div className="flex-1 space-y-3 py-1">
-                <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-1/3" />
-                <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-1/3" />
-                <div className="h-6 bg-slate-200 dark:bg-slate-800 rounded w-2/3" />
-                <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-1/2" />
-                <div className="h-8 bg-slate-200 dark:bg-slate-800 rounded-lg w-full mt-4" />
+              <div className="flex flex-col md:flex-col xl:flex-row h-full">
+
+                {/* QR CODE SECTION - Left Side */}
+                <div className="shrink-0 border-b sm:border-b-0 sm:border-r border-slate-100 dark:border-slate-800 p-4 flex flex-col items-center justify-center gap-3 relative">
+                  <div className="w-44 h-44 rounded-md bg-slate-200 dark:bg-slate-800" />
+                  <div className="h-3 w-16 bg-slate-200 dark:bg-slate-800 rounded" />
+                </div>
+
+                {/* CONTENT SECTION - Right Side */}
+                <div className="flex-1 p-4 flex flex-col justify-between min-w-0">
+
+                  {/* Header: Title & Actions */}
+                  <div className="flex items-start justify-between gap-3 mb-3">
+                    <div className="min-w-0 flex-1 space-y-1.5">
+                      <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-1/3" />
+                      <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-1/2" />
+                      <div className="h-3 bg-slate-200 dark:bg-slate-800 rounded w-2/5" />
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <div className="w-8 h-8 bg-slate-200 dark:bg-slate-800 rounded-md" />
+                      <div className="w-8 h-8 bg-slate-200 dark:bg-slate-800 rounded-md" />
+                    </div>
+                  </div>
+
+                  {/* Metadata Grid */}
+                  <div className="grid grid-cols-2 gap-y-3 gap-x-4 mb-4">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                      <div key={i} className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-md bg-slate-200 dark:bg-slate-800" />
+                        <div className="flex flex-col gap-1 flex-1">
+                          <div className="h-2.5 bg-slate-200 dark:bg-slate-800 rounded w-2/3" />
+                          <div className="h-3 bg-slate-200 dark:bg-slate-800 rounded w-full" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Footer Actions */}
+                  <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2 mt-auto">
+                    <div className="flex-1 h-8 bg-slate-200 dark:bg-slate-800 rounded-md" />
+                    <div className="flex-1 h-8 bg-slate-200 dark:bg-slate-800 rounded-md" />
+                  </div>
+
+                </div>
               </div>
             </div>
           ))}
@@ -344,15 +382,15 @@ export default function TableList() {
             return (
               <div
                 key={table.id}
-                className="group relative bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-orange-500/30 dark:hover:border-orange-500/30 transition-all duration-300 overflow-hidden"
+                className="group relative bg-white dark:bg-slate-900 rounded-md border border-slate-200   transition-all duration-300 overflow-hidden"
               >
-                <div className="flex flex-col sm:flex-row h-full">
+                <div className="flex flex-col md:flex-col xl:flex-row h-full">
 
                   {/* QR CODE SECTION - Left Side */}
-                  <div className="sm:w-48 shrink-0 bg-slate-50 dark:bg-slate-800/30 border-b sm:border-b-0 sm:border-r border-slate-100 dark:border-slate-800 p-4 flex flex-col items-center justify-center gap-3 relative">
+                  <div className="shrink-0 border-b sm:border-b-0 sm:border-r border-slate-100 dark:border-slate-800 p-4 flex flex-col items-center justify-center gap-3 relative">
                     {table.qr_code ? (
                       <>
-                        <div className="w-32 h-32 rounded-lg bg-white p-2 shadow-sm flex items-center justify-center overflow-hidden relative [&>svg]:w-full [&>svg]:h-full">
+                        <div className="w-44 h-44 rounded-md bg-white flex items-center justify-center overflow-hidden relative [&>svg]:w-full [&>svg]:h-full">
                           <div dangerouslySetInnerHTML={{ __html: table.qr_code }} className="w-full h-full flex items-center justify-center" />
                           {isGenerating && (
                             <div className="absolute inset-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-[1px] flex flex-col items-center justify-center gap-1.5 transition-all">
@@ -364,7 +402,7 @@ export default function TableList() {
                         <span className="text-[10px] uppercase tracking-wider text-slate-400 font-medium">QR code</span>
                       </>
                     ) : (
-                      <div className="w-32 h-32 rounded-lg border-2 border-dashed border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 flex flex-col items-center justify-center gap-2 relative">
+                      <div className="w-44 h-44 rounded-md border-2 border-dashed border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 flex flex-col items-center justify-center gap-2 relative">
                         {isGenerating ? (
                           <div className="flex flex-col items-center justify-center gap-1.5">
                             <Loader2 className="w-6 h-6 text-orange-500 animate-spin" />
@@ -387,16 +425,16 @@ export default function TableList() {
                     <div className="flex items-start justify-between gap-3 mb-3">
                       <div className="min-w-0">
                         <div className="flex items-center gap-1.5">
-                          <span className="text-sm text-slate-400">ID:</span>
-                          <h3 className="font-bold text-md text-slate-900 dark:text-slate-100 truncate pr-2">
+                          <span className="text-xs md:text-sm text-slate-400">ID:</span>
+                          <p className="font-bold text-xs md:text-base text-slate-900 dark:text-slate-100 truncate pr-2">
                             {table.id}
-                          </h3>
+                          </p>
                         </div>
                         <div className="flex items-center gap-1.5">
-                          <span className="text-sm text-slate-400">Name:</span>
-                          <h3 className="font-bold text-md text-slate-900 dark:text-slate-100 truncate pr-2">
+                          <span className="text-xs md:text-sm text-slate-400">Name:</span>
+                          <p className="font-bold text-xs md:text-base text-slate-900 dark:text-slate-100 truncate pr-2">
                             {table.name}
-                          </h3>
+                          </p>
                         </div>
                         <div className="flex items-center gap-1.5">
                           <span className="text-xs text-slate-400">Slug:</span>
@@ -412,39 +450,39 @@ export default function TableList() {
                           <>
                             <button
                               onClick={(e) => { e.stopPropagation(); openConfirmModal(table, 'restore'); }}
-                              className="p-2 rounded-lg text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-950/30 transition-colors"
+                              className="p-2 rounded-md text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-950/30 transition-colors"
                               title="Restore"
                             >
                               <RefreshCw className="w-4 h-4" />
                             </button>
                             {/* <button
                               onClick={(e) => { e.stopPropagation(); openConfirmModal(table, 'forceDelete'); }}
-                              className="p-2 rounded-lg text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors cursor-pointer"
+                              className="p-2 rounded-md text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors cursor-pointer"
                               title="Permanently Delete"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button> */}
                           </>
                         ) : (
-                              user?.role == 'Cashier' && (
-                          <>
-                            <Link to={`${basePath}/table/edit/${table.id}`} onClick={(e) => e.stopPropagation()}>
+                          user?.role !== 'Waiter' && (
+                            <>
+                              <Link to={`${basePath}/table/edit/${table.id}`} onClick={(e) => e.stopPropagation()}>
+                                <button
+                                  className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md text-gray-500 hover:text-blue-600 transition-colors inline-block"
+                                  title="Edit"
+                                >
+                                  <Edit className="w-4 h-4" />
+                                </button>
+                              </Link>
                               <button
-                                className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg text-gray-500 hover:text-blue-600 transition-colors inline-block"
-                                title="Edit"
+                                onClick={(e) => { e.stopPropagation(); openConfirmModal(table, 'trash'); }}
+                                className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md text-gray-500 hover:text-red-600 transition-colors cursor-pointer"
+                                title="Remove"
                               >
-                                <Edit className="w-4 h-4" />
+                                <Trash2 className="w-4 h-4" />
                               </button>
-                            </Link>
-                            <button
-                              onClick={(e) => { e.stopPropagation(); openConfirmModal(table, 'trash'); }}
-                              className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-gray-500 hover:text-red-600 transition-colors cursor-pointer"
-                              title="Remove"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </>
-                           )
+                            </>
+                          )
                         )}
                       </div>
                     </div>
@@ -457,7 +495,7 @@ export default function TableList() {
                         </div>
                         <div className="flex flex-col">
                           <span className="text-[10px] text-slate-400 uppercase font-medium">Table</span>
-                          <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">
+                          <span className="text-slate-700 dark:text-slate-200">
                             <StatusBadge status={table.is_active ? 'active' : 'inactive'} />
                           </span>
                         </div>
@@ -496,36 +534,36 @@ export default function TableList() {
                     </div>
 
                     {/* Footer Actions */}
-                     {user?.role == 'Cashier' && (
-                    <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2 mt-auto">
-                      <button
-                        onClick={(e) => handleRegenerateQr(e, table.id)}
-                        disabled={isGenerating || generatingQrId !== null}
-                        className="flex-1 py-2 px-3 text-xs font-medium bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {isGenerating ? (
-                          <>
-                            <Loader2 className="w-3.5 h-3.5 animate-spin text-orange-500" />
-                            <span>Generating...</span>
-                          </>
-                        ) : (
-                          <>
-                            <RefreshCw className="w-3.5 h-3.5" />
-                            <span>Regenerate QR</span>
-                          </>
-                        )}
-                      </button>
+                    {user?.role !== 'Waiter' && (
+                      <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2 mt-auto">
+                        <button
+                          onClick={(e) => handleRegenerateQr(e, table.id)}
+                          disabled={isGenerating || generatingQrId !== null}
+                          className="flex-1 py-1.5 px-2 md:py-2 md:px-3 text-xs font-medium bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {isGenerating ? (
+                            <>
+                              <Loader2 className="w-3.5 h-3.5 animate-spin text-orange-500" />
+                              <span>Generating...</span>
+                            </>
+                          ) : (
+                            <>
+                              <RefreshCw className="w-3.5 h-3.5" />
+                              <span>Regenerate QR</span>
+                            </>
+                          )}
+                        </button>
 
-                      <button
-                        onClick={(e) => handleDownloadQr(e, table)}
-                        disabled={isGenerating}
-                        className="flex-1 py-2 px-3 text-xs font-medium bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors flex items-center justify-center gap-2 shadow-sm shadow-orange-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <Download className="w-3.5 h-3.5" />
-                        Download
-                      </button>
-                    </div>
-                     )}
+                        <button
+                          onClick={(e) => handleDownloadQr(e, table)}
+                          disabled={isGenerating}
+                          className="flex-1 py-1.5 px-2 md:py-2 md:px-3 text-xs font-medium bg-orange-500 hover:bg-orange-600 text-white rounded-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                          Download
+                        </button>
+                      </div>
+                    )}
 
                   </div>
                 </div>
@@ -555,8 +593,8 @@ export default function TableList() {
         onConfirm={handleConfirmAction}
         title={
           confirmModal.action === 'trash' ? 'Move Table to Trash' :
-          confirmModal.action === 'restore' ? 'Restore Table' :
-          'Permanently Delete Table'
+            confirmModal.action === 'restore' ? 'Restore Table' :
+              'Permanently Delete Table'
         }
         message={
           confirmModal.action === 'trash' ? (
@@ -570,12 +608,12 @@ export default function TableList() {
         isLoading={confirmModal.isProcessing}
         confirmText={
           confirmModal.action === 'trash' ? 'Move to Trash' :
-          confirmModal.action === 'restore' ? 'Restore' :
-          'Permanently Delete'
+            confirmModal.action === 'restore' ? 'Restore' :
+              'Permanently Delete'
         }
         confirmClassName={
-          confirmModal.action === 'forceDelete' 
-            ? 'bg-rose-600 hover:bg-rose-700 text-white' 
+          confirmModal.action === 'forceDelete'
+            ? 'bg-rose-600 hover:bg-rose-700 text-white'
             : 'bg-orange-600 hover:bg-orange-700 text-white'
         }
       />

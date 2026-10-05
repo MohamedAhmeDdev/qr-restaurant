@@ -11,13 +11,30 @@ const guestApi = axios.create({
 
 guestApi.interceptors.request.use(
   (config) => {
-    // 1. Retrieve saved session token
-    const token = sessionStorage.getItem('guest_table_token');
+    // 1. Try sessionStorage first
+    let token = sessionStorage.getItem('guest_table_token');
+
+    // 2. If missing, try to bootstrap it from the URL (QR scan entry)
+    if (!token) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const tokenFromQuery = urlParams.get('token') || urlParams.get('t');
+
+      // Also support token embedded in the path: /slug/slug/<token>
+      const pathParts = window.location.pathname.split('/').filter(Boolean);
+      const tokenFromPath = pathParts[2] && pathParts[2].length > 20 ? pathParts[2] : null;
+
+      token = tokenFromQuery || tokenFromPath;
+
+      if (token) {
+        sessionStorage.setItem('guest_table_token', token);
+      }
+    }
+
     if (token) {
       config.headers['X-Table-Token'] = token;
     }
 
-    // 2. Extract URL path parameters
+    // 3. Always send restaurant/table slugs from the URL
     const pathParts = window.location.pathname.split('/').filter(Boolean);
     const restaurantSlug = pathParts[0];
     const tableSlug = pathParts[1];

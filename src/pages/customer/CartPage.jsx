@@ -156,7 +156,7 @@ export default function CartPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <h3 className="font-serif font-semibold text-md text-ink leading-tight truncate">
+                        <h3 className="font-serif font-semibold text-base text-ink leading-tight truncate">
                           {item.name}
                         </h3>
                         <span className="text-xs font-semibold text-ink-soft">Qty: {item.quantity}</span>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Building2, Users,Trash2, ArrowLeft } from 'lucide-react';
+import { Building2, Users, Trash2, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../../../../contexts/AuthContext';
 import OrganizationSidebar from './OrganizationsSidebar';
 
@@ -19,10 +19,10 @@ const TABS = [
 
 
 export default function Organization() {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('profile');
 
-    const handleCancel = () => {
+  const handleCancel = () => {
     navigate('/restaurant');
   };
 
@@ -32,7 +32,7 @@ export default function Organization() {
 
         {/* TOP ORGANIZATION HEADER */}
         <div className="flex items-center gap-3 pb-6 mb-6 border-b border-gray-200 dark:border-slate-800">
-            <button
+          <button
             onClick={handleCancel}
             className="p-2.5  text-gray-600 dark:text-slate-300 active:scale-[0.98]"
             aria-label="Go back"
@@ -59,12 +59,12 @@ export default function Organization() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-2 px-3 py-1.5 text-xs md:text-sm font-medium transition-colors whitespace-nowrap ${isActive
-                    ? tab.isDanger
-                      ? 'bg-red-500/10 text-red-600 dark:text-red-400'
-                      : 'bg-orange-500/10 text-orange-600 dark:text-orange-400'
-                    : tab.isDanger
-                      ? 'text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30'
-                      : 'text-gray-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800'
+                  ? tab.isDanger
+                    ? 'bg-red-500/10 text-red-600 dark:text-red-400'
+                    : 'bg-orange-500/10 text-orange-600 dark:text-orange-400'
+                  : tab.isDanger
+                    ? 'text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30'
+                    : 'text-gray-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800'
                   }`}
               >
                 <Icon className="w-4 h-4" />

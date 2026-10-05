@@ -26,6 +26,7 @@ import Register from './pages/authentication/Register';
 import { RestaurantProvider } from './contexts/RestaurantContext';
 import RestoreOrganizations from './pages/authentication/RestoreOrganizations';
 import { CartProvider } from './contexts/CartContext';
+import CustomerLayout from './pages/customer/CustomerLayout';
 
 
 const router = createBrowserRouter([
@@ -46,7 +47,7 @@ const router = createBrowserRouter([
   // 3. 100% PUBLIC TENANT CUSTOMER ROUTES (No login check)
   {
     path: '/:restaurantSlug/:tableSlug',
-    element: <Outlet />, // Public Customer Outlet
+    element: <CustomerLayout />,
     children: [
       { index: true, element: <MenuPage /> },
       { path: 'menu', element: <MenuPage /> },

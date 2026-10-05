@@ -1,7 +1,9 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { LayoutGrid, Image as ImageIcon, Check, ChevronDown, X, Search, Upload, Power, PowerOff } from 'lucide-react';
+import { LayoutGrid, Image as ImageIcon, Check, ChevronDown, X, Search, Upload, Power, PowerOff, ArrowLeft } from 'lucide-react';
 import api from '../../services/api';
 import CategoriesService from '../../services/categories';
+import { useNavigate } from 'react-router-dom';
+import { useRoleBasePath } from '../../utils/useRoleBasePath';
 
 export default function MenuForm({
   formData,
@@ -31,6 +33,9 @@ export default function MenuForm({
   const [modifierGroups, setModifierGroups] = useState([]);
   const [isLoadingModifiers, setIsLoadingModifiers] = useState(false);
   const [modifierError, setModifierError] = useState('');
+
+  const navigate = useNavigate();
+    const basePath = useRoleBasePath();
 
 
   useEffect(() => {
@@ -158,14 +163,41 @@ export default function MenuForm({
     group.name.toLowerCase().includes(modifierQuery.trim().toLowerCase())
   );
 
+    const handleCancel = () => {
+    navigate(`${basePath}/menu-items`);
+  };
+
+
   return (
+    <>
+       <div className="flex items-center gap-4 pb-2 border-b border-gray-200/60 dark:border-slate-800">
+        <button
+          onClick={handleCancel}
+          className="p-2.5  text-gray-600 dark:text-slate-300 transition-all active:scale-95"
+          title="Back to Menu Items"
+        >
+          <ArrowLeft className="w-5 h-5" />
+        </button>
+        <div>
+          <div>
+            <h1 className="text-base md:text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white">
+                          {isEdit ? 'Edit menu Item' : 'Add New Menu Item'}
+
+            </h1>
+              <p className="text-xs md:text-sm text-gray-500 dark:text-slate-400 mt-1">
+            {isEdit ? ' Update menu item details and configuration.' : ' Create a new Menu Item.'}
+          </p>
+          </div>
+        </div>
+      </div>
+
     <form
       onSubmit={onSubmit}
-      className="bg-white dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-gray-200/80 dark:border-slate-800 shadow-xl shadow-gray-100/50 dark:shadow-none overflow-hidden transition-all"
+      className="bg-white dark:bg-slate-900/80 backdrop-blur-xl rounded-md border border-gray-200/80 dark:border-slate-800 overflow-hidden transition-all"
     >
       <div className="px-6 py-4 border-b border-gray-100 dark:border-slate-800 bg-gradient-to-r from-gray-50/80 to-transparent dark:from-slate-900/50 flex items-center justify-between gap-2.5">
         <div className="flex items-center gap-2.5">
-          <div className="p-2 rounded-lg bg-orange-500/10 text-orange-500 dark:bg-orange-500/20">
+          <div className="p-2 rounded-md bg-orange-500/10 text-orange-500 dark:bg-orange-500/20">
             <LayoutGrid className="w-4 h-4" />
           </div>
           <h2 className="font-semibold text-gray-900 dark:text-white">Menu Item Details</h2>
@@ -173,7 +205,7 @@ export default function MenuForm({
       
       </div>
 
-      <div className="p-6 md:p-8 space-y-6">
+      <div className="px-3 py-4 md:p-8 space-y-6">
         {/* Basic Information */}
         <div>
           <label className="block text-sm font-semibold text-gray-800 dark:text-slate-200 mb-2">
@@ -181,7 +213,7 @@ export default function MenuForm({
           </label>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
+              <label className="text-sm text-gray-700 dark:text-slate-300">
                 Item Name
               </label>
               <input
@@ -189,7 +221,7 @@ export default function MenuForm({
                 value={formData.name || ''}
                 onChange={(e) => handleChange('name', e.target.value)}
                 placeholder="e.g. Margherita Pizza"
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-300/80 dark:border-slate-700 bg-white dark:bg-slate-800/80 focus:ring-4 focus:ring-orange-500/15 focus:border-orange-500 outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 transition-all text-sm shadow-sm"
+                className="w-full px-4 py-2 rounded-md border border-gray-300/80 dark:border-slate-700 bg-white dark:bg-slate-800/80  outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 transition-all text-sm"
               />
               {errors.name && (
                 <p className="text-xs text-red-500 mt-1">
@@ -200,7 +232,7 @@ export default function MenuForm({
 
             {/* Dynamic Category Select Input */}
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700 dark:text-slate-300 flex items-center justify-between">
+              <label className="text-sm text-gray-700 dark:text-slate-300 flex items-center justify-between">
                 <span>
                   Category
                 </span>
@@ -209,7 +241,7 @@ export default function MenuForm({
                 value={formData.category_id || ''}
                 onChange={(e) => handleChange('category_id', e.target.value)}
                 disabled={isLoadingCategories}
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-300/80 dark:border-slate-700 bg-white dark:bg-slate-800/80 focus:ring-4 focus:ring-orange-500/15 focus:border-orange-500 outline-none text-gray-900 dark:text-white transition-all text-sm shadow-sm disabled:opacity-50"
+                className="w-full px-4 py-2 rounded-md border border-gray-300/80 dark:border-slate-700 bg-white dark:bg-slate-800/80  outline-none text-gray-900 dark:text-white transition-all text-sm disabled:opacity-50"
               >
                 <option value="">
                   {isLoadingCategories ? 'Loading categories...' : 'Select a category'}
@@ -233,7 +265,7 @@ export default function MenuForm({
         {/* Price and Dynamic Modifier Group Multi-Select */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
+            <label className="text-sm text-gray-700 dark:text-slate-300">
               Price
             </label>
             <input
@@ -243,7 +275,7 @@ export default function MenuForm({
               value={formData.price || ''}
               onChange={(e) => handleChange('price', e.target.value)}
               placeholder="0.00"
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-300/80 dark:border-slate-700 bg-white dark:bg-slate-800/80 focus:ring-4 focus:ring-orange-500/15 focus:border-orange-500 outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 transition-all text-sm shadow-sm"
+              className="w-full px-4 py-2 rounded-md border border-gray-300/80 dark:border-slate-700 bg-white dark:bg-slate-800/80  outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 transition-all text-sm"
             />
             {errors.price && (
               <p className="text-xs text-red-500 mt-1">
@@ -255,7 +287,7 @@ export default function MenuForm({
           {/* Dynamic Multi-Select Dropdown for Modifier Groups */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
+              <label className="text-sm text-gray-700 dark:text-slate-300">
                 Modifier Groups
               </label>
               {selectedModifierGroups.length > 0 && (
@@ -274,7 +306,7 @@ export default function MenuForm({
                 type="button"
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                 disabled={isLoadingModifiers}
-                className={`w-full px-4 py-2.5 rounded-xl border text-left flex items-center justify-between border-gray-300/80 dark:border-slate-700 ${isDropdownOpen ? 'ring-4 ring-orange-500/15 border-orange-500' : ''} bg-white dark:bg-slate-800/80 outline-none text-gray-900 dark:text-white transition-all text-sm shadow-sm disabled:opacity-50`}
+                className={`w-full px-4 py-2 rounded-md border text-left flex items-center justify-between border-gray-300/80 dark:border-slate-700 ${isDropdownOpen ? 'ring-4 ring-orange-500/15 border-orange-500' : ''} bg-white dark:bg-slate-800/80 outline-none text-gray-900 dark:text-white transition-all text-sm disabled:opacity-50`}
               >
                 <span className={selectedModifierGroups.length === 0 ? 'text-gray-400 dark:text-slate-500' : 'font-medium'}>
                   {isLoadingModifiers
@@ -287,7 +319,7 @@ export default function MenuForm({
               </button>
 
               {isDropdownOpen && (
-                <div className="absolute z-20 mt-2 w-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl shadow-lg shadow-gray-200/60 dark:shadow-black/30 overflow-hidden origin-top animate-[dropdownIn_120ms_ease-out]">
+                <div className="absolute z-20 mt-2 w-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-md overflow-hidden origin-top animate-[dropdownIn_120ms_ease-out]">
                   <div className="p-2 border-b border-gray-100 dark:border-slate-700">
                     <div className="relative">
                       <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 dark:text-slate-500" />
@@ -297,7 +329,7 @@ export default function MenuForm({
                         value={modifierQuery}
                         onChange={(e) => setModifierQuery(e.target.value)}
                         placeholder="Filter groups..."
-                        className="w-full pl-8 pr-2 py-1.5 rounded-lg bg-gray-50 dark:bg-slate-900/60 text-xs text-gray-700 dark:text-slate-200 placeholder-gray-400 dark:placeholder-slate-500 outline-none focus:ring-2 focus:ring-orange-500/20 transition-all"
+                        className="w-full pl-8 pr-2 py-1.5 rounded-md bg-gray-50 dark:bg-slate-900/60 text-xs text-gray-700 dark:text-slate-200 placeholder-gray-400 dark:placeholder-slate-500 outline-none focus:ring-2 focus:ring-orange-500/20 transition-all"
                       />
                     </div>
                   </div>
@@ -316,14 +348,14 @@ export default function MenuForm({
                           <div
                             key={group.id}
                             onClick={() => handleModifierToggle(group.id)}
-                            className={`group flex items-center gap-3 px-2.5 py-2 rounded-lg cursor-pointer text-sm transition-colors ${
+                            className={`group flex items-center gap-3 px-2.5 py-2 rounded-md cursor-pointer text-sm transition-colors ${
                               isSelected
                                 ? 'bg-orange-50 dark:bg-orange-500/10'
                                 : 'hover:bg-gray-50 dark:hover:bg-slate-700/40'
                             }`}
                           >
                             <span
-                              className={`flex items-center justify-center w-[18px] h-[18px] rounded-md border-2 shrink-0 transition-colors ${
+                              className={`flex items-center justify-center w-[18px] h-[18px] rounded-md border shrink-0 transition-colors ${
                                 isSelected
                                   ? 'bg-orange-500 border-orange-500'
                                   : 'border-gray-300 dark:border-slate-600 group-hover:border-orange-400'
@@ -362,7 +394,7 @@ export default function MenuForm({
                       key={id}
                       className="inline-flex items-center gap-1 pl-2.5 pr-1.5 py-1 rounded-full text-xs font-medium bg-orange-50 text-orange-700 dark:bg-orange-500/15 dark:text-orange-300 border border-orange-200/70 dark:border-orange-500/25 transition-colors"
                     >
-                      {group ? group.name : `Group #${id}`}
+                      {group ? group.name : `Group ${id}`}
                       <button
                         type="button"
                         onClick={() => removeModifier(id)}
@@ -386,7 +418,7 @@ export default function MenuForm({
 
         {/* Description */}
         <div className="space-y-1.5">
-          <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
+          <label className="text-sm text-gray-700 dark:text-slate-300">
             Description
           </label>
           <textarea
@@ -394,7 +426,7 @@ export default function MenuForm({
             onChange={(e) => handleChange('description', e.target.value)}
             placeholder="Enter item description"
             rows="3"
-            className="w-full px-4 py-2.5 rounded-xl border border-gray-300/80 dark:border-slate-700 bg-white dark:bg-slate-800/80 focus:ring-4 focus:ring-orange-500/15 focus:border-orange-500 outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 transition-all text-sm shadow-sm resize-y"
+            className="w-full px-4 py-2 rounded-md border border-gray-300/80 dark:border-slate-700 bg-white dark:bg-slate-800/80  outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 transition-all text-sm resize-y"
           />
           {errors.description && (
             <p className="text-xs text-red-500 mt-1">
@@ -412,28 +444,28 @@ export default function MenuForm({
   </label>
 
   {imagePreview ? (
-    <div className="relative group w-full h-64 md:h-72 rounded-2xl overflow-hidden border border-gray-200 dark:border-slate-800 bg-gray-900 shadow-md">
+    <div className="relative group w-full h-64 md:h-72 rounded-md overflow-hidden border border-gray-200 dark:border-slate-800 bg-gray-900 ">
       <img
         src={imagePreview}
         alt="Menu item preview"
         className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-90 transition-opacity flex flex-col justify-end p-5">
-        <p className="text-sm font-medium text-white truncate mb-3">
+        <p className="text-sm text-white truncate mb-3">
           {formData.image?.name || 'Current image'}
         </p>
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="px-4 py-2 rounded-xl bg-white/20 hover:bg-white/30 backdrop-blur-md text-white text-xs font-semibold transition-all border border-white/20 shadow-sm"
+            className="px-4 py-2 rounded-md bg-white/20 hover:bg-white/30 backdrop-blur-md text-white text-xs font-semibold transition-all border border-white/20"
           >
             Replace Image
           </button>
           <button
             type="button"
             onClick={removeImage}
-            className="px-4 py-2 rounded-xl bg-red-500/80 hover:bg-red-600 backdrop-blur-md text-white text-xs font-semibold transition-all shadow-sm"
+            className="px-4 py-2 rounded-md bg-red-500/80 hover:bg-red-600 backdrop-blur-md text-white text-xs font-semibold transition-all"
           >
             Remove
           </button>
@@ -444,9 +476,9 @@ export default function MenuForm({
     <button
       type="button"
       onClick={() => fileInputRef.current?.click()}
-      className="w-full h-56 md:h-64 flex flex-col items-center justify-center gap-3 p-6 rounded-2xl border-2 border-dashed border-gray-300 dark:border-slate-700 hover:border-orange-500 dark:hover:border-orange-500 bg-gray-50/50 dark:bg-slate-800/30 hover:bg-orange-50/30 dark:hover:bg-slate-800/60 transition-all group"
+      className="w-full h-56 md:h-64 flex flex-col items-center justify-center gap-3 p-6 rounded-md border border-dashed border-gray-300 dark:border-slate-700 hover:border-orange-500 dark:hover:border-orange-500 bg-gray-50/50 dark:bg-slate-800/30 hover:bg-orange-50/30 dark:hover:bg-slate-800/60 transition-all group"
     >
-      <div className="p-3.5 rounded-2xl bg-white dark:bg-slate-800 border border-gray-200/80 dark:border-slate-700 text-gray-400 group-hover:text-orange-500 group-hover:scale-110 shadow-sm transition-all">
+      <div className="p-3.5 rounded-md bg-white dark:bg-slate-800 border border-gray-200/80 dark:border-slate-700 text-gray-400 group-hover:text-orange-500 transition-all">
         <ImageIcon className="w-5 h-5" />
       </div>
       <div className="text-center">
@@ -491,13 +523,13 @@ export default function MenuForm({
 
   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
     {/* Active Status Toggle */}
-    <div className="relative p-4 rounded-xl border-2 transition-all duration-200  cursor-pointer bg-white dark:bg-slate-800/40 border-gray-200 dark:border-slate-700/80">
+    <div className="relative p-4 rounded-md border transition-all duration-200  cursor-pointer bg-white dark:bg-slate-800/40 border-gray-200 dark:border-slate-700/80">
       <label htmlFor="is_active" className="flex items-start gap-4 cursor-pointer">
         <div className="relative flex items-center justify-center mt-0.5">
           <input
             type="checkbox"
             id="is_active"
-            className="w-5 h-5 text-orange-500 rounded-md border-2 border-gray-300 dark:border-slate-600 cursor-pointer transition-all checked:border-orange-500 checked:bg-orange-500 hover:border-orange-400"
+            className="w-5 h-5 text-orange-500 rounded-md border border-gray-300 dark:border-slate-600 cursor-pointer transition-all checked:border-orange-500 checked:bg-orange-500 hover:border-orange-400"
             checked={formData.is_active !== false}
             onChange={(e) => handleChange('is_active', e.target.checked)}
           />
@@ -533,13 +565,13 @@ export default function MenuForm({
     </div>
 
     {/* Availability Toggle - Optional extra status */}
-    <div className="relative p-4 rounded-xl border-2 transition-all duration-200  cursor-pointer bg-white dark:bg-slate-800/40 border-gray-200 dark:border-slate-700/80">
+    <div className="relative p-4 rounded-md border transition-all duration-200  cursor-pointer bg-white dark:bg-slate-800/40 border-gray-200 dark:border-slate-700/80">
       <label htmlFor="is_available" className="flex items-start gap-4 cursor-pointer">
         <div className="relative flex items-center justify-center mt-0.5">
           <input
             type="checkbox"
             id="is_available"
-            className="w-5 h-5 text-orange-500 rounded-md border-2 border-gray-300 dark:border-slate-600 cursor-pointer transition-all checked:border-orange-500 checked:bg-orange-500 hover:border-orange-400"
+            className="w-5 h-5 text-orange-500 rounded-md border border-gray-300 dark:border-slate-600 cursor-pointer transition-all checked:border-orange-500 checked:bg-orange-500 hover:border-orange-400"
             checked={formData.is_available !== false}
             onChange={(e) => handleChange('is_available', e.target.checked)}
           />
@@ -585,11 +617,11 @@ export default function MenuForm({
 
       {/* Action Footer */}
       <div className="px-6 md:px-8 py-4 border-t border-gray-100 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-900/50 flex flex-wrap items-center justify-end gap-3">
-        {onCancel && (
+        {handleCancel && (
           <button
             type="button"
-            onClick={onCancel}
-            className="px-6 py-2.5 rounded-xl border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-gray-700 dark:text-slate-300 text-sm font-semibold hover:bg-gray-50 dark:hover:bg-slate-800 transition-all shadow-sm active:scale-[0.98]"
+            onClick={handleCancel}
+            className="px-3 py-2 md:px-6 md:py-2.5 rounded-sm border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-gray-700 dark:text-slate-300 text-sm font-semibold hover:bg-gray-50 dark:hover:bg-slate-800 transition-all active:scale-[0.98]"
           >
             Cancel
           </button>
@@ -597,7 +629,7 @@ export default function MenuForm({
         <button
           type="submit"
           disabled={isSubmitting}
-          className="px-6 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white text-sm font-semibold flex items-center gap-2 transition-all disabled:opacity-70 disabled:cursor-not-allowed shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 active:scale-[0.98]"
+          className="px-3 py-2 md:px-6 md:py-2.5 rounded-sm bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white text-sm font-semibold flex items-center gap-2 transition-all disabled:opacity-70 disabled:cursor-not-allowed active:scale-[0.98]"
         >
           {isSubmitting ? (
             <>
@@ -613,5 +645,6 @@ export default function MenuForm({
         </button>
       </div>
     </form>
+    </>
   );
 }

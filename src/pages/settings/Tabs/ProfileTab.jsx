@@ -1,5 +1,5 @@
 import React from 'react';
-import { Loader2, User, Mail, ShieldCheck, BadgeCheck } from 'lucide-react';
+import { Loader2, User, Mail, BadgeCheck } from 'lucide-react';
 import { useAuth } from '../../../contexts/AuthContext';
 
 function formatRole(role) {
@@ -23,20 +23,20 @@ export default function ProfileTab() {
       {/* Header Section */}
       <div className="flex items-start justify-between border-b border-gray-200 dark:border-slate-800 pb-5">
         <div>
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2.5">
-            <div className="p-2 bg-orange-500/10 dark:bg-orange-500/20 rounded-lg text-orange-500">
+          <h2 className="text-base md:text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2.5">
+            <div className="p-2 bg-orange-500/10 dark:bg-orange-500/20 rounded-md text-orange-500">
               <User className="w-5 h-5" />
             </div>
             Profile Information
           </h2>
-          <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">
+          <p className="text-xs md:text-sm text-gray-500 dark:text-slate-400 mt-1">
             View your personal account details and role information.
           </p>
         </div>
       </div>
 
       {/* Profile Details Card */}
-      <div className="p-6 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-md space-y-6">
+      <div className="px-3 py-5 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-md space-y-6">
         <div className="grid grid-cols-1 gap-5">
           {/* Full Name */}
           <div>

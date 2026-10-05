@@ -86,7 +86,7 @@ export default function Pagination({
               <button
                 key={page}
                 onClick={() => onPageChange(page)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
                   currentPage === page
                     ? 'bg-orange-500 text-white'
                     : 'hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-600 dark:text-gray-400'
@@ -102,7 +102,7 @@ export default function Pagination({
         <button
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage >= totalPages}
-          className="p-2 rounded-lg border border-gray-200 dark:border-slate-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-600 dark:text-slate-300"
+          className="p-2 rounded- border border-gray-200 dark:border-slate-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-600 dark:text-slate-300"
           aria-label="Next Page"
         >
           <ChevronRight className="w-4 h-4" />

@@ -266,7 +266,7 @@ export default function MembersTab() {
                 className={`transition-colors ${isTrashed ? 'bg-rose-50/20 dark:bg-rose-950/10' : 'hover:bg-gray-50/60 dark:hover:bg-slate-800/30'}`}
             >
                 <td className="px-6 py-4 font-mono text-xs font-semibold text-gray-500 dark:text-slate-400">
-                    #{member.id}
+                    {member.id}
                 </td>
                 <td className="px-6 py-3.5">
                     <div className="flex items-center gap-3">
@@ -358,7 +358,7 @@ export default function MembersTab() {
             {/* Header Section */}
             <div className="flex items-start justify-between border-b border-gray-200 dark:border-slate-800 pb-5">
                 <div>
-                    <h2 className="text-md md:text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2.5">
+                    <h2 className="text-base md:text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2.5">
                         <div className="p-2 bg-orange-500/10 dark:bg-orange-500/20 rounded-md text-orange-500">
                             <Users className="w-5 h-5" />
                         </div>

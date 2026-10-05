@@ -37,7 +37,7 @@ export default function DeleteOrgTab() {
       {/* Header Section */}
       <div className="flex items-start justify-between border-b border-gray-200 dark:border-slate-800 pb-5">
         <div>
-          <h2 className="text-md md:text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2.5">
+          <h2 className="text-base md:text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2.5">
             <div className="p-2 bg-orange-500/10 dark:bg-orange-500/20 rounded-md text-orange-500">
               <Trash2 className="w-5 h-5" />
             </div>

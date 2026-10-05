@@ -122,20 +122,20 @@ export default function SecurityTab() {
         {/* Header Section */}
         <div className="flex items-start justify-between border-b border-gray-200 dark:border-slate-800 pb-5">
           <div>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2.5">
-              <div className="p-2 bg-orange-500/10 dark:bg-orange-500/20 rounded-lg text-orange-500">
+            <h2 className="text-base md:text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2.5">
+              <div className="p-2 bg-orange-500/10 dark:bg-orange-500/20 rounded-md text-orange-500">
                 <Lock className="w-5 h-5" />
               </div>
               Change Password
             </h2>
-            <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">
+            <p className="text-xs md:text-sm text-gray-500 dark:text-slate-400 mt-1">
               Update your password to keep your account secure.
             </p>
           </div>
         </div>
 
         {/* Password Form Card */}
-        <div className="p-6 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-md space-y-6">
+        <div className="px-3 py-5 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-md space-y-6">
           <div className="grid grid-cols-1 gap-5">
             {/* Old Password */}
             <div>
@@ -156,11 +156,10 @@ export default function SecurityTab() {
                     }
                   }}
                   placeholder="Enter your current password"
-                  className={`w-full pl-10 pr-3.5 py-2 bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 border rounded-md text-sm transition-all focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 ${
-                    passwordErrors.currentPassword
+                  className={`w-full pl-10 pr-3.5 py-2 bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 border rounded-md text-sm transition-all focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 ${passwordErrors.currentPassword
                       ? 'border-red-500 dark:border-red-500'
                       : 'border-gray-300 dark:border-slate-800'
-                  }`}
+                    }`}
                 />
               </div>
               {passwordErrors.currentPassword && (
@@ -190,11 +189,10 @@ export default function SecurityTab() {
                     }
                   }}
                   placeholder="Enter your new password"
-                  className={`w-full pl-10 pr-3.5 py-2 bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 border rounded-md text-sm transition-all focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 ${
-                    passwordErrors.newPassword
+                  className={`w-full pl-10 pr-3.5 py-2 bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 border rounded-md text-sm transition-all focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 ${passwordErrors.newPassword
                       ? 'border-red-500 dark:border-red-500'
                       : 'border-gray-300 dark:border-slate-800'
-                  }`}
+                    }`}
                 />
               </div>
               {passwordErrors.newPassword && (
@@ -213,11 +211,10 @@ export default function SecurityTab() {
                   {requirements.map((req) => (
                     <li
                       key={req.label}
-                      className={`flex items-center gap-2 transition-colors ${
-                        req.valid
+                      className={`flex items-center gap-2 transition-colors ${req.valid
                           ? 'text-emerald-600 dark:text-emerald-400 font-medium'
                           : 'text-gray-500 dark:text-slate-400'
-                      }`}
+                        }`}
                     >
                       <span className="text-sm">
                         {req.valid ? (
@@ -252,11 +249,10 @@ export default function SecurityTab() {
                     }
                   }}
                   placeholder="Confirm your new password"
-                  className={`w-full pl-10 pr-3.5 py-2 bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 border rounded-md text-sm transition-all focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 ${
-                    passwordErrors.confirmPassword
+                  className={`w-full pl-10 pr-3.5 py-2 bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 border rounded-md text-sm transition-all focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 ${passwordErrors.confirmPassword
                       ? 'border-red-500 dark:border-red-500'
                       : 'border-gray-300 dark:border-slate-800'
-                  }`}
+                    }`}
                 />
               </div>
               {passwordErrors.confirmPassword && (
@@ -274,11 +270,10 @@ export default function SecurityTab() {
           <button
             type="submit"
             disabled={savingPassword}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold text-white shadow-xs transition-all ${
-              !savingPassword
+            className={`flex items-center gap-2 px-3 py-2.5 rounded-sm text-sm font-semibold text-white transition-all ${!savingPassword
                 ? 'bg-orange-500 hover:bg-orange-600 active:bg-orange-700 cursor-pointer'
                 : 'bg-gray-300 dark:bg-slate-800 text-gray-500 dark:text-slate-500 cursor-not-allowed'
-            }`}
+              }`}
           >
             {savingPassword ? (
               <>
@@ -299,78 +294,75 @@ export default function SecurityTab() {
       <form onSubmit={handle2FASubmit} className="space-y-6 pt-4">
         {/* Header Section */}
         <div className="flex items-start justify-between border-b border-gray-200 dark:border-slate-800 pb-5">
-          <div>
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2.5">
-              <div className="p-2 bg-orange-500/10 dark:bg-orange-500/20 rounded-lg text-orange-500">
+          <div className="min-w-0">
+            <h3 className="text-base md:text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2.5">
+              <div className="p-2 bg-orange-500/10 dark:bg-orange-500/20 rounded-lg text-orange-500 shrink-0">
                 <ShieldCheck className="w-5 h-5" />
               </div>
-              Two-Factor Authentication
+              <span className="truncate">Two-Factor Authentication</span>
             </h3>
-            <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">
+            <p className="text-xs md:text-sm text-gray-500 dark:text-slate-400 mt-1">
               Add an extra layer of security to your account.
             </p>
           </div>
         </div>
 
         {/* 2FA Card */}
-        <div className="p-6 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-md space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
+        <div className="p-4 sm:p-6 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-md">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+            <div className="min-w-0">
               <p className="text-sm font-semibold text-gray-900 dark:text-slate-200 flex items-center gap-2">
-                <Mail className="w-4 h-4 text-gray-500 dark:text-slate-400" />
-                Email Verification
+                <Mail className="w-4 h-4 shrink-0 text-gray-500 dark:text-slate-400" />
+                <span className="truncate">Email Verification</span>
               </p>
               <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
                 Receive single-use codes via email upon logging in.
               </p>
             </div>
+
+            {/* Slide Toggle */}
             <button
               type="button"
+              role="switch"
+              aria-checked={pendingTwoFactor}
+              aria-label="Toggle email verification"
               onClick={() => setPendingTwoFactor((p) => !p)}
-              className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg border transition-all ${
-                pendingTwoFactor
-                  ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-950/60'
-                  : 'border-gray-300 dark:border-slate-700 text-gray-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700'
-              }`}
+              className={`self-start sm:self-auto shrink-0 relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900 ${pendingTwoFactor
+                  ? 'bg-emerald-500'
+                  : 'bg-gray-300 dark:bg-slate-700'
+                }`}
             >
-              {pendingTwoFactor ? (
-                <span className="flex items-center gap-1.5">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  Enabled
-                </span>
-              ) : (
-                'Disabled'
-              )}
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform duration-200 ease-in-out ${pendingTwoFactor ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+              />
             </button>
           </div>
         </div>
 
         {/* Action Button */}
-        {pendingTwoFactor !== twoFactor && (
-          <div className="flex items-center justify-end pt-2">
-            <button
-              type="submit"
-              disabled={loading2FA}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold text-white shadow-xs transition-all ${
-                !loading2FA
-                  ? 'bg-orange-500 hover:bg-orange-600 active:bg-orange-700 cursor-pointer'
-                  : 'bg-gray-300 dark:bg-slate-800 text-gray-500 dark:text-slate-500 cursor-not-allowed'
+        <div className="flex items-center justify-end pt-2">
+          <button
+            type="submit"
+            disabled={loading2FA}
+            className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-sm text-sm font-semibold text-white transition-all ${!loading2FA
+                ? 'bg-orange-500 hover:bg-orange-600 active:bg-orange-700 cursor-pointer'
+                : 'bg-gray-300 dark:bg-slate-800 text-gray-500 dark:text-slate-500 cursor-not-allowed'
               }`}
-            >
-              {loading2FA ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <ShieldCheck className="w-4 h-4" />
-                  Save 2FA Preference
-                </>
-              )}
-            </button>
-          </div>
-        )}
+          >
+            {loading2FA ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <ShieldCheck className="w-4 h-4" />
+                Save 2FA Preference
+              </>
+            )}
+          </button>
+        </div>
       </form>
     </div>
   );
