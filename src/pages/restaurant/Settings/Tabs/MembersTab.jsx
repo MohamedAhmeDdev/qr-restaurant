@@ -11,6 +11,7 @@ import ConfirmationModal from '../../../../components/common/ConfirmationModal';
 import RoleService from '../../../../services/Roles';
 import Pagination from '../../../../components/common/Pagination';
 import Table from '../../../../components/common/Table';
+import StatsCard from '../../../../components/cards/StatsCard';
 import { formatDate } from '../../../../utils/formatDate';
 import StatusBadge from '../../../../components/common/StatusBadge';
 
@@ -50,7 +51,7 @@ export default function MembersTab() {
     const [confirmModal, setConfirmModal] = useState({
         isOpen: false,
         member: null,
-        action: null, // 'trash' | 'restore' | 'forceDelete'
+        action: null,
         isProcessing: false
     });
 
@@ -94,13 +95,11 @@ export default function MembersTab() {
                 params.shift_type = shiftTypeFilter;
             }
 
-            // Standardized Backend Parameter Alignment
             if (statusFilter === 'trash') {
                 params.only_trashed = 1;
             } else if (statusFilter === 'all') {
                 params.with_trashed = 1;
             } else {
-                // Passes 'active', 'suspended', 'on_leave', etc. directly to backend
                 params.status = statusFilter;
             }
 
@@ -133,7 +132,6 @@ export default function MembersTab() {
         }
     };
 
-    // Reset to page 1 on filter modification
     useEffect(() => {
         setCurrentPage(1);
     }, [searchQuery, selectedRestaurantFilter, statusFilter, shiftTypeFilter]);
@@ -364,40 +362,47 @@ export default function MembersTab() {
                         </div>
                         Staff & Permissions
                     </h2>
-                    <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">
+                    <p className="text-xs md:text text-gray-500 dark:text-slate-400 mt-1">
                         Manage roles, account statuses, shift schedules, and staff access.
                     </p>
                 </div>
+
+                   <button
+                    type="button"
+                    onClick={openCreateModal}
+                    className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 active:scale-[0.98] text-white text-xs font-semibold rounded-sm transition-all cursor-pointer shrink-0"
+                >
+                    <UserPlus className="w-4 h-4" />
+                    Add Staff Member
+                </button>
             </div>
 
-
-
-            {/* Stats Summary Bar */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-                <div className="p-3 bg-white dark:bg-slate-900 border border-gray-200/80 dark:border-slate-800 rounded-md">
-                    <p className="text-xs text-gray-500 dark:text-slate-400">Total Staff</p>
-                    <p className="text-lg font-bold text-gray-900 dark:text-white mt-1">{stats.total}</p>
-                </div>
-                <div className="p-3 bg-white dark:bg-slate-900 border border-gray-200/80 dark:border-slate-800 rounded-md">
-                    <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">Active</p>
-                    <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-1">{stats.active}</p>
-                </div>
-                <div className="p-3 bg-white dark:bg-slate-900 border border-gray-200/80 dark:border-slate-800 rounded-md">
-                    <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">Suspended</p>
-                    <p className="text-lg font-bold text-amber-600 dark:text-amber-400 mt-1">{stats.suspended || 0}</p>
-                </div>
-                <div className="p-3 bg-white dark:bg-slate-900 border border-gray-200/80 dark:border-slate-800 rounded-md">
-                    <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">On Leave</p>
-                    <p className="text-lg font-bold text-blue-600 dark:text-blue-400 mt-1">{stats.on_leave || 0}</p>
-                </div>
-                <div className="p-3 bg-white dark:bg-slate-900 border border-gray-200/80 dark:border-slate-800 rounded-md">
-                    <p className="text-xs text-slate-500 dark:text-slate-400">Inactive</p>
-                    <p className="text-lg font-bold text-slate-600 dark:text-slate-300 mt-1">{stats.inactive || 0}</p>
-                </div>
-                <div className="p-3 bg-white dark:bg-slate-900 border border-gray-200/80 dark:border-slate-800 rounded-md">
-                    <p className="text-xs text-rose-500 dark:text-rose-400">Trashed</p>
-                    <p className="text-lg font-bold text-rose-600 dark:text-rose-400 mt-1">{stats.trash}</p>
-                </div>
+            {/* Stats Summary Bar - Using Reusable StatsCard */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-3">
+                <StatsCard 
+                    label="Total Staff" 
+                    value={isLoading && stats.total === 0 ? '...' : stats.total} 
+                />
+                <StatsCard 
+                    label="Active" 
+                    value={isLoading && stats.active === 0 ? '...' : stats.active} 
+                />
+                <StatsCard 
+                    label="Suspended" 
+                    value={isLoading && stats.suspended === 0 ? '...' : (stats.suspended || 0)} 
+                />
+                <StatsCard 
+                    label="On Leave" 
+                    value={isLoading && stats.on_leave === 0 ? '...' : (stats.on_leave || 0)} 
+                />
+                <StatsCard 
+                    label="Inactive" 
+                    value={isLoading && stats.inactive === 0 ? '...' : (stats.inactive || 0)} 
+                />
+                <StatsCard 
+                    label="Trash" 
+                    value={isLoading && stats.trash === 0 ? '...' : stats.trash} 
+                />
             </div>
 
             {/* Filter and Search Row */}

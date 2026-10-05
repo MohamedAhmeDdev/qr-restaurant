@@ -324,7 +324,7 @@ export default function MenuTable() {
               </div>
             )}
             <div className="min-w-0">
-              <div className="font-semibold text-gray-900 dark:text-white truncate">{item.name}</div>
+              <div className="font-semibold text-xs md:text-sm text-gray-900 dark:text-white truncate">{item.name}</div>
               {item.slug && (
                 <div className="text-xs text-gray-400 dark:text-slate-500 font-mono truncate">
                   {item.slug}
@@ -340,11 +340,11 @@ export default function MenuTable() {
           </div>
         </td>
 
-        <td className="py-3.5 px-6 text-xs">
+        <td className="py-3.5 px-6 text-gray-500 dark:text-slate-400 text-xs">
           {category?.name}
         </td>
 
-        <td className="py-3.5 px-6 font-semibold text-gray-900 dark:text-white tabular-nums">
+        <td className="py-3.5 px-6 text-xs md:text-sm text-gray-500 dark:text-slate-400 tabular-nums">
           {formatPrice(item.price)}
         </td>
 
@@ -446,7 +446,7 @@ export default function MenuTable() {
 
         <Link
           to={`${basePath}/menu-items/create`}
-          className="flex items-center gap-2 px-2 py-2 md:px-4 md:py-2.5 bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white rounded-md text-xs lg:text-sm font-semibold transition-all duration-200  active:scale-[0.98] self-end sm:self-auto"
+          className="flex items-center gap-2 px-2 py-2 md:px-4 md:py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-sm text-xs lg:text-sm font-semibold transition-all active:scale-95 self-end md:self-auto"
         >
           <UtensilsCrossed className="w-4 h-4" />
           <span>Add Menu Item</span>

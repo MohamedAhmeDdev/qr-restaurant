@@ -73,12 +73,12 @@ export default function StaffFormModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-800 shadow-2xl max-w-xl w-full overflow-hidden flex flex-col max-h-[90vh] transition-all">
+      <div className="bg-white dark:bg-slate-900 rounded-md border border-gray-200 dark:border-slate-800 max-w-xl w-full overflow-hidden flex flex-col max-h-[90vh] transition-all">
         
         {/* Modal Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-slate-800/80 bg-gray-50/50 dark:bg-slate-900/50 shrink-0">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-orange-500/10 text-orange-500 rounded-xl ring-1 ring-orange-500/20">
+            <div className="p-2.5 bg-orange-500/10 text-orange-500 rounded-md ring-1 ring-orange-500/20">
               {editingMember ? <Pencil className="w-5 h-5" /> : <UserPlus className="w-5 h-5" />}
             </div>
             <div>
@@ -93,7 +93,7 @@ export default function StaffFormModal({
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-slate-200 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-slate-200 rounded-md hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -111,7 +111,7 @@ export default function StaffFormModal({
                 placeholder="e.g. Alex Morgan"
                 value={staffName}
                 onChange={(e) => { setStaffName(e.target.value); clearFieldError('name'); }}
-                className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 border border-gray-200 dark:border-slate-800 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all"
+                className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 border border-gray-200 dark:border-slate-800 rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all"
               />
               {errors.name && <p className="text-[11px] text-rose-500 mt-1">{errors.name}</p>}
             </div>
@@ -123,7 +123,7 @@ export default function StaffFormModal({
                 placeholder="alex@company.com"
                 value={staffEmail}
                 onChange={(e) => { setStaffEmail(e.target.value); clearFieldError('email'); }}
-                className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 border border-gray-200 dark:border-slate-800 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all"
+                className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 border border-gray-200 dark:border-slate-800 rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all"
               />
               {errors.email && <p className="text-[11px] text-rose-500 mt-1">{errors.email}</p>}
             </div>
@@ -138,7 +138,7 @@ export default function StaffFormModal({
             <select
               value={selectedRestaurantId}
               onChange={handleRestaurantChange}
-              className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 border border-gray-200 dark:border-slate-800 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all cursor-pointer"
+              className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 border border-gray-200 dark:border-slate-800 rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all cursor-pointer"
             >
               <option value="">Select a restaurant</option>
               {restaurants.map((restaurant) => (
@@ -161,7 +161,7 @@ export default function StaffFormModal({
               <select
                 value={roleId}
                 onChange={(e) => { setRoleId(e.target.value); clearFieldError('role_id'); }}
-                className="w-full px-3 py-2 bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 border border-gray-200 dark:border-slate-800 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all cursor-pointer"
+                className="w-full px-3 py-2 bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 border border-gray-200 dark:border-slate-800 rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all cursor-pointer"
               >
                 <option value="">Select Role</option>
                 {roles.map((role) => (
@@ -179,7 +179,7 @@ export default function StaffFormModal({
               <select
                 value={accountStatus}
                 onChange={(e) => { setAccountStatus(e.target.value); clearFieldError('status'); }}
-                className="w-full px-3 py-2 bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 border border-gray-200 dark:border-slate-800 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all cursor-pointer capitalize"
+                className="w-full px-3 py-2 bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 border border-gray-200 dark:border-slate-800 rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all cursor-pointer capitalize"
               >
                 <option value="">Select status</option>
                 <option value="active">Active</option>
@@ -197,7 +197,7 @@ export default function StaffFormModal({
               <select
                 value={shiftType}
                 onChange={(e) => { setShiftType(e.target.value); clearFieldError('shift_type'); }}
-                className="w-full px-3 py-2 bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 border border-gray-200 dark:border-slate-800 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all cursor-pointer capitalize"
+                className="w-full px-3 py-2 bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 border border-gray-200 dark:border-slate-800 rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all cursor-pointer capitalize"
               >
                 <option value="">Select Shift</option>
                 <option value="day">Day</option>
@@ -213,14 +213,14 @@ export default function StaffFormModal({
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="px-4 py-2.5 text-xs font-semibold text-gray-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer disabled:opacity-50"
+              className="px-4 py-2.5 text-xs font-semibold text-gray-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-sm transition-colors cursor-pointer disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-5 py-2.5 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 active:scale-[0.98] text-white text-xs font-semibold rounded-xl shadow-md shadow-orange-500/10 transition-all cursor-pointer disabled:opacity-50 flex items-center gap-2"
+              className="px-5 py-2.5 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 active:scale-[0.98] text-white text-xs font-semibold rounded-sm transition-all cursor-pointer disabled:opacity-50 flex items-center gap-2"
             >
               {isSubmitting ? (
                 <>

@@ -257,7 +257,7 @@ export default function TableList() {
         </div>
         <button
           onClick={() => navigate(`${basePath}/table/create`)}
-          className="flex items-center gap-2 px-2 py-2 md:px-4 md:py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-sm whitespace-nowrap text-xs lg:text-sm font-medium transition-all duration-200 active:scale-[0.98] self-end sm:self-auto"
+          className="flex items-center gap-2 px-2 py-2 md:px-4 md:py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-sm text-xs lg:text-sm font-semibold transition-all active:scale-95 self-end md:self-auto"
         >
           <QrCode className="w-4 h-4" /> Add New Table
         </button>
@@ -426,13 +426,13 @@ export default function TableList() {
                       <div className="min-w-0">
                         <div className="flex items-center gap-1.5">
                           <span className="text-xs md:text-sm text-slate-400">ID:</span>
-                          <p className="font-bold text-xs md:text-base text-slate-900 dark:text-slate-100 truncate pr-2">
+                          <p className="font-bold text-xs md:text-sm text-slate-900 dark:text-slate-100 truncate pr-2">
                             {table.id}
                           </p>
                         </div>
                         <div className="flex items-center gap-1.5">
                           <span className="text-xs md:text-sm text-slate-400">Name:</span>
-                          <p className="font-bold text-xs md:text-base text-slate-900 dark:text-slate-100 truncate pr-2">
+                          <p className="font-bold text-xs md:text-sm text-slate-900 dark:text-slate-100 truncate pr-2">
                             {table.name}
                           </p>
                         </div>

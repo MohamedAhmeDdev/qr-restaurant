@@ -259,7 +259,7 @@ export default function AdminSidebar({ mobileOpen, setMobileOpen, collapsed, set
           <div className="flex items-center shrink-0">
             <button
               onClick={() => setMobileOpen(false)}
-              className="lg:hidden text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white p-1 rounded-lg transition-colors duration-200"
+              className="lg:hidden text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white p-1 rounded-md transition-colors duration-200"
             >
               <X className="w-5 h-5" />
             </button>

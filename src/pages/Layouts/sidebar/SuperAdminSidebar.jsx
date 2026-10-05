@@ -122,7 +122,7 @@ export default function SuperAdminSidebar({ mobileOpen, setMobileOpen, collapsed
         {/* HEADER / LOGO */}
         <div className={`flex items-center justify-between h-16 border-b border-slate-200 dark:border-slate-800 px-4 transition-colors duration-200 ${collapsed ? 'lg:justify-center lg:px-0' : ''}`}>
           <div className={`flex items-center gap-2.5 font-bold text-xl tracking-tight overflow-hidden whitespace-nowrap ${collapsed ? 'lg:hidden' : ''}`}>
-            <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-orange-50 dark:bg-orange-950 text-orange-600 dark:text-orange-400 transition-colors duration-200">
+            <div className="flex items-center justify-center w-9 h-9 rounded-md bg-orange-50 dark:bg-orange-950 text-orange-600 dark:text-orange-400 transition-colors duration-200">
               <UtensilsCrossed className="w-5 h-5" />
             </div>
             <span className="text-slate-900 dark:text-white transition-colors duration-200">
@@ -132,7 +132,7 @@ export default function SuperAdminSidebar({ mobileOpen, setMobileOpen, collapsed
 
           <button
             onClick={() => setMobileOpen(false)}
-            className="lg:hidden ml-auto text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white p-1 rounded-lg transition-colors duration-200"
+            className="lg:hidden ml-auto text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white p-1 rounded-md transition-colors duration-200"
           >
             <X className="w-5 h-5" />
           </button>
@@ -143,7 +143,7 @@ export default function SuperAdminSidebar({ mobileOpen, setMobileOpen, collapsed
               setActivePopover(null);
               setTooltip(null);
             }}
-            className="hidden lg:flex items-center justify-center w-8 h-8 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors duration-200"
+            className="hidden lg:flex items-center justify-center w-8 h-8 rounded-md text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors duration-200"
             title={collapsed ? "Expand Sidebar" : "Collapse Sidebar"}
           >
             {collapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
@@ -166,7 +166,7 @@ export default function SuperAdminSidebar({ mobileOpen, setMobileOpen, collapsed
                     onMouseEnter={(e) => !isPopoverOpen && showTooltip(e, item.name)}
                     onMouseLeave={hideTooltip}
                     className={`
-                      relative flex items-center w-full rounded-xl transition-colors duration-200 group
+                      relative flex items-center w-full rounded-md transition-colors duration-200 group
                       ${collapsed ? 'lg:justify-center lg:h-11 lg:w-11 lg:mx-auto' : 'px-3 py-2.5'} 
                       ${isSubItemActive || isPopoverOpen
                         ? "bg-orange-50 dark:bg-orange-950 text-orange-600 dark:text-orange-400 font-medium"
@@ -207,7 +207,7 @@ export default function SuperAdminSidebar({ mobileOpen, setMobileOpen, collapsed
                               to={subItem.href}
                               onClick={() => setMobileOpen(false)}
                               className={`
-                                flex items-center px-3 py-2 rounded-lg text-sm transition-colors duration-200 group relative
+                                flex items-center px-3 py-2 rounded-md text-sm transition-colors duration-200 group relative
                                 ${isSubActive
                                   ? "text-orange-600 dark:text-orange-400 font-medium bg-orange-50 dark:bg-orange-950"
                                   : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
@@ -234,7 +234,7 @@ export default function SuperAdminSidebar({ mobileOpen, setMobileOpen, collapsed
                 onMouseEnter={(e) => showTooltip(e, item.name)}
                 onMouseLeave={hideTooltip}
                 className={` 
-                  relative flex items-center rounded-xl transition-colors duration-200 group
+                  relative flex items-center rounded-md transition-colors duration-200 group
                   ${collapsed ? 'lg:justify-center lg:h-11 lg:w-11 lg:mx-auto' : 'px-3 py-2.5'} 
                   ${isActive
                     ? "bg-orange-50 dark:bg-orange-950 text-orange-600 dark:text-orange-400 font-medium"
@@ -265,7 +265,7 @@ export default function SuperAdminSidebar({ mobileOpen, setMobileOpen, collapsed
             onMouseEnter={(e) => showTooltip(e, 'Sign Out')}
             onMouseLeave={hideTooltip}
             className={` 
-              flex items-center rounded-xl w-full text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-red-50 dark:hover:bg-red-950 hover:text-red-600 dark:hover:text-red-400 transition-colors duration-200 group relative
+              flex items-center rounded-md w-full text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-red-50 dark:hover:bg-red-950 hover:text-red-600 dark:hover:text-red-400 transition-colors duration-200 group relative
               ${collapsed ? 'lg:justify-center lg:h-10 lg:w-10' : 'gap-3 px-3 py-2.5'} 
             `}
           >
@@ -284,7 +284,7 @@ export default function SuperAdminSidebar({ mobileOpen, setMobileOpen, collapsed
           style={{ top: tooltip.top, left: COLLAPSED_WIDTH + 8 }}
         >
           <div className="w-1.5 h-1.5 rotate-45 bg-slate-900 dark:bg-slate-100 -mr-0.5 shrink-0" />
-          <div className="px-2 py-1 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 text-[11px] font-semibold rounded-md shadow-md whitespace-nowrap">
+          <div className="px-2 py-1 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 text-[11px] font-semibold rounded-md whitespace-nowrap">
             {tooltip.label}
           </div>
         </div>
@@ -301,7 +301,7 @@ export default function SuperAdminSidebar({ mobileOpen, setMobileOpen, collapsed
             className="absolute w-2 h-2 rotate-45 bg-white dark:bg-slate-800 border-l border-b border-slate-200 dark:border-slate-700"
             style={{ top: 4 + (activePopover.height ?? 44) / 2 - 4, left: -4 }}
           />
-          <div className="relative w-44 rounded-xl bg-white dark:bg-slate-800 p-1.5 shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden transition-colors duration-200">
+          <div className="relative w-44 rounded-md bg-white dark:bg-slate-800 p-1.5  border border-slate-200 dark:border-slate-700 overflow-hidden transition-colors duration-200">
             {(() => {
               const ParentIcon = navigation[activePopover.index]?.icon;
               return (

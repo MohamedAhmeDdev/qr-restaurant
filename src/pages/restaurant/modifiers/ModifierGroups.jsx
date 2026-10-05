@@ -258,7 +258,7 @@ export default function ModifierGroups() {
 
         <Link
           to={`${basePath}/modifier-groups/create`}
-          className="flex items-center gap-2 px-2 py-2 md:px-4 md:py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-md text-xs lg:text-sm font-semibold transition-all active:scale-95 self-end md:self-auto"
+          className="flex items-center gap-2 px-2 py-2 md:px-4 md:py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-sm text-xs lg:text-sm font-semibold transition-all active:scale-95 self-end md:self-auto"
         >
           <PlusCircle className="w-4 h-4" />
           <span>Create Group</span>

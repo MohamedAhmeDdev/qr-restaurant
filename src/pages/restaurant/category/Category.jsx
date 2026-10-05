@@ -270,7 +270,7 @@ export default function CategoryPage() {
         <td className="px-6 py-4 font-mono text-xs font-semibold text-gray-500 dark:text-slate-400">
           {cat.id}
         </td>
-        <td className="py-4 px-4 font-bold text-gray-900 dark:text-white">
+        <td className="py-4 px-4 text-gray-400 dark:text-slate-500">
           {cat.name}
         </td>
         <td className="py-4 px-4 font-mono text-xs text-gray-500 dark:text-slate-400">
@@ -359,7 +359,7 @@ export default function CategoryPage() {
         </div>
         <Link
           to={`${basePath}/category/create`}
-          className="flex items-center gap-2 px-2 py-2 md:px-4 md:py-2.5 bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white rounded-sm text-xs lg:text-sm font-semibold transition-all duration-200 active:scale-[0.98] self-end sm:self-auto"
+          className="flex items-center gap-2 px-2 py-2 md:px-4 md:py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-sm text-xs lg:text-sm font-semibold transition-all active:scale-95 self-end md:self-auto"
         >
           <Tag className="w-4 h-4 stroke-[2.5]" />
           <span>New Category</span>

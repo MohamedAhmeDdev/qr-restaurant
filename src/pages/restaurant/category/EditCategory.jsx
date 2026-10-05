@@ -3,10 +3,13 @@ import CategoryForm from '../../../components/forms/CategoryForm';
 import toast from 'react-hot-toast';
 import api from '../../../services/api';
 import LoadingScreen from '../../../components/common/LoadingScreen';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useRoleBasePath } from '../../../utils/useRoleBasePath';
 
 export default function EditCategory() {
   const { id } = useParams();
-  
+    const navigate = useNavigate();
+  const basePath = useRoleBasePath();
   const [isSubmitting, setIsSubmitting] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
   const [errors, setErrors] = useState({});

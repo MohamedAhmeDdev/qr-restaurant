@@ -258,7 +258,7 @@ export default function StaffPage() {
         <td className="px-6 py-4">
           <div className="flex items-center gap-3">
             <div className="min-w-0">
-              <p className="font-semibold text-gray-900 dark:text-white truncate">{staff.name}</p>
+              <p className="font-semibold text-xs  md:text-sm text-gray-900 dark:text-white truncate">{staff.name}</p>
               <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-slate-400 mt-0.5">
                 <span className="flex items-center gap-1 truncate">
                   <Mail className="w-3 h-3 shrink-0" /> {staff.email}
@@ -267,14 +267,14 @@ export default function StaffPage() {
             </div>
           </div>
         </td>
-        <td className="px-6 py-4 text-gray-700 dark:text-slate-300 font-medium">
+        <td className="px-6 py-4  text-xs  md:text-sm text-gray-500 dark:text-slate-400">
           {staff.role?.name}
         </td>
-        <td className="px-6 py-4 text-gray-700 dark:text-slate-300">
+        <td className="px-6 py-4 text-gray-700  text-xs  md:text-sm dark:text-slate-300">
           {staff.shift_type}
         </td>
-        <td className="px-6 py-4 text-gray-700 dark:text-slate-300">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-gray-700 dark:text-slate-300 text-xs font-medium">
+        <td className="px-6 py-4 text-gray-500 dark:text-slate-400">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1  text-xs  md:text-sm">
             <Calendar className="w-3 h-3" /> {formatDate(staff.started_at)}
           </span>
         </td>
@@ -340,7 +340,7 @@ export default function StaffPage() {
   </div>
   <Link
     to={`${basePath}/staff/create`}
-    className="flex items-center gap-2 px-2 py-2 md:px-4 md:py-2.5 bg-orange-500 text-white rounded-sm text-xs lg:text-sm font-medium transition-all active:scale-[0.98] self-end sm:self-auto"
+          className="flex items-center gap-2 px-2 py-2 md:px-4 md:py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-sm text-xs lg:text-sm font-semibold transition-all active:scale-95 self-end md:self-auto"
   >
     <UserPlus className="w-4 h-4" /> Add Staff
   </Link>

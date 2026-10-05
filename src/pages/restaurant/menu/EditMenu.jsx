@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import {useParams } from 'react-router-dom';
+import {useNavigate, useParams } from 'react-router-dom';
 import MenuForm from '../../../components/forms/MenuForm';
 import toast from 'react-hot-toast';
 import api from '../../../services/api';
@@ -9,7 +9,8 @@ import LoadingScreen from '../../../components/common/LoadingScreen';
 
 export default function EditMenu() {
   const { id } = useParams();
-
+  const navigate = useNavigate();
+  const basePath = useRoleBasePath();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [imagePreview, setImagePreview] = useState(null);

@@ -17,9 +17,11 @@ import { getImageUrl } from '../../../utils/getImageUrl';
 import StatusBadge from '../../../components/common/StatusBadge';
 import { useFormatPrice } from '../../../contexts/useFormatPrice';
 import { useRoleBasePath } from '../../../utils/useRoleBasePath';
+import { useAuth } from '../../../contexts/AuthContext';
 
 export default function MenuItemsDetails() {
   const { id } = useParams();
+    const { user } = useAuth();
   const basePath = useRoleBasePath();
   const navigate = useNavigate();
   const { formatPrice } = useFormatPrice();
@@ -158,7 +160,7 @@ export default function MenuItemsDetails() {
           >
             <ArrowLeft className="w-4 h-4" /> Back to Menu
           </button>
-
+{user?.role !== 'Waiter' && (
           <div className="flex items-center gap-3">
             <button
               type="button"
@@ -169,6 +171,7 @@ export default function MenuItemsDetails() {
               Edit Item
             </button>
           </div>
+        )}
         </div>
 
         {/* Layout Grid */}
