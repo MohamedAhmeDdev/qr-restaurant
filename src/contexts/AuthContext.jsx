@@ -8,6 +8,18 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // inside AuthProvider
+
+// ── Permission check ──
+const can = useCallback((permission) => {
+  if (!user) return false;
+  const perms = user.permissions || [];
+  if (Array.isArray(permission)) {
+    return permission.some((p) => perms.includes(p));
+  }
+  return perms.includes(permission);
+}, [user]);
+
   // ── Helper: auto-assign first restaurant for staff ──
   const autoAssignStaffRestaurant = useCallback((userData) => {
     if (userData?.restaurants?.length > 0) {
@@ -145,6 +157,7 @@ export const AuthProvider = ({ children }) => {
     register,
     updateUser,
     hasRole,
+     can,     
     setAuthSession,
     isAuthenticated: !!user,
   };

@@ -14,13 +14,12 @@ import ConfirmationModal from '../../../components/common/ConfirmationModal';
 import api from '../../../services/api';
 import toast from 'react-hot-toast';
 import { useRoleBasePath } from '../../../utils/useRoleBasePath';
-import { useAuth } from '../../../contexts/AuthContext';
+import Can from '../../../utils/Can';
 
 export default function TableList() {
   const navigate = useNavigate();
   const basePath = useRoleBasePath();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { user } = useAuth();
 
   // URL-driven state
   const currentPage = Number(searchParams.get('page')) || 1;
@@ -255,12 +254,14 @@ export default function TableList() {
             </p>
           </div>
         </div>
-        <button
-          onClick={() => navigate(`${basePath}/table/create`)}
-          className="flex items-center gap-2 px-2 py-2 md:px-4 md:py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-sm text-xs lg:text-sm font-semibold transition-all active:scale-95 self-end md:self-auto"
-        >
-          <QrCode className="w-4 h-4" /> Add New Table
-        </button>
+        <Can permission="table.create">
+          <button
+            onClick={() => navigate(`${basePath}/table/create`)}
+            className="flex items-center gap-2 px-2 py-2 md:px-4 md:py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-sm text-xs lg:text-sm font-semibold transition-all active:scale-95 self-end md:self-auto"
+          >
+            <QrCode className="w-4 h-4" /> Add New Table
+          </button>
+        </Can>
       </div>
 
       {/* Stats Cards */}
@@ -294,7 +295,6 @@ export default function TableList() {
         ]}
       />
 
-      {/* 1. LOADING SKELETON STATE */}
       {/* 1. LOADING SKELETON STATE */}
       {loading ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 gap-5">
@@ -448,24 +448,29 @@ export default function TableList() {
                       <div className="flex items-center gap-1 shrink-0">
                         {isTrashed ? (
                           <>
-                            <button
-                              onClick={(e) => { e.stopPropagation(); openConfirmModal(table, 'restore'); }}
-                              className="p-2 rounded-md text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-950/30 transition-colors"
-                              title="Restore"
-                            >
-                              <RefreshCw className="w-4 h-4" />
-                            </button>
-                            {/* <button
-                              onClick={(e) => { e.stopPropagation(); openConfirmModal(table, 'forceDelete'); }}
-                              className="p-2 rounded-md text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors cursor-pointer"
-                              title="Permanently Delete"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button> */}
+                            <Can permission="table.restore">
+                              <button
+                                onClick={(e) => { e.stopPropagation(); openConfirmModal(table, 'restore'); }}
+                                className="p-2 rounded-md text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-950/30 transition-colors"
+                                title="Restore"
+                              >
+                                <RefreshCw className="w-4 h-4" />
+                              </button>
+                            </Can>
+
+                            {/* <Can permission="table.force_delete">
+                              <button
+                                onClick={(e) => { e.stopPropagation(); openConfirmModal(table, 'forceDelete'); }}
+                                className="p-2 rounded-md text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors cursor-pointer"
+                                title="Permanently Delete"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </Can> */}
                           </>
                         ) : (
-                          user?.role !== 'Waiter' && (
-                            <>
+                          <>
+                            <Can permission="table.update">
                               <Link to={`${basePath}/table/edit/${table.id}`} onClick={(e) => e.stopPropagation()}>
                                 <button
                                   className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md text-gray-500 hover:text-blue-600 transition-colors inline-block"
@@ -474,6 +479,9 @@ export default function TableList() {
                                   <Edit className="w-4 h-4" />
                                 </button>
                               </Link>
+                            </Can>
+
+                            <Can permission="table.delete">
                               <button
                                 onClick={(e) => { e.stopPropagation(); openConfirmModal(table, 'trash'); }}
                                 className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md text-gray-500 hover:text-red-600 transition-colors cursor-pointer"
@@ -481,8 +489,8 @@ export default function TableList() {
                               >
                                 <Trash2 className="w-4 h-4" />
                               </button>
-                            </>
-                          )
+                            </Can>
+                          </>
                         )}
                       </div>
                     </div>
@@ -534,8 +542,10 @@ export default function TableList() {
                     </div>
 
                     {/* Footer Actions */}
-                    {user?.role !== 'Waiter' && (
-                      <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2 mt-auto">
+
+                    <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2 mt-auto">
+
+                      <Can permission="table.update">
                         <button
                           onClick={(e) => handleRegenerateQr(e, table.id)}
                           disabled={isGenerating || generatingQrId !== null}
@@ -553,17 +563,18 @@ export default function TableList() {
                             </>
                           )}
                         </button>
+                      </Can>
 
-                        <button
-                          onClick={(e) => handleDownloadQr(e, table)}
-                          disabled={isGenerating}
-                          className="flex-1 py-1.5 px-2 md:py-2 md:px-3 text-xs font-medium bg-orange-500 hover:bg-orange-600 text-white rounded-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          <Download className="w-3.5 h-3.5" />
-                          Download
-                        </button>
-                      </div>
-                    )}
+                      <button
+                        onClick={(e) => handleDownloadQr(e, table)}
+                        disabled={isGenerating}
+                        className="flex-1 py-1.5 px-2 md:py-2 md:px-3 text-xs font-medium bg-orange-500 hover:bg-orange-600 text-white rounded-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        Download
+                      </button>
+                    </div>
+
 
                   </div>
                 </div>

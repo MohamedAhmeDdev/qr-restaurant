@@ -16,10 +16,9 @@ import toast from 'react-hot-toast';
 import { useFormatPrice } from '../../../contexts/useFormatPrice';
 import StatsCard from '../../../components/cards/StatsCard';
 import { useRoleBasePath } from '../../../utils/useRoleBasePath';
-import { useAuth } from '../../../contexts/AuthContext';
+import Can from '../../../utils/Can';
 
 export default function ModifierGroups() {
-  const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const basePath = useRoleBasePath();
 
@@ -256,13 +255,15 @@ export default function ModifierGroups() {
           </p>
         </div>
 
-        <Link
-          to={`${basePath}/modifier-groups/create`}
-          className="flex items-center gap-2 px-2 py-2 md:px-4 md:py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-sm text-xs lg:text-sm font-semibold transition-all active:scale-95 self-end md:self-auto"
-        >
-          <PlusCircle className="w-4 h-4" />
-          <span>Create Group</span>
-        </Link>
+        <Can permission="modifier.create">
+          <Link
+            to={`${basePath}/modifier-groups/create`}
+            className="flex items-center gap-2 px-2 py-2 md:px-4 md:py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-sm text-xs lg:text-sm font-semibold transition-all active:scale-95 self-end md:self-auto"
+          >
+            <PlusCircle className="w-4 h-4" />
+            <span>Create Group</span>
+          </Link>
+        </Can>
       </div>
 
       {/* Statistics Cards */}
@@ -325,12 +326,14 @@ export default function ModifierGroups() {
             title={isFiltered ? 'No results found' : 'No modifier groups yet'}
             description={isFiltered ? 'Try adjusting your search terms.' : 'Create your first group to start adding options to menu items.'}
             action={!isFiltered && (
-              <Link
-                to={`${basePath}/modifier-groups/create`}
-                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-orange-600 hover:bg-orange-700 rounded-md transition-colors"
-              >
-                <PlusCircle className="w-4 h-4" /> Create Group
-              </Link>
+              <Can permission="modifier.create">
+                <Link
+                  to={`${basePath}/modifier-groups/create`}
+                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-orange-600 hover:bg-orange-700 rounded-md transition-colors"
+                >
+                  <PlusCircle className="w-4 h-4" /> Create Group
+                </Link>
+              </Can>
             )}
           />
         </div>
@@ -424,37 +427,45 @@ export default function ModifierGroups() {
                   <div className="px-4 py-2 bg-slate-50 dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-1.5">
                     {isTrashed ? (
                       <>
-                        <button
-                          type="button"
-                          onClick={() => openConfirmModal(group, 'restore')}
-                          className="p-2 rounded-md text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-950/30 transition-colors"
-                          title="Restore"
-                        >
-                          <RefreshCw className="w-4 h-4" />
-                        </button>
-                        {/* <button
-                          type="button"
-                          onClick={() => openConfirmModal(group, 'forceDelete')}
-                          className="p-2 rounded-md text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors cursor-pointer"
-                          title="Permanently Delete"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button> */}
+                        <Can permission="modifier.restore">
+                          <button
+                            type="button"
+                            onClick={() => openConfirmModal(group, 'restore')}
+                            className="p-2 rounded-md text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-950/30 transition-colors"
+                            title="Restore"
+                          >
+                            <RefreshCw className="w-4 h-4" />
+                          </button>
+                        </Can>
+
+                        {/* <Can permission="modifier.force_delete">
+                          <button
+                            type="button"
+                            onClick={() => openConfirmModal(group, 'forceDelete')}
+                            className="p-2 rounded-md text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors cursor-pointer"
+                            title="Permanently Delete"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </Can> */}
                       </>
                     ) : (
-                      user?.role !== 'Waiter' && (
-                        <>
+                      <>
+                        <Can permission="modifier.update">
                           <button
                             type="button"
                             onClick={() => toggleActive(group)}
                             className={`p-2 rounded-md transition-colors ${group.is_active
-                              ? 'text-red-500 hover:bg-red-100/50 dark:text-red-400 dark:hover:bg-red-950/30'
-                              : 'text-emerald-600 hover:bg-emerald-100/50 dark:text-emerald-400 dark:hover:bg-emerald-950/30'
+                                ? 'text-red-500 hover:bg-red-100/50 dark:text-red-400 dark:hover:bg-red-950/30'
+                                : 'text-emerald-600 hover:bg-emerald-100/50 dark:text-emerald-400 dark:hover:bg-emerald-950/30'
                               }`}
                             title={group.is_active ? 'Deactivate' : 'Activate'}
                           >
                             <Power className="w-4 h-4" />
                           </button>
+                        </Can>
+
+                        <Can permission="modifier.update">
                           <Link
                             to={`${basePath}/modifier-groups/edit/${group.id}`}
                             className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md text-gray-500 hover:text-blue-600 transition-colors inline-block"
@@ -462,6 +473,9 @@ export default function ModifierGroups() {
                           >
                             <Edit className="w-4 h-4" />
                           </Link>
+                        </Can>
+
+                        <Can permission="modifier.delete">
                           <button
                             type="button"
                             onClick={() => openConfirmModal(group, 'trash')}
@@ -470,8 +484,8 @@ export default function ModifierGroups() {
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
-                        </>
-                      )
+                        </Can>
+                      </>
                     )}
                   </div>
                 </div>

@@ -3,9 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
   Image as ImageIcon,
-  UtensilsCrossed,
   Info,
-  Edit3,
   AlertTriangle,
   PackageX,
   Edit
@@ -17,11 +15,10 @@ import { getImageUrl } from '../../../utils/getImageUrl';
 import StatusBadge from '../../../components/common/StatusBadge';
 import { useFormatPrice } from '../../../contexts/useFormatPrice';
 import { useRoleBasePath } from '../../../utils/useRoleBasePath';
-import { useAuth } from '../../../contexts/AuthContext';
+import Can from '../../../utils/Can';
 
 export default function MenuItemsDetails() {
   const { id } = useParams();
-    const { user } = useAuth();
   const basePath = useRoleBasePath();
   const navigate = useNavigate();
   const { formatPrice } = useFormatPrice();
@@ -160,18 +157,20 @@ export default function MenuItemsDetails() {
           >
             <ArrowLeft className="w-4 h-4" /> Back to Menu
           </button>
-{user?.role !== 'Waiter' && (
+
           <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => navigate(`${basePath}/menu-items/edit/${id}`)}
-              className="inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-all"
-            >
-              <Edit className="w-4 h-4 text-slate-500 dark:text-slate-400" />
-              Edit Item
-            </button>
+            <Can permission="menu.update">
+              <button
+                type="button"
+                onClick={() => navigate(`${basePath}/menu-items/edit/${id}`)}
+                className="inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-all"
+              >
+                <Edit className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+                Edit Item
+              </button>
+            </Can>
           </div>
-        )}
+
         </div>
 
         {/* Layout Grid */}

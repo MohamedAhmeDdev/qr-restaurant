@@ -14,10 +14,9 @@ import ConfirmationModal from '../../../components/common/ConfirmationModal';
 import api from '../../../services/api';
 import Pagination from '../../../components/common/Pagination';
 import { useRoleBasePath } from '../../../utils/useRoleBasePath';
-import { useAuth } from '../../../contexts/AuthContext';
+import Can from '../../../utils/Can';
 
 export default function CategoryPage() {
-  const { user } = useAuth();
   const basePath = useRoleBasePath();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -289,53 +288,61 @@ export default function CategoryPage() {
           <div className="flex items-center justify-end gap-1">
             {isTrashed ? (
               <>
-                <button
-                  onClick={() => openConfirmModal(cat, 'restore')}
-                  className="p-2 rounded-md text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-950/30 transition-colors"
-                  title="Restore"
-                >
-                  <RefreshCw className="w-4 h-4" />
-                </button>
-                {/* <button
-              onClick={() => openConfirmModal(cat, 'forceDelete')}
-              className="p-2 rounded-md text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors cursor-pointer"
-              title="Permanently Delete"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button> */}
-              </>
-            ) : user?.role !== 'Waiter' ? (
-              <>
-                <button
-                  onClick={() => toggleStatus(cat)}
-                  className={`p-2 rounded-md transition-colors ${cat.is_active
-                    ? 'text-red-500 hover:bg-red-100/50 dark:text-red-400 dark:hover:bg-red-950/30'
-                    : 'text-emerald-600 hover:bg-emerald-100/50 dark:text-emerald-400 dark:hover:bg-emerald-950/30'
-                    }`}
-                  title={cat.is_active ? 'Deactivate' : 'Activate'}
-                >
-                  <Power className="w-4 h-4" />
-                </button>
+              <Can permission="category.restore">
+                  <button
+                    onClick={() => openConfirmModal(cat, 'restore')}
+                    className="p-2 rounded-md text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-950/30 transition-colors"
+                    title="Restore"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                  </button>
+                </Can>
 
-                <Link
-                  to={`${basePath}/category/edit/${cat.id}`}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md text-gray-500 hover:text-blue-600 transition-colors inline-block"
-                  title="Edit"
-                >
-                  <Edit className="w-4 h-4" />
-                </Link>
-
-                <button
-                  onClick={() => openConfirmModal(cat, 'trash')}
-                  className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md text-gray-500 hover:text-red-600 transition-colors cursor-pointer"
-                  title="Remove"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                {/* <Can permission="category.force_delete">
+          <button
+            onClick={() => openConfirmModal(cat, 'forceDelete')}
+            className="p-2 rounded-md text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors cursor-pointer"
+            title="Permanently Delete"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </Can> */}
               </>
             ) : (
-              <span className="text-xs text-gray-400 italic">No actions available</span>
+              <>
+                <Can permission="category.update">
+                  <button
+                    onClick={() => toggleStatus(cat)}
+                    className={`p-2 rounded-md transition-colors ${cat.is_active
+                        ? 'text-red-500 hover:bg-red-100/50 dark:text-red-400 dark:hover:bg-red-950/30'
+                        : 'text-emerald-600 hover:bg-emerald-100/50 dark:text-emerald-400 dark:hover:bg-emerald-950/30'
+                      }`}
+                    title={cat.is_active ? 'Deactivate' : 'Activate'}
+                  >
+                    <Power className="w-4 h-4" />
+                  </button>
+                </Can>
 
+                <Can permission="category.update">
+                  <Link
+                    to={`${basePath}/category/edit/${cat.id}`}
+                    className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md text-gray-500 hover:text-blue-600 transition-colors inline-block"
+                    title="Edit"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </Link>
+                </Can>
+
+                <Can permission="category.delete">
+                  <button
+                    onClick={() => openConfirmModal(cat, 'trash')}
+                    className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md text-gray-500 hover:text-red-600 transition-colors cursor-pointer"
+                    title="Remove"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </Can>
+              </>
             )}
           </div>
         </td>
@@ -347,7 +354,6 @@ export default function CategoryPage() {
     <div className="p-1 sm:p-4 space-y-6 bg-gray-50 dark:bg-slate-950 min-h-screen text-gray-900 dark:text-slate-100 transition-colors duration-200">
 
       {/* Header */}
-      {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-base md:text-xl font-bold bg-gradient-to-r from-orange-600 to-orange-400 bg-clip-text text-transparent leading-tight">
@@ -357,13 +363,15 @@ export default function CategoryPage() {
             Organize and manage your menu category structure.
           </p>
         </div>
-        <Link
-          to={`${basePath}/category/create`}
-          className="flex items-center gap-2 px-2 py-2 md:px-4 md:py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-sm text-xs lg:text-sm font-semibold transition-all active:scale-95 self-end md:self-auto"
-        >
-          <Tag className="w-4 h-4 stroke-[2.5]" />
-          <span>New Category</span>
-        </Link>
+        <Can permission="category.create">
+          <Link
+            to={`${basePath}/category/create`}
+            className="flex items-center gap-2 px-2 py-2 md:px-4 md:py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-sm text-xs lg:text-sm font-semibold transition-all active:scale-95 self-end md:self-auto"
+          >
+            <Tag className="w-4 h-4 stroke-[2.5]" />
+            <span>New Category</span>
+          </Link>
+        </Can>
       </div>
 
 

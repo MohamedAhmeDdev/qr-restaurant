@@ -23,10 +23,9 @@ import CategoriesService from '../../../services/categories';
 import { useFormatPrice } from '../../../contexts/useFormatPrice';
 import StatsCard from '../../../components/cards/StatsCard';
 import { useRoleBasePath } from '../../../utils/useRoleBasePath';
-import { useAuth } from '../../../contexts/AuthContext';
+import Can from '../../../utils/Can';
 
 export default function MenuTable() {
-  const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const basePath = useRoleBasePath();
   const { formatPrice } = useFormatPrice();
@@ -362,68 +361,87 @@ export default function MenuTable() {
 
         <td className="py-4 px-4 sm:px-6 text-right">
           <div className="flex items-center justify-end gap-1">
-            {/* Always visible View button */}
-            <Link
-              to={`${basePath}/menu-items-details/${item.id}`}
-              className="p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md text-gray-500 hover:text-green-600 transition-colors inline-block"
-              title="View"
-            >
-              <Eye className="w-4 h-4" />
-            </Link>
+
 
             {isTrashed ? (
               <>
-                <button
-                  onClick={() => openConfirmModal(cat, 'restore')}
-                  className="p-2 rounded-md text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-950/30 transition-colors"
-                  title="Restore"
-                >
-                  <RefreshCw className="w-4 h-4" />
-                </button>
+                <Can permission="menu.restore">
+                  <button
+                    onClick={() => openConfirmModal(item, 'restore')}
+                    className="p-2 rounded-md text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-950/30 transition-colors"
+                    title="Restore"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                  </button>
+                </Can>
+
+                {/* <Can permission="menu.force_delete">
+                  <button
+                    onClick={() => openConfirmModal(item, 'forceDelete')}
+                    className="p-2 rounded-md text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors cursor-pointer"
+                    title="Permanently Delete"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </Can> */}
               </>
-            ) : ['cashier', 'waiter'].includes(user?.role) ? (
-              <span className="text-xs text-gray-400 italic">No actions available</span>
             ) : (
               <>
-                <button
-                  type="button"
-                  onClick={() => handleToggleAvailability(item.id, item.is_available)}
-                  className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors whitespace-nowrap ${item.is_available
-                      ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 dark:bg-amber-950/40 dark:text-amber-400 dark:hover:bg-amber-900/40 border border-amber-200 dark:border-amber-800/50'
-                      : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-400 dark:hover:bg-emerald-900/40 border border-emerald-200 dark:border-emerald-800/50'
-                    }`}
-                >
-                  {item.is_available ? 'Mark as Sold Out' : 'Mark Available'}
-                </button>
+                <Can permission="menu.update">
+                  <button
+                    type="button"
+                    onClick={() => handleToggleAvailability(item.id, item.is_available)}
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors whitespace-nowrap ${item.is_available
+                        ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 dark:bg-amber-950/40 dark:text-amber-400 dark:hover:bg-amber-900/40 border border-amber-200 dark:border-amber-800/50'
+                        : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-400 dark:hover:bg-emerald-900/40 border border-emerald-200 dark:border-emerald-800/50'
+                      }`}
+                  >
+                    {item.is_available ? 'Mark as Sold Out' : 'Mark Available'}
+                  </button>
+                </Can>
 
-                <button
-                  type="button"
-                  onClick={() => toggleStatus(item)}
-                  className={`p-2 rounded-md transition-colors ${item.is_active
-                      ? 'text-red-500 hover:bg-red-100/50 dark:text-red-400 dark:hover:bg-red-950/30'
-                      : 'text-emerald-600 hover:bg-emerald-100/50 dark:text-emerald-400 dark:hover:bg-emerald-950/30'
-                    }`}
-                  title={item.is_active ? 'Deactivate' : 'Activate'}
-                >
-                  <Power className="w-4 h-4" />
-                </button>
+                <Can permission="menu.update">
+                  <button
+                    type="button"
+                    onClick={() => toggleStatus(item)}
+                    className={`p-2 rounded-md transition-colors ${item.is_active
+                        ? 'text-red-500 hover:bg-red-100/50 dark:text-red-400 dark:hover:bg-red-950/30'
+                        : 'text-emerald-600 hover:bg-emerald-100/50 dark:text-emerald-400 dark:hover:bg-emerald-950/30'
+                      }`}
+                    title={item.is_active ? 'Deactivate' : 'Activate'}
+                  >
+                    <Power className="w-4 h-4" />
+                  </button>
+                </Can>
 
                 <Link
-                  to={`${basePath}/menu-items/edit/${item.id}`}
-                  className="p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md text-gray-500 hover:text-blue-600 transition-colors inline-block"
-                  title="Edit"
+                  to={`${basePath}/menu-items-details/${item.id}`}
+                  className="p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md text-gray-500 hover:text-green-600 transition-colors inline-block"
+                  title="View"
                 >
-                  <Edit className="w-4 h-4" />
+                  <Eye className="w-4 h-4" />
                 </Link>
 
-                <button
-                  type="button"
-                  onClick={() => openConfirmModal(item, 'trash')}
-                  className="p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md text-gray-500 hover:text-red-600 transition-colors cursor-pointer"
-                  title="Remove"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                <Can permission="menu.update">
+                  <Link
+                    to={`${basePath}/menu-items/edit/${item.id}`}
+                    className="p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md text-gray-500 hover:text-blue-600 transition-colors inline-block"
+                    title="Edit"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </Link>
+                </Can>
+
+                <Can permission="menu.delete">
+                  <button
+                    type="button"
+                    onClick={() => openConfirmModal(item, 'trash')}
+                    className="p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md text-gray-500 hover:text-red-600 transition-colors cursor-pointer"
+                    title="Remove"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </Can>
               </>
             )}
           </div>
@@ -444,13 +462,15 @@ export default function MenuTable() {
           </p>
         </div>
 
-        <Link
-          to={`${basePath}/menu-items/create`}
-          className="flex items-center gap-2 px-2 py-2 md:px-4 md:py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-sm text-xs lg:text-sm font-semibold transition-all active:scale-95 self-end md:self-auto"
-        >
-          <UtensilsCrossed className="w-4 h-4" />
-          <span>Add Menu Item</span>
-        </Link>
+        <Can permission="menu.create">
+          <Link
+            to={`${basePath}/menu-items/create`}
+            className="flex items-center gap-2 px-2 py-2 md:px-4 md:py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-sm text-xs lg:text-sm font-semibold transition-all active:scale-95 self-end md:self-auto"
+          >
+            <UtensilsCrossed className="w-4 h-4" />
+            <span>Add Menu Item</span>
+          </Link>
+        </Can>
       </div>
 
       {/* Statistics Cards */}
