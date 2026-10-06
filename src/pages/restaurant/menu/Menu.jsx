@@ -22,12 +22,10 @@ import Table from '../../../components/common/Table';
 import CategoriesService from '../../../services/categories';
 import { useFormatPrice } from '../../../contexts/useFormatPrice';
 import StatsCard from '../../../components/cards/StatsCard';
-import { useRoleBasePath } from '../../../utils/useRoleBasePath';
 import Can from '../../../utils/Can';
 
 export default function MenuTable() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const basePath = useRoleBasePath();
   const { formatPrice } = useFormatPrice();
 
   // URL-driven state
@@ -415,7 +413,7 @@ export default function MenuTable() {
                 </Can>
 
                 <Link
-                  to={`${basePath}/menu-items-details/${item.id}`}
+                  to={`/app/menu-items-details/${item.id}`}
                   className="p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md text-gray-500 hover:text-green-600 transition-colors inline-block"
                   title="View"
                 >
@@ -424,7 +422,7 @@ export default function MenuTable() {
 
                 <Can permission="menu.update">
                   <Link
-                    to={`${basePath}/menu-items/edit/${item.id}`}
+                    to={`/app/menu-items/edit/${item.id}`}
                     className="p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md text-gray-500 hover:text-blue-600 transition-colors inline-block"
                     title="Edit"
                   >
@@ -464,7 +462,7 @@ export default function MenuTable() {
 
         <Can permission="menu.create">
           <Link
-            to={`${basePath}/menu-items/create`}
+            to={`/app/menu-items/create`}
             className="flex items-center gap-2 px-2 py-2 md:px-4 md:py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-sm text-xs lg:text-sm font-semibold transition-all active:scale-95 self-end md:self-auto"
           >
             <UtensilsCrossed className="w-4 h-4" />

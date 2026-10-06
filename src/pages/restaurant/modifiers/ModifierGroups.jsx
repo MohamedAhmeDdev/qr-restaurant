@@ -15,12 +15,11 @@ import api from '../../../services/api';
 import toast from 'react-hot-toast';
 import { useFormatPrice } from '../../../contexts/useFormatPrice';
 import StatsCard from '../../../components/cards/StatsCard';
-import { useRoleBasePath } from '../../../utils/useRoleBasePath';
 import Can from '../../../utils/Can';
 
 export default function ModifierGroups() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const basePath = useRoleBasePath();
+
 
   // URL-driven state
   const currentPage = Number(searchParams.get('page')) || 1;
@@ -257,7 +256,7 @@ export default function ModifierGroups() {
 
         <Can permission="modifier.create">
           <Link
-            to={`${basePath}/modifier-groups/create`}
+            to={"/app/modifier-groups/create"}
             className="flex items-center gap-2 px-2 py-2 md:px-4 md:py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-sm text-xs lg:text-sm font-semibold transition-all active:scale-95 self-end md:self-auto"
           >
             <PlusCircle className="w-4 h-4" />
@@ -328,7 +327,7 @@ export default function ModifierGroups() {
             action={!isFiltered && (
               <Can permission="modifier.create">
                 <Link
-                  to={`${basePath}/modifier-groups/create`}
+                  to={"/app/modifier-groups/creat"}
                   className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-orange-600 hover:bg-orange-700 rounded-md transition-colors"
                 >
                   <PlusCircle className="w-4 h-4" /> Create Group
@@ -467,7 +466,7 @@ export default function ModifierGroups() {
 
                         <Can permission="modifier.update">
                           <Link
-                            to={`${basePath}/modifier-groups/edit/${group.id}`}
+                            to={`/app/modifier-groups/edit/${group.id}`}
                             className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md text-gray-500 hover:text-blue-600 transition-colors inline-block"
                             title="Edit"
                           >

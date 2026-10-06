@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
-  UserPlus, Trash2, CheckCircle, 
-  Users, AlertCircle, Mail, Search,
+  UserPlus, Trash2,
+  Users, Mail, Search,
   Edit, Calendar, RefreshCw
 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -17,11 +17,8 @@ import ConfirmationModal from '../../../components/common/ConfirmationModal';
 import api from '../../../services/api';
 import RoleService from '../../../services/Roles';
 import { formatDate } from '../../../utils/formatDate';
-import { useRoleBasePath } from '../../../utils/useRoleBasePath';
 
 export default function StaffPage() {
-   const basePath = useRoleBasePath();
-  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
   // URL-driven state
@@ -304,7 +301,7 @@ export default function StaffPage() {
               staff.role?.name !== 'Manager' && (
                 <>
                   <Link
-                    to={`${basePath}/staff/edit/${staff.id}`}
+                    to={`/app/staff/edit/${staff.id}`}
                     className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md text-gray-500 hover:text-blue-600 transition-colors inline-block"
                     title="Edit"
                   >
@@ -339,7 +336,7 @@ export default function StaffPage() {
     </p>
   </div>
   <Link
-    to={`${basePath}/staff/create`}
+    to="/app/staff/create"
           className="flex items-center gap-2 px-2 py-2 md:px-4 md:py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-sm text-xs lg:text-sm font-semibold transition-all active:scale-95 self-end md:self-auto"
   >
     <UserPlus className="w-4 h-4" /> Add Staff

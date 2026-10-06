@@ -1,18 +1,13 @@
 export const getDefaultRouteForRole = (role) => {
-  // Convert to lowercase to ensure a safe match regardless of backend formatting
-  const userRole = role?.toLowerCase(); 
-
-  switch (userRole) {
+  switch (role?.toLowerCase()) {
     case 'super_admin':
       return '/organizations';
     case 'restaurant_admin':
       return '/restaurant';
     case 'manager':
-      return '/manager/dashboard';
     case 'cashier':
-      return '/cashier/dashboard';
     case 'waiter':
-      return '/waiter/orders';
+      return '/app/dashboard';
     default:
       return '/login';
   }

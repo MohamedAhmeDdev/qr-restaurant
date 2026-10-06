@@ -55,7 +55,7 @@ export default function CreateModifierGroup() {
 
       const response = await api.post('/modifier-groups', payload);
       toast.success(response?.data?.message);
-      navigate(`${basePath}/modifier-groups`);
+      navigate("/app/modifier-groups");
     } catch (err) {
       toast.error(err.response?.data?.message);
     } finally {

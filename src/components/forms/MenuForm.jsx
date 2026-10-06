@@ -3,7 +3,6 @@ import { LayoutGrid, Image as ImageIcon, Check, ChevronDown, X, Search, Upload, 
 import api from '../../services/api';
 import CategoriesService from '../../services/categories';
 import { useNavigate } from 'react-router-dom';
-import { useRoleBasePath } from '../../utils/useRoleBasePath';
 
 export default function MenuForm({
   formData,
@@ -13,7 +12,6 @@ export default function MenuForm({
   errors,
   setErrors,
   onSubmit,
-  onCancel,
   isSubmitting,
   submitButtonText = 'Create Menu Item',
   isEdit = false,
@@ -35,7 +33,6 @@ export default function MenuForm({
   const [modifierError, setModifierError] = useState('');
 
   const navigate = useNavigate();
-    const basePath = useRoleBasePath();
 
 
   useEffect(() => {
@@ -164,7 +161,7 @@ export default function MenuForm({
   );
 
     const handleCancel = () => {
-    navigate(`${basePath}/menu-items`);
+    navigate("/app/menu-items");
   };
 
 

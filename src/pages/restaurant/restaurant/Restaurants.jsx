@@ -128,7 +128,7 @@ export default function Restaurants() {
     }
 
     if (restaurant.slug === activeSlug) {
-      navigate('/dashboard');
+      navigate('/app/dashboard');
       return;
     }
 
@@ -137,7 +137,7 @@ export default function Restaurants() {
 
     setTimeout(() => {
       setIsSwitching(null);
-      navigate('/dashboard');
+      navigate('/app/dashboard');
     }, 600);
   };
 
@@ -302,7 +302,7 @@ export default function Restaurants() {
 
             {/* Organization Settings Button */}
             <button
-              onClick={() => navigate('/organization/settings')}
+              onClick={() => navigate('/restaurant/organization/settings')}
               title="Organization Settings"
               className="inline-flex items-center justify-center gap-2 px-3 sm:px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-md text-sm font-semibold transition-all active:scale-[0.98]"
             >

@@ -19,7 +19,7 @@ const CustomChartTooltip = ({ active, payload, label, currency }) => {
   return null;
 };
 
-export default function DashboardPage() {
+export default function Report() {
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
   const { currency } = useFormatPrice();

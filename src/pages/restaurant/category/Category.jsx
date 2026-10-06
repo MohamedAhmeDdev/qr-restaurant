@@ -13,11 +13,9 @@ import Table from '../../../components/common/Table';
 import ConfirmationModal from '../../../components/common/ConfirmationModal';
 import api from '../../../services/api';
 import Pagination from '../../../components/common/Pagination';
-import { useRoleBasePath } from '../../../utils/useRoleBasePath';
 import Can from '../../../utils/Can';
 
 export default function CategoryPage() {
-  const basePath = useRoleBasePath();
   const [searchParams, setSearchParams] = useSearchParams();
 
   // URL-driven state
@@ -325,7 +323,7 @@ export default function CategoryPage() {
 
                 <Can permission="category.update">
                   <Link
-                    to={`${basePath}/category/edit/${cat.id}`}
+                    to={`/app/category/edit/${cat.id}`}
                     className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md text-gray-500 hover:text-blue-600 transition-colors inline-block"
                     title="Edit"
                   >
@@ -365,7 +363,7 @@ export default function CategoryPage() {
         </div>
         <Can permission="category.create">
           <Link
-            to={`${basePath}/category/create`}
+            to={"/app/category/create"}
             className="flex items-center gap-2 px-2 py-2 md:px-4 md:py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-sm text-xs lg:text-sm font-semibold transition-all active:scale-95 self-end md:self-auto"
           >
             <Tag className="w-4 h-4 stroke-[2.5]" />

@@ -17,7 +17,6 @@ import { formatTime } from '../../../utils/formatTime';
 import api from '../../../services/api';
 import toast from 'react-hot-toast';
 import { useFormatPrice } from '../../../contexts/useFormatPrice';
-import { useRoleBasePath } from '../../../utils/useRoleBasePath';
 import ConfirmationModal from '../../../components/common/ConfirmationModal';
 
 const DateInputButton = forwardRef(({ value, onClick, label }, ref) => (
@@ -33,7 +32,6 @@ const DateInputButton = forwardRef(({ value, onClick, label }, ref) => (
 ));
 
 export default function Orders() {
-  const basePath = useRoleBasePath();
   const [searchParams, setSearchParams] = useSearchParams();
   const { formatPrice, currency } = useFormatPrice();
 
@@ -434,7 +432,7 @@ export default function Orders() {
                     </div>
 
                     <Link
-                      to={`${basePath}/orders-details/${order.id}`}
+                      to={`/app/orders-details/${order.id}`}
                       className="p-2 text-gray-400 hover:text-gray-700 dark:hover:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-md transition-colors shrink-0"
                       title="View Order Details"
                     >

@@ -65,7 +65,7 @@ const [formData, setFormData] = useState({
       });
 
       toast.success(response?.data?.message);
-       navigate(`${basePath}/menu-items`);
+       navigate("/app/menu-items");
     } catch (err) {
       toast.error(err.response?.data?.message);
     } finally {

@@ -10,7 +10,7 @@ import LoadingScreen from '../../../components/common/LoadingScreen';
 export default function EditMenu() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const basePath = useRoleBasePath();
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [imagePreview, setImagePreview] = useState(null);
@@ -107,7 +107,7 @@ export default function EditMenu() {
       });
 
       toast.success(response?.data?.message);
-      navigate(`${basePath}/menu-items`);
+      navigate("/app/menu-items");
     } catch (err) {
       toast.error(err.response?.data?.message);
     } finally {
