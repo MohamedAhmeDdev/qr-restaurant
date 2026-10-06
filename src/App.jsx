@@ -5,11 +5,9 @@ import { createBrowserRouter, RouterProvider, Outlet, Navigate } from 'react-rou
 import { AuthProvider } from './contexts/AuthContext';
 
 // Route Modules
-import { AdminRoutes } from './pages/Layouts/routes/AdminRoutes';
+
 import { SuperAdminRoutes } from './pages/Layouts/routes/SuperAdminRoutes';
-import { CashierRoutes } from './pages/Layouts/routes/CashierRoutes';
-import { ManagerRoutes } from './pages/Layouts/routes/ManagerRoutes';
-import { WaiterRoutes } from './pages/Layouts/routes/WaiterRoutes';
+
 
 
 // Public Customer Pages
@@ -27,6 +25,8 @@ import { RestaurantProvider } from './contexts/RestaurantContext';
 import RestoreOrganizations from './pages/authentication/RestoreOrganizations';
 import { CartProvider } from './contexts/CartContext';
 import CustomerLayout from './pages/customer/CustomerLayout';
+import { RestaurantAppRoutes } from './pages/Layouts/routes/RestaurantAppRoutes';
+import { RestaurantSelectorRoutes } from './pages/Layouts/routes/RestaurantSelectorRoutes';
 
 
 const router = createBrowserRouter([
@@ -39,10 +39,10 @@ const router = createBrowserRouter([
 
   // 2. PROTECTED ADMIN & STAFF MODULES (Auth Guards handle these internally)
   SuperAdminRoutes,
-  AdminRoutes,
-  ManagerRoutes,
-  CashierRoutes,
-  WaiterRoutes,
+
+
+   RestaurantSelectorRoutes,
+    RestaurantAppRoutes,
 
   // 3. 100% PUBLIC TENANT CUSTOMER ROUTES (No login check)
   {
