@@ -4,12 +4,10 @@ import toast from 'react-hot-toast';
 import api from '../../../services/api';
 import LoadingScreen from '../../../components/common/LoadingScreen';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useRoleBasePath } from '../../../utils/useRoleBasePath';
 
 export default function EditCategory() {
   const { id } = useParams();
     const navigate = useNavigate();
-  const basePath = useRoleBasePath();
   const [isSubmitting, setIsSubmitting] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
   const [errors, setErrors] = useState({});
@@ -74,7 +72,7 @@ export default function EditCategory() {
 
       const response = await api.put(`/categories/${id}`, payload);
       toast.success(response?.data?.message);
-      navigate(`${basePath}/categories`);
+      navigate("/app/categories");
     } catch (err) {
       toast.error(err.response?.data?.message);
     } finally {

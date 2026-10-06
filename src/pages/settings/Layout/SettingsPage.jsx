@@ -17,7 +17,7 @@ export default function SettingsPage() {
   const { user } = useAuth();
 
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-950 text-gray-900 dark:text-slate-100 transition-colors duration-200">
+    <div className="p-1 sm:p-4 space-y-6 bg-gray-50 dark:bg-slate-950 min-h-screen text-gray-900 dark:text-slate-100 transition-colors duration-200">
 
 
       <div className="max-w-6xl mx-auto px-3 py-3">

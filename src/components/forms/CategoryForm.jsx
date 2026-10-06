@@ -1,6 +1,5 @@
 import React from 'react';
 import { ArrowLeft, LayoutGrid, Save } from 'lucide-react';
-import { useRoleBasePath } from '../../utils/useRoleBasePath';
 import { useNavigate } from 'react-router-dom';
 
 export default function CategoryForm({
@@ -14,7 +13,6 @@ export default function CategoryForm({
   isEdit = false
 }) {
   const navigate = useNavigate();
-  const basePath = useRoleBasePath();
 
   const handleChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -22,7 +20,7 @@ export default function CategoryForm({
   };
 
   const handleCancel = () => {
-    navigate(`${basePath}/categories`);
+    navigate("/app/categories");
   };
 
 

@@ -27,6 +27,8 @@ export default function RestaurantCard({
     onSwitchRestaurant,
     pendingAction,
 }) {
+    console.log(restaurant);
+    
     const navigate = useNavigate();
 
     return (

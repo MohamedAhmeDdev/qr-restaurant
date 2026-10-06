@@ -4,12 +4,10 @@ import TableForm from '../../../components/forms/TableForm';
 import toast from 'react-hot-toast';
 import api from '../../../services/api';
 import LoadingScreen from '../../../components/common/LoadingScreen';
-import { useRoleBasePath } from '../../../utils/useRoleBasePath';
 
 export default function EditTable() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const basePath = useRoleBasePath();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [errors, setErrors] = useState({});
@@ -72,7 +70,7 @@ export default function EditTable() {
 
       const response = await api.put(`/tables/${id}`, payload);
       toast.success(response?.data?.message);
-      navigate(`${basePath}/table`);
+      navigate("/app/table");
     } catch (err) {
       toast.error(err.response?.data?.message);
     } finally {

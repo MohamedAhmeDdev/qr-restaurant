@@ -1,7 +1,6 @@
 import React from 'react';
-import { Plus, Trash2, DollarSign, Save, Layers, AlertCircle, Power, PowerOff, ArrowLeft } from 'lucide-react';
+import { Plus, Trash2, DollarSign, Save, Layers, AlertCircle, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useRoleBasePath } from '../../utils/useRoleBasePath';
 
 export default function ModifierGroupForm({
   formData,
@@ -14,7 +13,6 @@ export default function ModifierGroupForm({
   isEdit = false
 }) {
   const navigate = useNavigate();
-  const basePath = useRoleBasePath();
 
   const handleChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -42,7 +40,7 @@ export default function ModifierGroupForm({
   };
 
   const handleCancel = () => {
-    navigate(`${basePath}/modifier-groups`);
+    navigate("/app/modifier-groups");
   };
 
   return (

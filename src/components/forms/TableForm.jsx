@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LayoutGrid, Users, Hash, Save, ArrowLeft } from 'lucide-react';
-import { useRoleBasePath } from '../../utils/useRoleBasePath';
+
 export default function TableForm({
   formData,
   setFormData,
@@ -14,7 +14,6 @@ export default function TableForm({
 }) {
 
   const navigate = useNavigate();
-  const basePath = useRoleBasePath();
 
   const handleChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -22,7 +21,7 @@ export default function TableForm({
   };
 
   const handleCancel = () => {
-    navigate(`${basePath}/table`);
+    navigate("/app/table");
   };
 
   return (

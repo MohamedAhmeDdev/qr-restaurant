@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { UserPlus, Mail, Save, ArrowLeft } from 'lucide-react';
+import { Mail, Save, ArrowLeft } from 'lucide-react';
 import RoleService from '../../services/Roles';
 import { useNavigate } from 'react-router-dom';
-import { useRoleBasePath } from '../../utils/useRoleBasePath';
 
 export default function StaffForm({
   formData,
@@ -16,7 +15,6 @@ export default function StaffForm({
 }) {
   const [roles, setRoles] = useState([]);
   const navigate = useNavigate();
-  const basePath = useRoleBasePath();
 
   useEffect(() => {
     RoleService.getRoles()
@@ -36,7 +34,7 @@ export default function StaffForm({
 
 
   const handleCancel = () => {
-    navigate(`${basePath}/staff`);
+    navigate("/app/staff");
   };
 
   return (

@@ -1,10 +1,7 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
 import StaffForm from '../../../components/forms/StaffForm';
 import toast from 'react-hot-toast';
 import api from '../../../services/api';
-import { useRoleBasePath } from '../../../utils/useRoleBasePath';
 
 export default function CreateStaff() {
 
@@ -65,7 +62,7 @@ export default function CreateStaff() {
 
       const response = await api.post('/staff', payload);
       toast.success(response?.data?.message);
-       navigate(`${basePath}/staff`);
+       navigate("/app/staff");
     } catch (err) {
       toast.error(err.response?.data?.message);
     } finally {

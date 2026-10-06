@@ -14,12 +14,10 @@ import api from '../../../services/api';
 import { getImageUrl } from '../../../utils/getImageUrl';
 import StatusBadge from '../../../components/common/StatusBadge';
 import { useFormatPrice } from '../../../contexts/useFormatPrice';
-import { useRoleBasePath } from '../../../utils/useRoleBasePath';
 import Can from '../../../utils/Can';
 
 export default function MenuItemsDetails() {
   const { id } = useParams();
-  const basePath = useRoleBasePath();
   const navigate = useNavigate();
   const { formatPrice } = useFormatPrice();
   const [item, setItem] = useState(null);
@@ -162,7 +160,7 @@ export default function MenuItemsDetails() {
             <Can permission="menu.update">
               <button
                 type="button"
-                onClick={() => navigate(`${basePath}/menu-items/edit/${id}`)}
+                onClick={() => navigate(`/app/menu-items/edit/${id}`)}
                 className="inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-all"
               >
                 <Edit className="w-4 h-4 text-slate-500 dark:text-slate-400" />

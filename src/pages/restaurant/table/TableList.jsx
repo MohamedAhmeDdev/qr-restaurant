@@ -13,12 +13,10 @@ import StatusBadge from '../../../components/common/StatusBadge';
 import ConfirmationModal from '../../../components/common/ConfirmationModal';
 import api from '../../../services/api';
 import toast from 'react-hot-toast';
-import { useRoleBasePath } from '../../../utils/useRoleBasePath';
 import Can from '../../../utils/Can';
 
 export default function TableList() {
   const navigate = useNavigate();
-  const basePath = useRoleBasePath();
   const [searchParams, setSearchParams] = useSearchParams();
 
   // URL-driven state
@@ -256,7 +254,7 @@ export default function TableList() {
         </div>
         <Can permission="table.create">
           <button
-            onClick={() => navigate(`${basePath}/table/create`)}
+            onClick={() => navigate("/app/table/create")}
             className="flex items-center gap-2 px-2 py-2 md:px-4 md:py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-sm text-xs lg:text-sm font-semibold transition-all active:scale-95 self-end md:self-auto"
           >
             <QrCode className="w-4 h-4" /> Add New Table
@@ -471,7 +469,7 @@ export default function TableList() {
                         ) : (
                           <>
                             <Can permission="table.update">
-                              <Link to={`${basePath}/table/edit/${table.id}`} onClick={(e) => e.stopPropagation()}>
+                              <Link to={`/app/table/edit/${table.id}`} onClick={(e) => e.stopPropagation()}>
                                 <button
                                   className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md text-gray-500 hover:text-blue-600 transition-colors inline-block"
                                   title="Edit"

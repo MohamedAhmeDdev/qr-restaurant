@@ -42,7 +42,7 @@ export default function CreateTable() {
 
       const response = await api.post('/tables', payload);
       toast.success(response?.data?.message);
-      navigate(`${basePath}/table`);
+      navigate("/app/table");
     } catch (err) {
       toast.error(err.response?.data?.message);
     } finally {

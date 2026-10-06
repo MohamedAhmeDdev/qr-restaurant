@@ -44,7 +44,7 @@ export default function CreateCategory() {
 
       const response = await api.post('/categories', payload);
       toast.success(response?.data?.message);
-      navigate(`${basePath}/categories`);
+      navigate("/app/categories");
     } catch (err) {
       toast.error(err.response?.data?.message);
     } finally {
